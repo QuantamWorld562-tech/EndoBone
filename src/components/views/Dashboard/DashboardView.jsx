@@ -165,11 +165,9 @@ export default function DashboardView({ onSelectPatient }) {
             </button>
           </div>
           <div className="divide-y divide-slate-100">
-            {loading && <div className="p-10 text-center text-slate-500 text-sm">Loading cases...</div>}
-            {!loading && filteredPatients.length === 0 && (
-              <div className="p-10 text-center text-slate-500 text-sm">No matching patients.</div>
-            )}
-            {!loading &&
+            {filteredPatients.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 text-sm">No matching patients found.</div>
+            ) : (
               filteredPatients.map((p) => {
                 const badge = getRiskBadge(p.status);
                 return (
@@ -213,7 +211,8 @@ export default function DashboardView({ onSelectPatient }) {
                     </div>
                   </button>
                 );
-              })}
+              })
+            )}
           </div>
         </div>
 
