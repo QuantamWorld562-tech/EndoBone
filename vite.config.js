@@ -5,6 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  assetsInclude: ['**/*.glb', '**/*.gltf'],
   
   server: {
     port: 5173,
@@ -74,7 +75,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['react', 'react-dom', 'lucide-react'],
+    include: ['react', 'react-dom', 'lucide-react', 'three', '@react-three/fiber', '@react-three/drei'],
     exclude: ['@vite/preload-helper'],
   },
 

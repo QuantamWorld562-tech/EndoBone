@@ -1,160 +1,194 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  Move,
   Maximize2,
+  Minimize2,
+  RotateCw,
   Activity,
   AlertTriangle,
   FileDown,
-  ChevronDown,
   Layers,
+  Bone,
+  Eye,
+  ChevronRight,
+  Play,
+  Pause,
+  Grid,
+  Sparkles,
+  Compass,
 } from 'lucide-react';
 import { useRegionalAnalysis } from '../../../hooks';
 import { regionalAnalysisDB } from '../../../data/mockData';
+import BoneModelViewer from './BoneModelViewer';
 
-function FemurSVG({ heatmap, selectedRegion, onRegionClick }) {
+// ─────────────────────────────────────────────────────────────
+// Bone Model Registry
+// ─────────────────────────────────────────────────────────────
+const BONE_MODELS = [
+  {
+    id: 'skeleton',
+    label: 'Full Skeleton',
+    emoji: '🦴',
+    path: '/models/skeleton.glb',
+    regionKey: 'proximal-femur',
+    category: 'Systemic',
+    note: 'Whole body axial & appendicular system',
+  },
+  {
+    id: 'femur',
+    label: 'Femur (Thigh)',
+    emoji: '🦵',
+    path: '/models/femur.glb',
+    regionKey: 'proximal-femur',
+    category: 'Lower Limb',
+    note: 'Femoral head, neck, trochanter & shaft',
+  },
+  {
+    id: 'tibia',
+    label: 'Tibia & Fibula',
+    emoji: '🦵',
+    path: '/models/tibia.glb',
+    regionKey: 'distal-radius',
+    category: 'Lower Limb',
+    note: 'Weight-bearing tibial plateau & shaft',
+  },
+  {
+    id: 'skull',
+    label: 'Skull / Cranium',
+    emoji: '💀',
+    path: '/models/skull.glb',
+    regionKey: 'vertebral-body',
+    category: 'Axial Skeleton',
+    note: 'Complete cranial vault and facial skeleton',
+  },
+  {
+    id: 'hand',
+    label: 'Upper Extremity',
+    emoji: '💪',
+    path: '/models/hand.glb',
+    regionKey: 'distal-radius',
+    category: 'Upper Limb',
+    note: 'Left arm, radius, ulna and humerus',
+  },
+  {
+    id: 'spine',
+    label: 'Lumbar Spine',
+    emoji: '🪱',
+    path: '/models/spine.glb',
+    regionKey: 'vertebral-body',
+    category: 'Spine',
+    note: 'L1–L5 lumbar vertebral bodies & pedicles',
+  },
+  {
+    id: 'ribcage',
+    label: 'Thoracic Ribcage',
+    emoji: '🪱',
+    path: '/models/ribcage.glb',
+    regionKey: 'vertebral-body',
+    category: 'Thorax',
+    note: 'True, false ribs & costal cartilage frame',
+  },
+  {
+    id: 'pelvis-m',
+    label: 'Male Pelvis',
+    emoji: '🦴',
+    path: '/models/pelvis_male.glb',
+    regionKey: 'femoral-neck',
+    category: 'Pelvic Girdle',
+    note: 'Ilium, ischium, pubis & acetabulum',
+  },
+  {
+    id: 'pelvis-f',
+    label: 'Female Pelvis',
+    emoji: '🦴',
+    path: '/models/pelvis_female.glb',
+    regionKey: 'femoral-neck',
+    category: 'Pelvic Girdle',
+    note: 'Gynecoid pelvic inlet & iliac crest',
+  },
+];
+
+// ─────────────────────────────────────────────────────────────
+// Model Tab Component
+// ─────────────────────────────────────────────────────────────
+function ModelTab({ model, isActive, onClick }) {
   return (
-    <svg viewBox="0 0 400 500" className="w-full h-full max-h-[520px]">
-      <defs>
-        <linearGradient id="boneOuter" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.95" />
-          <stop offset="50%" stopColor="#93c5fd" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.9" />
-        </linearGradient>
-        <linearGradient id="boneInner" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#eff6ff" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#bfdbfe" stopOpacity="0.8" />
-        </linearGradient>
-        <radialGradient id="trabecular" cx="0.65" cy="0.35" r="0.4">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.65" />
-          <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.05" />
-        </radialGradient>
-        <radialGradient id="heatGrad" cx="0.7" cy="0.3" r="0.45">
-          <stop offset="0%" stopColor="#dc2626" stopOpacity="0.85" />
-          <stop offset="40%" stopColor="#f59e0b" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0.15" />
-        </radialGradient>
-        <pattern id="trabPattern" width="12" height="12" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="0.9" fill="#ffffff" opacity="0.5" />
-          <circle cx="8" cy="6" r="0.6" fill="#ffffff" opacity="0.35" />
-          <circle cx="5" cy="10" r="0.5" fill="#ffffff" opacity="0.4" />
-        </pattern>
-      </defs>
-
-      <ellipse cx="275" cy="90" rx="70" ry="55" fill="url(#boneOuter)" stroke="#3b82f6" strokeWidth="1.2" opacity="0.95" />
-      <ellipse cx="275" cy="90" rx="55" ry="42" fill="url(#trabecular)" opacity="0.9" />
-      <ellipse cx="275" cy="90" rx="55" ry="42" fill="url(#trabPattern)" opacity="0.85" />
-      {selectedRegion === 'proximal-femur' && (
-        <ellipse cx="275" cy="90" rx="72" ry="57" fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="6 4">
-          <animate attributeName="stroke-dashoffset" from="20" to="0" dur="1s" repeatCount="indefinite" />
-        </ellipse>
-      )}
-
-      <path
-        d="M 255 125 C 230 145, 205 170, 198 205 C 190 250, 195 300, 200 340 L 205 430 C 207 455, 195 470, 180 475 L 155 480 C 148 480, 145 474, 150 468 L 165 445 C 170 435, 168 425, 165 415 L 162 320 C 155 260, 158 200, 175 150 C 182 130, 200 115, 215 108 C 225 120, 242 122, 255 125 Z"
-        fill="url(#boneOuter)"
-        stroke="#3b82f6"
-        strokeWidth="1.2"
-        opacity="0.98"
-      />
-      <path
-        d="M 230 140 C 215 155, 205 175, 202 200 C 198 240, 202 285, 207 325 L 210 415 C 211 435, 206 450, 198 460"
-        fill="none"
-        stroke="#bfdbfe"
-        strokeWidth="2"
-        opacity="0.8"
-        strokeDasharray="3 5"
-      />
-
-      {heatmap ? (
-        <>
-          <ellipse cx="275" cy="90" rx="70" ry="55" fill="url(#heatGrad)" opacity="0.9" />
-          <path
-            d="M 255 125 C 230 145, 205 170, 198 205 C 190 250, 195 300, 200 340 L 205 430"
-            fill="none"
-            stroke="#f59e0b"
-            strokeWidth="8"
-            opacity="0.25"
-            strokeLinecap="round"
-          />
-        </>
-      ) : (
-        <ellipse cx="275" cy="90" rx="55" ry="42" fill="url(#trabPattern)" opacity="0.8" />
-      )}
-
-      <g style={{ cursor: 'pointer' }} onClick={() => onRegionClick('proximal-femur')}>
-        <circle cx="275" cy="90" r="0" fill="transparent" />
-      </g>
-      <g style={{ cursor: 'pointer' }} onClick={() => onRegionClick('vertebral-body')}>
-        <circle cx="200" cy="300" r="0" fill="transparent" />
-      </g>
-
-      <g opacity="0.9">
-        <line x1="360" y1="50" x2="360" y2="135" stroke="#f87171" strokeWidth="2.5" />
-        <line x1="356" y1="50" x2="364" y2="50" stroke="#f87171" strokeWidth="2.5" />
-        <line x1="356" y1="135" x2="364" y2="135" stroke="#f87171" strokeWidth="2.5" />
-        <text x="370" y="95" fontSize="11" fill="#ef4444" fontWeight="bold" fontFamily="system-ui">
-          1.2 mm
-        </text>
-        <text x="370" y="108" fontSize="10" fill="#ef4444" fontWeight="600" fontFamily="system-ui" opacity="0.9">
-          (normal 3.0)
-        </text>
-      </g>
-
-      <text x="200" y="320" fontSize="13" fill="#1d4ed8" fontWeight="700" fontFamily="system-ui" opacity="0.85">
-        Femoral Shaft
-      </text>
-      <text x="240" y="60" fontSize="13" fill="#1d4ed8" fontWeight="700" fontFamily="system-ui" opacity="0.85">
-        Femoral Head / Neck
-      </text>
-
-      {selectedRegion === 'proximal-femur' && (
-        <g>
-          <line x1="275" y1="150" x2="275" y2="200" stroke="#1e40af" strokeWidth="1.5" strokeDasharray="3 3" />
-          <polygon points="275,200 270,190 280,190" fill="#1e40af" />
-        </g>
-      )}
-    </svg>
+    <button
+      onClick={onClick}
+      title={model.note}
+      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+        isActive
+          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-[1.03] ring-2 ring-blue-400/40'
+          : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50'
+      }`}
+    >
+      <span className="text-sm leading-none group-hover:scale-110 transition-transform">{model.emoji}</span>
+      <span>{model.label}</span>
+    </button>
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+// Main Planning3D View Component
+// ─────────────────────────────────────────────────────────────
 export default function Planning3DView({ patientId }) {
   const params = useParams();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
   const regions = regionalAnalysisDB[effectivePatientId] || {};
   const regionKeys = Object.keys(regions);
-  const [viewMode, setViewMode] = useState('anatomical');
-  const [zoom, setZoom] = useState(1);
+
+  const [selectedModelId, setSelectedModelId] = useState('femur');
+  const [renderMode, setRenderMode] = useState('anatomical'); // 'anatomical' | 'heatmap' | 'xray' | 'wireframe'
+  const [viewAngle, setViewAngle] = useState('3d'); // '3d' | 'coronal' | 'sagittal' | 'axial'
+  const [autoRotate, setAutoRotate] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewerKey, setViewerKey] = useState(0);
+
+  const controlsRef = useRef(null);
+
+  const activeModel = BONE_MODELS.find((m) => m.id === selectedModelId) || BONE_MODELS[0];
 
   const { selectedRegion, regionData, selectRegion } = useRegionalAnalysis(
     effectivePatientId,
-    regionKeys[0] || 'proximal-femur'
+    activeModel.regionKey || regionKeys[0] || 'proximal-femur'
   );
 
+  const handleModelSelect = useCallback((modelId) => {
+    setSelectedModelId(modelId);
+    setViewerKey((k) => k + 1);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setViewAngle('3d');
+    setViewerKey((k) => k + 1);
+  }, []);
+
   if (!regionData) {
-    return <div className="p-10 text-center text-slate-500">Loading 3D planning data...</div>;
+    return (
+      <div className="p-10 text-center text-slate-500 flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+        <span>Loading 3D planning data…</span>
+      </div>
+    );
   }
 
   const statusColor = {
     high: {
-      card: 'bg-red-50 border-red-200 ring-red-200',
+      card: 'bg-red-50/80 border-red-200 ring-red-200',
       text: 'text-red-700',
       chip: 'bg-red-100 text-red-700 ring-red-200',
       dot: 'bg-red-600',
       value: 'text-red-600',
     },
     moderate: {
-      card: 'bg-amber-50 border-amber-200 ring-amber-200',
+      card: 'bg-amber-50/80 border-amber-200 ring-amber-200',
       text: 'text-amber-700',
       chip: 'bg-amber-100 text-amber-700 ring-amber-200',
       dot: 'bg-amber-500',
       value: 'text-amber-600',
     },
     low: {
-      card: 'bg-teal-50 border-teal-200 ring-teal-200',
+      card: 'bg-teal-50/80 border-teal-200 ring-teal-200',
       text: 'text-teal-700',
       chip: 'bg-teal-100 text-teal-700 ring-teal-200',
       dot: 'bg-teal-500',
@@ -163,196 +197,292 @@ export default function Planning3DView({ patientId }) {
   }[regionData.riskLevel || 'moderate'];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
+      {/* ── Header ───────────────────────────────────────────── */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">3D Planning</h2>
-          <p className="text-slate-600 mt-1 text-base">Interactive anatomical visualization and regional analysis.</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">3D Anatomical Planning</h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-blue-100 text-blue-800">
+              Interactive GLB
+            </span>
+          </div>
+          <p className="text-slate-600 mt-1 text-sm">
+            High-fidelity 3D bone models with auto-normalization, multi-plane slicing, and metabolic risk overlays.
+          </p>
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-slate-500 font-semibold">View</span>
-            <ChevronDown size={14} className="text-slate-400" />
+        <div className="flex items-center gap-2 text-xs">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-emerald-700 font-semibold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            3D WebGL Engine Active
+          </span>
+        </div>
+      </div>
+
+      {/* ── Model Selection Strip ───────────────────────────────── */}
+      <div className="bg-slate-950 rounded-2xl border border-slate-800 px-4 py-3 shadow-xl">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-700">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap pl-1">
+            <Bone size={14} className="text-blue-400" />
+            <span>Select Model:</span>
+          </div>
+          <div className="w-px h-6 bg-slate-800" />
+          <div className="flex items-center gap-2 flex-nowrap">
+            {BONE_MODELS.map((model) => (
+              <ModelTab
+                key={model.id}
+                model={model}
+                isActive={selectedModelId === model.id}
+                onClick={() => handleModelSelect(model.id)}
+              />
+            ))}
           </div>
         </div>
       </div>
 
+      {/* ── Main Workspace Grid ───────────────────────────────────── */}
       <div className="grid lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="px-5 py-3 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+        {/* 3D Viewport Column */}
+        <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-3'} space-y-4`}>
+          <div className={`bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col ${isFullscreen ? 'h-full' : ''}`}>
+            
+            {/* Top Toolbar: Render Modes & Anatomical Planes */}
+            <div className="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              
+              {/* Shading / Diagnostic Mode */}
+              <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
                 <button
-                  onClick={() => setViewMode('anatomical')}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${
-                    viewMode === 'anatomical'
-                      ? 'bg-white text-blue-700 shadow-sm ring-2 ring-blue-200'
-                      : 'text-slate-600 hover:bg-white/60'
+                  onClick={() => setRenderMode('anatomical')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    renderMode === 'anatomical'
+                      ? 'bg-blue-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Layers size={15} />
-                  Standard Anatomical View
+                  <Layers size={13} />
+                  Anatomical
                 </button>
                 <button
-                  onClick={() => setViewMode('heatmap')}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${
-                    viewMode === 'heatmap'
-                      ? 'bg-white text-amber-700 shadow-sm ring-2 ring-amber-200'
-                      : 'text-slate-600 hover:bg-white/60'
+                  onClick={() => setRenderMode('heatmap')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    renderMode === 'heatmap'
+                      ? 'bg-amber-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Activity size={15} />
-                  Metabolic Risk Heatmap
-                  <span className="flex items-center gap-0.5 ml-1">
-                    <span className="w-3 h-3 rounded-sm bg-teal-400" />
-                    <span className="w-3 h-3 rounded-sm bg-amber-400" />
-                    <span className="w-3 h-3 rounded-sm bg-red-500" />
-                  </span>
+                  <Activity size={13} />
+                  Risk Heatmap
+                </button>
+                <button
+                  onClick={() => setRenderMode('xray')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    renderMode === 'xray'
+                      ? 'bg-cyan-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Sparkles size={13} />
+                  Radiograph (X-Ray)
+                </button>
+                <button
+                  onClick={() => setRenderMode('wireframe')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
+                    renderMode === 'wireframe'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Grid size={13} />
+                  Mesh
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Interactive Model Loaded
+
+              {/* Anatomical Camera Planes */}
+              <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
+                <span className="text-[11px] font-bold text-slate-500 px-2 flex items-center gap-1">
+                  <Compass size={12} />
+                  Plane:
                 </span>
-              </div>
-            </div>
-
-            <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-[560px] overflow-hidden">
-              <div
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px)',
-                  backgroundSize: '40px 40px',
-                }}
-              />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(59,130,246,0.25),transparent_60%)]" />
-
-              <div
-                className="relative w-full h-full flex items-center justify-center transition-transform duration-300 p-8"
-                style={{ transform: `scale(${zoom})` }}
-              >
-                <FemurSVG
-                  heatmap={viewMode === 'heatmap'}
-                  selectedRegion={selectedRegion}
-                  onRegionClick={selectRegion}
-                />
-              </div>
-
-              <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur rounded-2xl shadow-xl overflow-hidden p-2 ring-1 ring-slate-200">
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { icon: ZoomIn, title: 'Zoom In', action: () => setZoom((z) => Math.min(z + 0.15, 2)) },
-                    { icon: ZoomOut, title: 'Zoom Out', action: () => setZoom((z) => Math.max(z - 0.15, 0.6)) },
-                    { icon: Move, title: 'Pan / Rotate', action: null },
-                    { icon: RotateCw, title: 'Reset View', action: () => setZoom(1) },
-                    { icon: Maximize2, title: 'Fullscreen', action: null, colSpan: true },
-                  ].map((b, i) => (
-                    <button
-                      key={i}
-                      title={b.title}
-                      onClick={b.action}
-                      className={`p-2.5 hover:bg-blue-50 rounded-xl text-slate-600 hover:text-blue-600 transition ${
-                        b.colSpan ? 'col-span-2' : ''
-                      }`}
-                    >
-                      <b.icon size={17} strokeWidth={2} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="absolute top-5 left-5 flex flex-col gap-2">
-                {['Axial (3D)', 'Sagittal', 'Coronal'].map((label, i) => (
+                {[
+                  { id: '3d', label: '3D View' },
+                  { id: 'coronal', label: 'Coronal (Front)' },
+                  { id: 'sagittal', label: 'Sagittal (Side)' },
+                  { id: 'axial', label: 'Axial (Top)' },
+                ].map((plane) => (
                   <button
-                    key={label}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                      i === 0
-                        ? 'bg-white/95 text-blue-700 shadow'
-                        : 'bg-slate-900/60 text-slate-300 hover:bg-slate-900/80'
+                    key={plane.id}
+                    onClick={() => setViewAngle(plane.id)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                      viewAngle === plane.id
+                        ? 'bg-white/20 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    {label}
+                    {plane.label}
                   </button>
                 ))}
               </div>
+            </div>
 
-              <div className="absolute top-5 right-5 bg-slate-900/70 backdrop-blur rounded-xl px-3 py-2 border border-slate-700/50 text-xs text-slate-300 font-semibold">
-                Zoom: {Math.round(zoom * 100)}%
+            {/* 3D Canvas Container */}
+            <div
+              className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden flex-1"
+              style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '560px' }}
+            >
+              {/* Background Grid & Lighting Vignette */}
+              <div
+                className="absolute inset-0 opacity-10 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)',
+                  backgroundSize: '40px 40px',
+                }}
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(37,99,235,0.15),transparent_70%)] pointer-events-none" />
+
+              {/* Three.js Canvas */}
+              <BoneModelViewer
+                key={`${selectedModelId}-${viewerKey}`}
+                modelPath={activeModel.path}
+                modelLabel={activeModel.label}
+                viewAngle={viewAngle}
+                heatmap={renderMode === 'heatmap'}
+                xray={renderMode === 'xray'}
+                wireframe={renderMode === 'wireframe'}
+                autoRotate={autoRotate}
+                onResetRef={(node) => {
+                  controlsRef.current = node;
+                }}
+              />
+
+              {/* Floating Quick-Action Bar */}
+              <div className="absolute bottom-4 left-4 flex items-center gap-2 z-10">
+                <div className="flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700/80 shadow-2xl text-slate-300">
+                  <button
+                    onClick={() => setAutoRotate((r) => !r)}
+                    title={autoRotate ? 'Pause Rotation' : 'Auto Rotate'}
+                    className={`p-2 rounded-xl transition ${
+                      autoRotate ? 'bg-blue-600 text-white' : 'hover:bg-slate-800 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    {autoRotate ? <Pause size={15} /> : <Play size={15} />}
+                  </button>
+
+                  <button
+                    onClick={handleReset}
+                    title="Reset View Orientation"
+                    className="p-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition"
+                  >
+                    <RotateCw size={15} />
+                  </button>
+
+                  <div className="w-px h-5 bg-slate-700 mx-0.5" />
+
+                  <button
+                    onClick={() => setIsFullscreen((f) => !f)}
+                    title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen 3D Viewer'}
+                    className="p-2 hover:bg-slate-800 rounded-xl text-slate-300 hover:text-white transition"
+                  >
+                    {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                  </button>
+                </div>
+
+                <div className="px-3 py-2 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 text-[11px] font-semibold text-slate-300 shadow-xl hidden sm:flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                  <span>Left Click: Rotate · Scroll: Zoom · Right Click: Pan</span>
+                </div>
+              </div>
+
+              {/* Active Model Indicator Tag */}
+              <div className="absolute top-4 right-4 z-10 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-xs text-slate-200 font-bold flex items-center gap-2 shadow-lg">
+                <Eye size={13} className="text-blue-400" />
+                <span>{activeModel.label}</span>
+                <span className="text-slate-500 font-normal">| {activeModel.category}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h3 className="text-lg font-extrabold text-slate-900 mb-4">Region Analysis</h3>
-            <p className="text-sm text-slate-500 font-medium mb-2">
-              Selected: <span className="font-bold text-blue-700">{regionData.location}</span>
-            </p>
-            <select
-              value={selectedRegion}
-              onChange={(e) => selectRegion(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
-            >
-              {regionKeys.map((k) => (
-                <option key={k} value={k}>
-                  {regions[k]?.location || k}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-slate-500 font-medium">
-              Anatomy: <span className="text-slate-700 font-bold">{regionData.anatomy}</span>
-            </p>
-          </div>
-
-          <div className={`rounded-2xl border-2 p-6 shadow-sm ${statusColor.card} ring-1`}>
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center ring-1 ring-slate-200">
-                <Activity size={18} className="text-blue-600" />
+        {/* Right Analysis Panel */}
+        {!isFullscreen && (
+          <div className="space-y-5">
+            {/* Region Analysis Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+              <h3 className="text-base font-extrabold text-slate-900 mb-3">Region Analysis</h3>
+              <p className="text-xs text-slate-500 font-medium mb-1.5">
+                Selected Anatomical ROI:
+              </p>
+              <select
+                value={selectedRegion}
+                onChange={(e) => selectRegion(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+              >
+                {regionKeys.map((k) => (
+                  <option key={k} value={k}>
+                    {regions[k]?.location || k}
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center justify-between text-xs font-semibold py-1.5 border-t border-slate-100">
+                <span className="text-slate-500">Target Anatomy:</span>
+                <span className="text-blue-700 font-bold">{regionData.anatomy}</span>
               </div>
-              <h4 className="font-extrabold text-slate-900">AI Observation</h4>
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{regionData.observation}</p>
-            <button className="text-blue-700 text-xs font-bold mt-3 hover:underline inline-flex items-center gap-1">
-              Review Data →
-            </button>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h4 className="text-base font-extrabold text-slate-900 mb-4">Volumetric Metrics</h4>
-            <div className="space-y-4">
-              {Object.entries(regionData.metrics || {}).map(([k, v]) => {
-                const key = k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
-                const isEstimated = k.toLowerCase().includes('strength') && regionData.riskLevel === 'high';
-                return (
-                  <div key={k} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                    <p className="text-xs text-slate-500 font-semibold mb-0.5">{key}</p>
-                    <p className={`text-lg font-black ${isEstimated ? statusColor.value : 'text-slate-900'}`}>{v}</p>
-                  </div>
-                );
-              })}
+            {/* AI Observation Card */}
+            <div className={`rounded-2xl border-2 p-5 shadow-sm ${statusColor.card} ring-1`}>
+              <div className="flex items-start gap-3 mb-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center ring-1 ring-slate-200 shrink-0">
+                  <Activity size={16} className="text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-900 text-sm">AI Diagnostic Insight</h4>
+                  <p className="text-[11px] font-bold text-slate-500">Volumetric Bone Density Risk</p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed">{regionData.observation}</p>
+              <button className="text-blue-700 text-xs font-bold mt-2.5 hover:underline inline-flex items-center gap-1">
+                Full Quantitative Report <ChevronRight size={12} />
+              </button>
             </div>
-          </div>
 
-          <div className={`rounded-2xl border-2 p-5 ring-1 ${statusColor.card}`}>
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={18} className={statusColor.text} />
-              <p className={`text-sm font-black ${statusColor.text}`}>
-                Regional Status: {regionData.status}
+            {/* Volumetric Metrics */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <h4 className="text-sm font-extrabold text-slate-900 mb-3">Volumetric Metrics</h4>
+              <div className="space-y-3">
+                {Object.entries(regionData.metrics || {}).map(([k, v]) => {
+                  const key = k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+                  const isEstimated = k.toLowerCase().includes('strength') && regionData.riskLevel === 'high';
+                  return (
+                    <div key={k} className="pb-2.5 border-b border-slate-100 last:border-0 last:pb-0 flex items-center justify-between">
+                      <p className="text-xs text-slate-500 font-semibold">{key}</p>
+                      <p className={`text-sm font-black ${isEstimated ? statusColor.value : 'text-slate-900'}`}>{v}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Regional Status */}
+            <div className={`rounded-2xl border-2 p-4 ring-1 ${statusColor.card}`}>
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} className={statusColor.text} />
+                <p className={`text-xs font-black ${statusColor.text}`}>
+                  Status: {regionData.status}
+                </p>
+              </div>
+              <p className={`text-[11px] font-semibold mt-1.5 ${statusColor.text} opacity-90`}>
+                {regionData.comparisonToPrevious}
               </p>
             </div>
-            <p className={`text-[11px] font-bold mt-2 ${statusColor.text} opacity-80`}>
-              {regionData.comparisonToPrevious}
-            </p>
-          </div>
 
-          <button className="w-full px-5 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
-            <FileDown size={17} />
-            Generate ROI Report
-          </button>
-        </div>
+            {/* Action CTA */}
+            <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+              <FileDown size={15} />
+              Export 3D Surgical ROI
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
