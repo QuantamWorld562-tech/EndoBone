@@ -1,15 +1,15 @@
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Search, Bell, Calendar, UserRound } from 'lucide-react';
-import { patients } from '../../data/mockData';
-import { usePatientData } from '../../hooks';
+import { usePatientContext } from '../../context/PatientDataContext';
 
 export default function TopBar({ onSelectPatient }) {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const currentPatientId = params.patientId || 'PEB-8842-A';
+  const { patients, setActivePatientId, activePatientId } = usePatientContext();
+  const currentPatientId = params.patientId || activePatientId || 'PEB-8842-A';
 
-  const { patient } = usePatientData(currentPatientId);
+  const patient = patients.find((p) => p.id === currentPatientId) || patients[0];
 
   const getCurrentTab = () => {
     const p = location.pathname;
@@ -21,6 +21,7 @@ export default function TopBar({ onSelectPatient }) {
   };
 
   const handlePatientChange = (newPatientId) => {
+    setActivePatientId(newPatientId);
     if (onSelectPatient) {
       onSelectPatient(newPatientId);
     }

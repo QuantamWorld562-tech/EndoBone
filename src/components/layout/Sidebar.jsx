@@ -9,6 +9,7 @@ import {
   Plus,
   Dna,
 } from 'lucide-react';
+import { usePatientContext } from '../../context/PatientDataContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard' },
@@ -22,7 +23,8 @@ export default function Sidebar({ onNewCase }) {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
-  const patientId = params.patientId || 'PEB-8842-A';
+  const { activePatientId, setIsNewCaseModalOpen } = usePatientContext();
+  const patientId = params.patientId || activePatientId || 'PEB-8842-A';
 
   const getActiveTab = () => {
     const pathname = location.pathname;
@@ -44,7 +46,7 @@ export default function Sidebar({ onNewCase }) {
     if (onNewCase) {
       onNewCase();
     } else {
-      navigate('/patients/PEB-8842-A/metabolic');
+      setIsNewCaseModalOpen(true);
     }
   };
 

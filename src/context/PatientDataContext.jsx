@@ -224,6 +224,10 @@ export function computeDynamicAssessment(patientId, biomarkers) {
 export function PatientDataProvider({ children }) {
   // Global state across patient views
   const [activePatientId, setActivePatientId] = useState('PEB-8842-A');
+  const [patientList, setPatientList] = useState(() => [...patients]);
+
+  // Modal open state for "New Case Analysis"
+  const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
 
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
@@ -239,6 +243,95 @@ export function PatientDataProvider({ children }) {
       'acetabulum': 'Adequate bone stock for cup seating. No structural augmentation needed.',
     },
   });
+
+  // Create and register a brand new patient case
+  const addNewCase = useCallback((newCase) => {
+    const patientId =
+      newCase.id ||
+      `PEB-${Math.floor(1000 + Math.random() * 9000)}-${(newCase.gender || 'F')[0].toUpperCase()}`;
+
+    const fullPatient = {
+      id: patientId,
+      name: newCase.name?.trim() || 'New Patient Case',
+      age: Number(newCase.age) || 58,
+      gender: newCase.gender || 'Female',
+      condition: newCase.condition || 'Pre-Surgical Bone Mineral Density Evaluation',
+      procedure: newCase.procedure || 'Posterior Lumbar Interbody Fusion (L4-L5)',
+      status: 'active',
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    setPatientList((prev) => [fullPatient, ...prev]);
+
+    const pthVal = Number(newCase.pth) || 72;
+    const vitDVal = Number(newCase.vitaminD) || 19;
+    const calcVal = Number(newCase.calcium) || 8.6;
+    const phosVal = Number(newCase.phosphate) || 3.2;
+    const alpVal = Number(newCase.alp) || 95;
+    const ctxVal = Number(newCase.ctx) || 380;
+
+    const initialBiomarkers = {
+      pth: {
+        value: pthVal,
+        unit: 'pg/mL',
+        ref: '15.0–65.0',
+        status: pthVal > 65 ? 'elevated' : pthVal < 15 ? 'low' : 'normal',
+        trend: 'up',
+      },
+      vitaminD: {
+        value: vitDVal,
+        unit: 'ng/mL',
+        ref: '30.0–100.0',
+        status: vitDVal < 20 ? 'deficient' : vitDVal < 30 ? 'low' : 'normal',
+        trend: 'down',
+      },
+      calcium: {
+        value: calcVal,
+        unit: 'mg/dL',
+        ref: '8.6–10.3',
+        status: calcVal < 8.6 ? 'low' : calcVal > 10.3 ? 'elevated' : 'normal',
+        trend: 'stable',
+      },
+      phosphate: {
+        value: phosVal,
+        unit: 'mg/dL',
+        ref: '2.5–4.5',
+        status: phosVal < 2.5 ? 'low' : phosVal > 4.5 ? 'elevated' : 'normal',
+        trend: 'stable',
+      },
+      alp: {
+        value: alpVal,
+        unit: 'U/L',
+        ref: '44–147',
+        status: alpVal > 147 ? 'elevated' : 'normal',
+        trend: 'stable',
+      },
+      ctx: {
+        value: ctxVal,
+        unit: 'pg/mL',
+        ref: '< 300',
+        status: ctxVal > 300 ? 'elevated' : 'normal',
+        trend: 'up',
+      },
+    };
+
+    setAllBiomarkers((prev) => ({
+      ...prev,
+      [patientId]: initialBiomarkers,
+    }));
+
+    if (newCase.initialNote) {
+      setRoiNotes((prev) => ({
+        ...prev,
+        [patientId]: {
+          'proximal-femur': newCase.initialNote,
+        },
+      }));
+    }
+
+    setActivePatientId(patientId);
+    return patientId;
+  }, []);
 
   // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
@@ -321,7 +414,11 @@ export function PatientDataProvider({ children }) {
   const value = {
     activePatientId,
     setActivePatientId,
-    patients,
+    patients: patientList,
+    patientList,
+    addNewCase,
+    isNewCaseModalOpen,
+    setIsNewCaseModalOpen,
     biomarkers: activeBiomarkers,
     allBiomarkers,
     updateBiomarker,

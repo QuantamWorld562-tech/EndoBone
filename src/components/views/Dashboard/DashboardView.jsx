@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -9,18 +10,33 @@ import {
   ArrowUpRight,
   Clock,
   UserRound,
+  Plus,
 } from 'lucide-react';
-import { usePatientList } from '../../../hooks';
+import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
   const handleSelectPatient = onSelectPatient || ((id) => navigate(`/patients/${id}/metabolic`));
-  const { filteredPatients, setSearchTerm, searchTerm, setStatusFilter, statusFilter, loading } =
-    usePatientList();
+  const { patients, setIsNewCaseModalOpen } = usePatientContext();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filteredPatients = useMemo(() => {
+    return patients.filter((p) => {
+      const matchSearch =
+        !searchTerm ||
+        p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.condition?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = statusFilter === 'all' || p.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [patients, searchTerm, statusFilter]);
 
   const activeCases = filteredPatients.filter((p) => p.status === 'active').length;
   const pendingReviews = filteredPatients.filter((p) => p.status === 'pending-review').length;
-  const highRiskCases = 5;
+  const highRiskCases = filteredPatients.length;
 
   const stats = [
     {
@@ -30,7 +46,7 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'blue',
       grad: 'from-blue-500 to-blue-700',
       bg: 'bg-blue-50',
-      val: 12,
+      val: activeCases || patients.length,
     },
     {
       label: 'Pending Reviews',
@@ -39,16 +55,16 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'amber',
       grad: 'from-amber-500 to-orange-600',
       bg: 'bg-amber-50',
-      val: 3,
+      val: pendingReviews || 1,
     },
     {
-      label: 'High Risk',
+      label: 'High Risk Profile',
       value: highRiskCases,
       icon: Activity,
       color: 'red',
       grad: 'from-red-500 to-red-700',
       bg: 'bg-red-50',
-      val: 5,
+      val: highRiskCases || 4,
     },
   ];
 
@@ -65,17 +81,17 @@ export default function DashboardView({ onSelectPatient }) {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Dashboard</h2>
           <p className="text-slate-600 mt-1 text-base">
-            Overview of active patient cases and recent AI assessments.
+            Overview of active patient cases, endocrine profiles, and AI assessments.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search patients..."
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+            placeholder="Search patients, conditions..."
+            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
           />
           <select
             value={statusFilter}
@@ -87,6 +103,14 @@ export default function DashboardView({ onSelectPatient }) {
             <option value="pending-review">Pending Review</option>
             <option value="completed">Completed</option>
           </select>
+
+          <button
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 flex items-center gap-2 transition"
+          >
+            <Plus size={16} />
+            New Case Analysis
+          </button>
         </div>
       </div>
 
