@@ -22,7 +22,7 @@ export default function LandingView({ onStart }) {
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 ">
-              <img src="/logo.png" alt="EndoBone AI" className="w-full h-full object-cover" />
+              <img src="/logo2.png" alt="EndoBone AI" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">EndoBone AI</h1>

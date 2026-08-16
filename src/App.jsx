@@ -12,28 +12,28 @@ import {
 
 export default function App() {
   return (
-    <PatientDataProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <PatientDataProvider>
         <Routes>
-        {/* Public Landing Page */}
-        <Route path="/" element={<LandingView />} />
+          {/* Public Landing Page */}
+          <Route path="/" element={<LandingView />} />
 
-        {/* Clinical Workspace Multipage App Layout */}
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<DashboardView />} />
-          <Route path="/patients/:patientId/dashboard" element={<DashboardView />} />
-          <Route path="/patients/:patientId/metabolic" element={<MetabolicContextView />} />
-          <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
-          <Route path="/patients/:patientId/planning" element={<Planning3DView />} />
-          <Route path="/patients/:patientId/summary" element={<PreSurgicalSummaryView />} />
-          <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
-          <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
-        </Route>
+          {/* Clinical Workspace Multipage App Layout */}
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<DashboardView />} />
+            <Route path="/patients/:patientId/dashboard" element={<DashboardView />} />
+            <Route path="/patients/:patientId/metabolic" element={<MetabolicContextView />} />
+            <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
+            <Route path="/patients/:patientId/planning" element={<Planning3DView />} />
+            <Route path="/patients/:patientId/summary" element={<PreSurgicalSummaryView />} />
+            <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
+            <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
+          </Route>
 
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </PatientDataProvider>
     </BrowserRouter>
-  </PatientDataProvider>
   );
 }

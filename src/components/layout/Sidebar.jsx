@@ -57,8 +57,8 @@ export default function Sidebar({ onNewCase }) {
           onClick={() => navigate('/')}
           className="flex items-center gap-3 text-left w-full group"
         >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden">
-              <img src="/logo.png" alt="EndoBone AI" className="w-full h-full object-cover" />
+            <div className="w-13 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform overflow-hidden">
+              <img src="/logo2.png" alt="EndoBone AI" className="w-full h-full object-cover" />
             </div>
           <div>
             <h2 className="font-bold text-slate-900 text-lg leading-tight group-hover:text-blue-600 transition-colors">
