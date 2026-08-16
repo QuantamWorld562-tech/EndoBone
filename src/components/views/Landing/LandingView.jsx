@@ -106,9 +106,9 @@ export default function LandingView({ onStart }) {
             <div className="absolute -top-10 -left-10 w-56 h-56 bg-blue-400/20 rounded-full blur-3xl" />
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl" />
 
-            <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-900/15 overflow-hidden border border-slate-200/80 transition-all duration-300 hover:shadow-blue-500/10">
+            <div className="relative bg-slate-950 rounded-3xl shadow-2xl shadow-slate-950/40 overflow-hidden border border-slate-800/90 transition-all duration-300 hover:shadow-blue-500/15">
               {/* Card Window Topbar */}
-              <div className="h-11 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center justify-between px-5 border-b border-slate-700/60">
+              <div className="h-11 bg-slate-900 flex items-center justify-between px-5 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-400/90" />
                   <div className="w-3 h-3 rounded-full bg-amber-400/90" />
@@ -122,29 +122,29 @@ export default function LandingView({ onStart }) {
               </div>
 
               {/* Main Image Container */}
-              <div className="p-4 bg-slate-950">
-                <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-inner group">
+              <div className="p-3 bg-slate-950">
+                <div className="relative rounded-2xl overflow-hidden border border-slate-800/80 shadow-2xl bg-slate-950 group">
                   <img
                     src="/hero-bone-display.png"
                     alt="EndoBone AI 3D Surgical Display"
-                    className="w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
+                    className="w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500 rounded-2xl block"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none rounded-2xl" />
                 </div>
 
                 {/* Sub-Metrics Strip */}
-                <div className="grid grid-cols-3 gap-3 mt-4">
-                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                <div className="grid grid-cols-3 gap-2.5 mt-3">
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800/80">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Overall Risk</div>
                     <div className="text-lg font-black text-red-400 mt-0.5 flex items-baseline gap-1">
                       75% <span className="text-[10px] font-bold text-red-500/80">HIGH</span>
                     </div>
                   </div>
-                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800/80">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">DEXA T-Score</div>
                     <div className="text-lg font-black text-amber-400 mt-0.5">-2.8</div>
                   </div>
-                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800/80">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">AI Confidence</div>
                     <div className="text-lg font-black text-blue-400 mt-0.5">91%</div>
                   </div>
