@@ -4,7 +4,7 @@ import { useGLTF, OrbitControls, Environment, Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────
-// Loading spinner overlay
+// Loading Spinner Overlay
 // ─────────────────────────────────────────────────────────────
 function ModelLoader({ label }) {
   return (
@@ -24,9 +24,9 @@ function ModelLoader({ label }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Bone Material Builder — Clinical PBR & Diagnostic Overlays
+// Material Builder with Clinical PBR & Diagnostic Modes
 // ─────────────────────────────────────────────────────────────
-function createBoneMaterial({ heatmap, wireframe, xray }) {
+function createBoneMaterial({ heatmap, wireframe, xray, riskLevel = 'moderate' }) {
   if (xray) {
     return new THREE.MeshPhysicalMaterial({
       color: new THREE.Color('#38bdf8'),
@@ -43,13 +43,15 @@ function createBoneMaterial({ heatmap, wireframe, xray }) {
   }
 
   if (heatmap) {
-    // Metabolic risk heatmap material — warm gradient with diagnostic glow
+    // Metabolic risk heatmap material
+    const baseColor = riskLevel === 'high' ? '#ef4444' : riskLevel === 'moderate' ? '#f59e0b' : '#10b981';
+    const glowColor = riskLevel === 'high' ? '#dc2626' : riskLevel === 'moderate' ? '#d97706' : '#059669';
     return new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#f59e0b'),
-      emissive: new THREE.Color('#dc2626'),
-      emissiveIntensity: 0.35,
-      roughness: 0.45,
-      metalness: 0.08,
+      color: new THREE.Color(baseColor),
+      emissive: new THREE.Color(glowColor),
+      emissiveIntensity: 0.4,
+      roughness: 0.4,
+      metalness: 0.1,
       side: THREE.DoubleSide,
       wireframe: Boolean(wireframe),
     });
@@ -66,10 +68,77 @@ function createBoneMaterial({ heatmap, wireframe, xray }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Normalized Bone Model
-// Automatically scales, reorients, and centers any medical GLB
+// 3D Region Highlight Indicator (Pulsing Sphere + Ring Target)
 // ─────────────────────────────────────────────────────────────
-function NormalizedBoneModel({ modelPath, heatmap, wireframe, xray, autoRotate }) {
+function RegionHighlightMarker({ selectedRegion, riskLevel }) {
+  const meshRef = useRef();
+  const ringRef = useRef();
+
+  // Determine 3D coordinates based on anatomical region
+  const position = useMemo(() => {
+    switch (selectedRegion) {
+      case 'proximal-femur':
+      case 'femoral-neck':
+        return [0.25, 0.75, 0.15];
+      case 'vertebral-body':
+        return [0, 0.05, 0.25];
+      case 'acetabulum':
+      case 'distal-radius':
+        return [-0.2, -0.7, 0.2];
+      default:
+        return [0, 0.5, 0.2];
+    }
+  }, [selectedRegion]);
+
+  const color = riskLevel === 'high' ? '#ef4444' : riskLevel === 'moderate' ? '#f59e0b' : '#10b981';
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (meshRef.current) {
+      const scale = 1 + Math.sin(t * 4) * 0.15;
+      meshRef.current.scale.setScalar(scale);
+    }
+    if (ringRef.current) {
+      ringRef.current.rotation.z = t * 1.5;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Center glowing focal point */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[0.09, 24, 24]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.8}
+          transparent
+          opacity={0.85}
+        />
+      </mesh>
+
+      {/* Target indicator ring */}
+      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.13, 0.16, 32]} />
+        <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.65} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Normalized Bone Model with Click-to-Select Raycasting
+// ─────────────────────────────────────────────────────────────
+function NormalizedBoneModel({
+  modelPath,
+  heatmap,
+  wireframe,
+  xray,
+  autoRotate,
+  riskLevel,
+  selectedRegion,
+  onSelectRegion,
+}) {
   const { scene } = useGLTF(modelPath);
   const rootGroupRef = useRef();
 
@@ -77,7 +146,6 @@ function NormalizedBoneModel({ modelPath, heatmap, wireframe, xray, autoRotate }
   const { processedGroup } = useMemo(() => {
     const clone = scene.clone(true);
 
-    // Compute normals & bounding box for every mesh
     clone.traverse((child) => {
       if (child.isMesh && child.geometry) {
         child.geometry.computeVertexNormals();
@@ -91,25 +159,21 @@ function NormalizedBoneModel({ modelPath, heatmap, wireframe, xray, autoRotate }
     const inner = new THREE.Group();
     inner.add(clone);
 
-    // Measure initial bounds
     const initialBox = new THREE.Box3().setFromObject(inner);
     const initialSize = initialBox.getSize(new THREE.Vector3());
 
-    // NIH 3D DICOM orientation adjustment:
-    // If longitudinal length is on Z, rotate -90° around X to stand upright in Three.js (Y-up)
+    // NIH 3D DICOM orientation adjustment
     if (initialSize.z > initialSize.y && initialSize.z > initialSize.x) {
       inner.rotation.x = -Math.PI / 2;
     }
 
     wrapper.add(inner);
 
-    // Measure final oriented bounds
     const orientedBox = new THREE.Box3().setFromObject(wrapper);
     const center = orientedBox.getCenter(new THREE.Vector3());
     const size = orientedBox.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
 
-    // Normalize to fit comfortably in a 2.2-unit radius viewport
     const targetScale = 2.2 / maxDim;
 
     wrapper.scale.setScalar(targetScale);
@@ -124,13 +188,13 @@ function NormalizedBoneModel({ modelPath, heatmap, wireframe, xray, autoRotate }
 
   // Apply materials dynamically
   useEffect(() => {
-    const mat = createBoneMaterial({ heatmap, wireframe, xray });
+    const mat = createBoneMaterial({ heatmap, wireframe, xray, riskLevel });
     processedGroup.traverse((child) => {
       if (child.isMesh) {
         child.material = mat;
       }
     });
-  }, [processedGroup, heatmap, wireframe, xray]);
+  }, [processedGroup, heatmap, wireframe, xray, riskLevel]);
 
   // Idle rotation animation
   useFrame((_, delta) => {
@@ -139,9 +203,27 @@ function NormalizedBoneModel({ modelPath, heatmap, wireframe, xray, autoRotate }
     }
   });
 
+  // Handle Raycasting click on bone mesh to select ROI
+  const handleMeshClick = (e) => {
+    e.stopPropagation();
+    if (!onSelectRegion) return;
+
+    // Use local vertical intersection point to choose anatomical region
+    const clickY = e.point.y;
+    if (clickY > 0.4) {
+      onSelectRegion('proximal-femur');
+    } else if (clickY < -0.4) {
+      onSelectRegion('acetabulum');
+    } else {
+      onSelectRegion('vertebral-body');
+    }
+  };
+
   return (
-    <group ref={rootGroupRef}>
+    <group ref={rootGroupRef} onClick={handleMeshClick} cursor="pointer">
       <primitive object={processedGroup} />
+      {/* 3D Visual Marker for Selected ROI */}
+      <RegionHighlightMarker selectedRegion={selectedRegion} riskLevel={riskLevel} />
     </group>
   );
 }
@@ -157,17 +239,17 @@ function CameraController({ viewAngle, controlsRef }) {
     const controls = controlsRef.current;
 
     switch (viewAngle) {
-      case 'coronal': // Anterior / Front view
+      case 'coronal':
         camera.position.set(0, 0, 3.4);
         break;
-      case 'sagittal': // Lateral / Side view
+      case 'sagittal':
         camera.position.set(3.4, 0, 0);
         break;
-      case 'axial': // Superior / Top-down view
+      case 'axial':
         camera.position.set(0, 3.4, 0.001);
         break;
       case '3d':
-      default: // Perspective 3/4 view
+      default:
         camera.position.set(1.8, 1.2, 2.6);
         break;
     }
@@ -181,7 +263,7 @@ function CameraController({ viewAngle, controlsRef }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Main 3D Canvas Export
+// Main 3D Canvas Component Export
 // ─────────────────────────────────────────────────────────────
 export default function BoneModelViewer({
   modelPath,
@@ -191,6 +273,9 @@ export default function BoneModelViewer({
   wireframe = false,
   xray = false,
   autoRotate = false,
+  riskLevel = 'moderate',
+  selectedRegion = 'proximal-femur',
+  onSelectRegion,
   onResetRef,
 }) {
   const controlsRef = useRef();
@@ -211,8 +296,6 @@ export default function BoneModelViewer({
       >
         {/* Cinematic Studio Lighting Rig */}
         <ambientLight intensity={0.7} color="#f0f6ff" />
-
-        {/* Key light — warm top right */}
         <directionalLight
           position={[4, 6, 4]}
           intensity={1.4}
@@ -220,18 +303,12 @@ export default function BoneModelViewer({
           castShadow
           shadow-mapSize={[1024, 1024]}
         />
-
-        {/* Fill light — cool blue left */}
         <directionalLight position={[-4, 2, -2]} intensity={0.6} color="#93c5fd" />
-
-        {/* Rim / Back light for crisp bone contours */}
         <directionalLight position={[0, -4, -4]} intensity={0.5} color="#38bdf8" />
         <pointLight position={[0, 4, -2]} intensity={0.4} color="#60a5fa" />
 
-        {/* Subtle ground reflection */}
         <Environment preset="city" />
 
-        {/* View Angle & Orbit Controls */}
         <CameraController viewAngle={viewAngle} controlsRef={controlsRef} />
 
         <OrbitControls
@@ -246,7 +323,6 @@ export default function BoneModelViewer({
           makeDefault
         />
 
-        {/* GLB Model Scene */}
         <Suspense fallback={<ModelLoader label={modelLabel} />}>
           <NormalizedBoneModel
             modelPath={modelPath}
@@ -254,6 +330,9 @@ export default function BoneModelViewer({
             wireframe={wireframe}
             xray={xray}
             autoRotate={autoRotate}
+            riskLevel={riskLevel}
+            selectedRegion={selectedRegion}
+            onSelectRegion={onSelectRegion}
           />
         </Suspense>
       </Canvas>

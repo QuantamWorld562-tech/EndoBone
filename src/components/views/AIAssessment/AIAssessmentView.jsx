@@ -14,15 +14,15 @@ import {
   Info,
 } from 'lucide-react';
 import { RiskDonut } from '../../common';
-import { useAssessment } from '../../../hooks';
+import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function AIAssessmentView({ patientId }) {
   const params = useParams();
   const navigate = useNavigate();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-  const { assessment, loading } = useAssessment(effectivePatientId);
+  const { assessment } = usePatientContext();
 
-  if (loading || !assessment) {
+  if (!assessment) {
     return <div className="p-10 text-center text-slate-500">Running AI assessment...</div>;
   }
 

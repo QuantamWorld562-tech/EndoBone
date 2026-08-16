@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout';
+import { PatientDataProvider } from './context/PatientDataContext';
 import {
   LandingView,
   DashboardView,
@@ -11,8 +12,9 @@ import {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <PatientDataProvider>
+      <BrowserRouter>
+        <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingView />} />
 
@@ -32,5 +34,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+  </PatientDataProvider>
   );
 }

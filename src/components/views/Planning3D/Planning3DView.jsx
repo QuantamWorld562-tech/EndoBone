@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Maximize2,
   Minimize2,
@@ -16,9 +16,12 @@ import {
   Grid,
   Sparkles,
   Compass,
+  FlaskConical,
+  Edit3,
+  CheckCircle2,
+  ArrowUpRight,
 } from 'lucide-react';
-import { useRegionalAnalysis } from '../../../hooks';
-import { regionalAnalysisDB } from '../../../data/mockData';
+import { usePatientContext } from '../../../context/PatientDataContext';
 import BoneModelViewer from './BoneModelViewer';
 
 // ─────────────────────────────────────────────────────────────
@@ -108,9 +111,15 @@ const BONE_MODELS = [
   },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// Model Tab Component
-// ─────────────────────────────────────────────────────────────
+const BIOMARKER_INPUTS = [
+  { key: 'pth', label: 'Parathyroid Hormone (PTH)', unit: 'pg/mL', ref: '15.0–65.0', step: 1 },
+  { key: 'vitaminD', label: '25-OH Vitamin D', unit: 'ng/mL', ref: '30.0–100.0', step: 1 },
+  { key: 'calcium', label: 'Serum Calcium', unit: 'mg/dL', ref: '8.6–10.3', step: 0.1 },
+  { key: 'phosphate', label: 'Inorganic Phosphate', unit: 'mg/dL', ref: '2.5–4.5', step: 0.1 },
+  { key: 'alp', label: 'Alkaline Phosphatase (ALP)', unit: 'U/L', ref: '44–147', step: 1 },
+  { key: 'ctx', label: 'CTX-I (Resorption)', unit: 'pg/mL', ref: '< 300', step: 10 },
+];
+
 function ModelTab({ model, isActive, onClick }) {
   return (
     <button
@@ -128,30 +137,36 @@ function ModelTab({ model, isActive, onClick }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Main Planning3D View Component
-// ─────────────────────────────────────────────────────────────
 export default function Planning3DView({ patientId }) {
   const params = useParams();
+  const navigate = useNavigate();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-  const regions = regionalAnalysisDB[effectivePatientId] || {};
-  const regionKeys = Object.keys(regions);
+
+  const {
+    biomarkers,
+    updateBiomarker,
+    selectedRegion,
+    setSelectedRegion,
+    roiNotes,
+    updateRoiNote,
+    regionalData,
+    assessment,
+    regionalAnalysisDB,
+  } = usePatientContext();
 
   const [selectedModelId, setSelectedModelId] = useState('femur');
-  const [renderMode, setRenderMode] = useState('anatomical'); // 'anatomical' | 'heatmap' | 'xray' | 'wireframe'
-  const [viewAngle, setViewAngle] = useState('3d'); // '3d' | 'coronal' | 'sagittal' | 'axial'
+  const [renderMode, setRenderMode] = useState('heatmap'); // Default to heatmap to show dynamic biomarker reaction
+  const [viewAngle, setViewAngle] = useState('3d');
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewerKey, setViewerKey] = useState(0);
 
+  // Right sidebar tab state: 'anatomy' | 'biomarkers'
+  const [sidebarTab, setSidebarTab] = useState('anatomy');
+
   const controlsRef = useRef(null);
-
   const activeModel = BONE_MODELS.find((m) => m.id === selectedModelId) || BONE_MODELS[0];
-
-  const { selectedRegion, regionData, selectRegion } = useRegionalAnalysis(
-    effectivePatientId,
-    activeModel.regionKey || regionKeys[0] || 'proximal-femur'
-  );
+  const regionKeys = Object.keys(regionalAnalysisDB[effectivePatientId] || { 'proximal-femur': {}, 'vertebral-body': {}, 'acetabulum': {} });
 
   const handleModelSelect = useCallback((modelId) => {
     setSelectedModelId(modelId);
@@ -163,59 +178,59 @@ export default function Planning3DView({ patientId }) {
     setViewerKey((k) => k + 1);
   }, []);
 
-  if (!regionData) {
-    return (
-      <div className="p-10 text-center text-slate-500 flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-        <span>Loading 3D planning data…</span>
-      </div>
-    );
-  }
-
   const statusColor = {
     high: {
-      card: 'bg-red-50/80 border-red-200 ring-red-200',
+      card: 'bg-red-50/90 border-red-200 ring-red-200',
       text: 'text-red-700',
       chip: 'bg-red-100 text-red-700 ring-red-200',
       dot: 'bg-red-600',
       value: 'text-red-600',
+      banner: 'bg-red-600 text-white',
     },
     moderate: {
-      card: 'bg-amber-50/80 border-amber-200 ring-amber-200',
+      card: 'bg-amber-50/90 border-amber-200 ring-amber-200',
       text: 'text-amber-700',
       chip: 'bg-amber-100 text-amber-700 ring-amber-200',
       dot: 'bg-amber-500',
       value: 'text-amber-600',
+      banner: 'bg-amber-500 text-white',
     },
     low: {
-      card: 'bg-teal-50/80 border-teal-200 ring-teal-200',
+      card: 'bg-teal-50/90 border-teal-200 ring-teal-200',
       text: 'text-teal-700',
       chip: 'bg-teal-100 text-teal-700 ring-teal-200',
       dot: 'bg-teal-500',
       value: 'text-teal-600',
+      banner: 'bg-teal-600 text-white',
     },
-  }[regionData.riskLevel || 'moderate'];
+  }[regionalData.riskLevel || 'moderate'];
+
+  const currentRoiNote = roiNotes[selectedRegion] || '';
 
   return (
     <div className="space-y-5">
       {/* ── Header ───────────────────────────────────────────── */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">3D Anatomical Planning</h2>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Unified 3D & Metabolic Planning</h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-blue-100 text-blue-800">
-              Interactive GLB
+              Interactive GLB + Biochemical Engine
             </span>
           </div>
           <p className="text-slate-600 mt-1 text-sm">
-            High-fidelity 3D bone models with auto-normalization, multi-plane slicing, and metabolic risk overlays.
+            Adjust metabolic biomarkers in real-time or click on the 3D bone to inspect and annotate targeted regions of interest.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-emerald-700 font-semibold shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            3D WebGL Engine Active
-          </span>
+          <button
+            onClick={() => navigate(`/patients/${effectivePatientId}/assessment`)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 transition"
+          >
+            <Sparkles size={14} />
+            Full AI Assessment
+            <ArrowUpRight size={13} />
+          </button>
         </div>
       </div>
 
@@ -224,7 +239,7 @@ export default function Planning3DView({ patientId }) {
         <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-700">
           <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap pl-1">
             <Bone size={14} className="text-blue-400" />
-            <span>Select Model:</span>
+            <span>Select Anatomy:</span>
           </div>
           <div className="w-px h-6 bg-slate-800" />
           <div className="flex items-center gap-2 flex-nowrap">
@@ -271,7 +286,8 @@ export default function Planning3DView({ patientId }) {
                   }`}
                 >
                   <Activity size={13} />
-                  Risk Heatmap
+                  Metabolic Risk
+                  <span className={`w-2 h-2 rounded-full ${regionalData.riskLevel === 'high' ? 'bg-red-400 animate-ping' : 'bg-amber-400'}`} />
                 </button>
                 <button
                   onClick={() => setRenderMode('xray')}
@@ -327,7 +343,7 @@ export default function Planning3DView({ patientId }) {
             {/* 3D Canvas Container */}
             <div
               className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden flex-1"
-              style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '560px' }}
+              style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '580px' }}
             >
               {/* Background Grid & Lighting Vignette */}
               <div
@@ -350,6 +366,9 @@ export default function Planning3DView({ patientId }) {
                 xray={renderMode === 'xray'}
                 wireframe={renderMode === 'wireframe'}
                 autoRotate={autoRotate}
+                riskLevel={regionalData.riskLevel}
+                selectedRegion={selectedRegion}
+                onSelectRegion={(reg) => setSelectedRegion(reg)}
                 onResetRef={(node) => {
                   controlsRef.current = node;
                 }}
@@ -389,97 +408,201 @@ export default function Planning3DView({ patientId }) {
 
                 <div className="px-3 py-2 bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 text-[11px] font-semibold text-slate-300 shadow-xl hidden sm:flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                  <span>Left Click: Rotate · Scroll: Zoom · Right Click: Pan</span>
+                  <span>Click 3D Mesh to Select ROI · Drag: Rotate · Scroll: Zoom</span>
                 </div>
               </div>
 
-              {/* Active Model Indicator Tag */}
-              <div className="absolute top-4 right-4 z-10 px-3 py-1.5 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-xs text-slate-200 font-bold flex items-center gap-2 shadow-lg">
-                <Eye size={13} className="text-blue-400" />
-                <span>{activeModel.label}</span>
-                <span className="text-slate-500 font-normal">| {activeModel.category}</span>
+              {/* Active Model & Selected ROI Indicator Tags */}
+              <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+                <div className="px-3 py-1.5 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-700/80 text-xs text-slate-200 font-bold flex items-center gap-2 shadow-lg">
+                  <Eye size={13} className="text-blue-400" />
+                  <span>{activeModel.label}</span>
+                  <span className="text-slate-500 font-normal">| {activeModel.category}</span>
+                </div>
+                <div className="px-3 py-1 bg-blue-600/90 backdrop-blur-md rounded-xl text-[11px] text-white font-bold flex items-center gap-1.5 shadow-lg border border-blue-400/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span>ROI: {regionalData.location || selectedRegion}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Analysis Panel */}
+        {/* Right Unified Control Column: Anatomy & Notes + Biomarker Editor */}
         {!isFullscreen && (
-          <div className="space-y-5">
-            {/* Region Analysis Card */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h3 className="text-base font-extrabold text-slate-900 mb-3">Region Analysis</h3>
-              <p className="text-xs text-slate-500 font-medium mb-1.5">
-                Selected Anatomical ROI:
-              </p>
-              <select
-                value={selectedRegion}
-                onChange={(e) => selectRegion(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+          <div className="space-y-4">
+            {/* Tab Selector */}
+            <div className="grid grid-cols-2 p-1 bg-slate-200 rounded-2xl">
+              <button
+                onClick={() => setSidebarTab('anatomy')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  sidebarTab === 'anatomy'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                {regionKeys.map((k) => (
-                  <option key={k} value={k}>
-                    {regions[k]?.location || k}
-                  </option>
-                ))}
-              </select>
-              <div className="flex items-center justify-between text-xs font-semibold py-1.5 border-t border-slate-100">
-                <span className="text-slate-500">Target Anatomy:</span>
-                <span className="text-blue-700 font-bold">{regionData.anatomy}</span>
-              </div>
-            </div>
-
-            {/* AI Observation Card */}
-            <div className={`rounded-2xl border-2 p-5 shadow-sm ${statusColor.card} ring-1`}>
-              <div className="flex items-start gap-3 mb-2.5">
-                <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center ring-1 ring-slate-200 shrink-0">
-                  <Activity size={16} className="text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-slate-900 text-sm">AI Diagnostic Insight</h4>
-                  <p className="text-[11px] font-bold text-slate-500">Volumetric Bone Density Risk</p>
-                </div>
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed">{regionData.observation}</p>
-              <button className="text-blue-700 text-xs font-bold mt-2.5 hover:underline inline-flex items-center gap-1">
-                Full Quantitative Report <ChevronRight size={12} />
+                <Layers size={13} />
+                Anatomy & ROI Notes
+              </button>
+              <button
+                onClick={() => setSidebarTab('biomarkers')}
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                  sidebarTab === 'biomarkers'
+                    ? 'bg-white text-blue-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FlaskConical size={13} />
+                Biomarker Inputs
               </button>
             </div>
 
-            {/* Volumetric Metrics */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <h4 className="text-sm font-extrabold text-slate-900 mb-3">Volumetric Metrics</h4>
-              <div className="space-y-3">
-                {Object.entries(regionData.metrics || {}).map(([k, v]) => {
-                  const key = k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
-                  const isEstimated = k.toLowerCase().includes('strength') && regionData.riskLevel === 'high';
-                  return (
-                    <div key={k} className="pb-2.5 border-b border-slate-100 last:border-0 last:pb-0 flex items-center justify-between">
-                      <p className="text-xs text-slate-500 font-semibold">{key}</p>
-                      <p className={`text-sm font-black ${isEstimated ? statusColor.value : 'text-slate-900'}`}>{v}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            {/* TAB 1: Anatomy & ROI Notes */}
+            {sidebarTab === 'anatomy' && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* Region Selector Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-extrabold text-slate-900">Region of Interest (ROI)</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                      Click Model or Select
+                    </span>
+                  </div>
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                  >
+                    {regionKeys.map((k) => (
+                      <option key={k} value={k}>
+                        {regionalAnalysisDB[effectivePatientId]?.[k]?.location || k}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Anatomy: <span className="text-blue-700 font-bold">{regionalData.anatomy}</span>
+                  </p>
+                </div>
 
-            {/* Regional Status */}
-            <div className={`rounded-2xl border-2 p-4 ring-1 ${statusColor.card}`}>
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={16} className={statusColor.text} />
-                <p className={`text-xs font-black ${statusColor.text}`}>
-                  Status: {regionData.status}
-                </p>
+                {/* Volumetric Metrics Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                  <h4 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">
+                    Volumetric Structural Metrics
+                  </h4>
+                  <div className="space-y-2.5">
+                    {Object.entries(regionalData.metrics || {}).map(([k, v]) => {
+                      const key = k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim();
+                      const isEstimated = k.toLowerCase().includes('strength') && regionalData.riskLevel === 'high';
+                      return (
+                        <div key={k} className="pb-2 border-b border-slate-100 last:border-0 last:pb-0 flex items-center justify-between">
+                          <p className="text-xs text-slate-500 font-semibold">{key}</p>
+                          <p className={`text-xs font-black ${isEstimated ? statusColor.value : 'text-slate-900'}`}>{v}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ROI Surgeon Planning Notes Card */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-slate-900 font-extrabold text-xs">
+                      <Edit3 size={13} className="text-blue-600" />
+                      <span>ROI Planning Annotation</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-bold">Auto-saved</span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={currentRoiNote}
+                    onChange={(e) => updateRoiNote(effectivePatientId, selectedRegion, e.target.value)}
+                    placeholder={`Enter custom clinical surgical notes for ${regionalData.location}...`}
+                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed bg-slate-50/50"
+                  />
+                </div>
+
+                {/* Regional Status Warning Card */}
+                <div className={`rounded-2xl border-2 p-4 ring-1 ${statusColor.card}`}>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle size={16} className={statusColor.text} />
+                    <p className={`text-xs font-black ${statusColor.text}`}>
+                      Status: {regionalData.status}
+                    </p>
+                  </div>
+                  <p className={`text-[11px] font-semibold mt-1.5 ${statusColor.text} opacity-90`}>
+                    Overall Metabolic Quality Risk: <span className="font-black">{assessment.overallQualityRisk}%</span>
+                  </p>
+                </div>
               </div>
-              <p className={`text-[11px] font-semibold mt-1.5 ${statusColor.text} opacity-90`}>
-                {regionData.comparisonToPrevious}
-              </p>
-            </div>
+            )}
+
+            {/* TAB 2: Biomarker Editor (Live Unified Editing) */}
+            {sidebarTab === 'biomarkers' && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 animate-in fade-in duration-200">
+                <div>
+                  <div className="flex items-center gap-1.5 text-blue-700 font-black text-xs uppercase tracking-wider mb-1">
+                    <FlaskConical size={14} />
+                    <span>Live Chemical Inputs</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Modify endocrine levels below. The 3D model and AI assessment will adjust instantly.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {BIOMARKER_INPUTS.map((inp) => {
+                    const currentVal = biomarkers?.[inp.key]?.value ?? 0;
+                    const status = biomarkers?.[inp.key]?.status || 'normal';
+                    return (
+                      <div key={inp.key} className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/60 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-800">{inp.label}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              status === 'elevated'
+                                ? 'bg-red-100 text-red-700'
+                                : status === 'deficient' || status === 'low'
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-teal-100 text-teal-700'
+                            }`}
+                          >
+                            {status.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step={inp.step}
+                            value={currentVal}
+                            onChange={(e) => updateBiomarker(effectivePatientId, inp.key, e.target.value)}
+                            className="w-24 px-2.5 py-1 text-sm font-black text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-xs font-semibold text-slate-500">{inp.unit}</span>
+                          <span className="text-[10px] text-slate-400 font-medium ml-auto">Ref: {inp.ref}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => navigate(`/patients/${effectivePatientId}/assessment`)}
+                  className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-xs font-bold hover:from-blue-700 hover:to-indigo-700 transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/20"
+                >
+                  <Sparkles size={14} />
+                  Calculate Comprehensive Risk
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
 
             {/* Action CTA */}
-            <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+            <button
+              onClick={() => navigate(`/patients/${effectivePatientId}/summary`)}
+              className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+            >
               <FileDown size={15} />
-              Export 3D Surgical ROI
+              Export Final Pre-Surgical Plan
             </button>
           </div>
         )}
