@@ -6,11 +6,6 @@
       "dest": "/index.html"
     }
   ],
-  "env": {
-    "REACT_APP_API_URL": "@api_url",
-    "REACT_APP_IMAGING_SERVICE": "@imaging_service",
-    "REACT_APP_ENVIRONMENT": "@environment"
-  },
   "regions": ["iad1"],
   "functions": {
     "api/**/*.js": {
