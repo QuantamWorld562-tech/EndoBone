@@ -13,7 +13,7 @@ import {
 export default function App() {
   return (
     <PatientDataProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingView />} />

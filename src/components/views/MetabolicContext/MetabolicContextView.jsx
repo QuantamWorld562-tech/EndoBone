@@ -167,7 +167,6 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                   if (!data) return null;
                   const d = DISPLAY[data.status] || DISPLAY.normal;
                   const Arrow = d.arrow;
-                  const displayVal = editable[item.key] != null ? editable[item.key] : data.value;
                   return (
                     <div
                       key={item.key}
