@@ -44,3 +44,7 @@ test-results/
 # Temporary files
 *.tmp
 *.temp
+
+# 3D Raw Models Folder
+src/3D_Models/
+

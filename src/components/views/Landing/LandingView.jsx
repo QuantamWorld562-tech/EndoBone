@@ -11,6 +11,7 @@ import {
   FileCheck,
   Brain,
   Dna,
+  FlaskConical,
 } from 'lucide-react';
 
 export default function LandingView({ onStart }) {
