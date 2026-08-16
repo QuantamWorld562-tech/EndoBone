@@ -7,8 +7,10 @@ import {
   UserRound,
   FlaskConical,
   Activity,
+  Info,
   ChevronRight,
-  ShieldCheck,
+  BarChart2,
+  CheckCircle2,
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 
@@ -16,49 +18,49 @@ const PRESETS = [
   {
     id: 'severe-hpt',
     title: 'Secondary HPT / High Risk',
-    desc: 'Low Vit D (<20), elevated PTH (>70), high turnover (CTX >380)',
-    badge: 'High Risk Profile',
-    badgeCls: 'bg-red-100 text-red-700 ring-red-200',
+    badge: 'High Risk',
+    badgeCls: 'bg-red-100 text-red-700 ring-1 ring-red-200',
     values: {
-      pth: 88,
-      vitaminD: 15,
-      calcium: 8.4,
-      phosphate: 3.1,
-      alp: 110,
-      ctx: 410,
-      condition: 'Severe secondary hyperparathyroidism with accelerated bone resorption',
+      pth: 72.4,
+      vitaminD: 28.1,
+      calcium: 9.4,
+      phosphate: 3.2,
+      alp: 112,
+      tsh: 2.1,
+      free_t4: 1.2,
+      ctx: 380,
     },
   },
   {
     id: 'moderate-deficiency',
-    title: 'Moderate Osteopenia / Deficiency',
-    desc: 'Sub-optimal Vit D (22), borderline PTH (68), moderate turnover',
-    badge: 'Moderate Profile',
-    badgeCls: 'bg-amber-100 text-amber-700 ring-amber-200',
+    title: 'Vitamin D Deficiency',
+    badge: 'Moderate',
+    badgeCls: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
     values: {
-      pth: 68,
-      vitaminD: 22,
-      calcium: 8.9,
-      phosphate: 3.4,
-      alp: 88,
-      ctx: 320,
-      condition: 'Pre-operative osteopenia with vitamin D insufficiency',
+      pth: 64.0,
+      vitaminD: 18.5,
+      calcium: 8.8,
+      phosphate: 3.0,
+      alp: 92,
+      tsh: 1.8,
+      free_t4: 1.1,
+      ctx: 310,
     },
   },
   {
     id: 'normal-baseline',
-    title: 'Optimal Bone Mineral Homeostasis',
-    desc: 'Normal serum calcium, robust Vit D (>40), normal PTH (<50)',
-    badge: 'Low Risk Profile',
-    badgeCls: 'bg-teal-100 text-teal-700 ring-teal-200',
+    title: 'Optimal Homeostasis',
+    badge: 'Normal',
+    badgeCls: 'bg-teal-100 text-teal-700 ring-1 ring-teal-200',
     values: {
-      pth: 42,
-      vitaminD: 45,
-      calcium: 9.4,
-      phosphate: 3.6,
-      alp: 74,
-      ctx: 220,
-      condition: 'Normal bone mineral homeostasis, candidate for standard fixation',
+      pth: 42.0,
+      vitaminD: 45.0,
+      calcium: 9.6,
+      phosphate: 3.5,
+      alp: 78,
+      tsh: 1.5,
+      free_t4: 1.3,
+      ctx: 210,
     },
   },
 ];
@@ -81,14 +83,15 @@ export default function NewCaseModal() {
     age: 64,
     gender: 'Female',
     procedure: PROCEDURES[0],
-    condition: 'L4-L5 Degenerative Spondylolisthesis with Bone Fragility',
-    pth: 76,
-    vitaminD: 18,
-    calcium: 8.5,
+    condition: 'Pre-Surgical Bone Mineral Density Evaluation',
+    pth: 72.4,
+    vitaminD: 28.1,
+    calcium: 9.4,
     phosphate: 3.2,
-    alp: 92,
-    ctx: 360,
-    initialNote: 'High turnover suspected. Consider preoperative metabolic replenishment and augmented screw fixation.',
+    alp: 112,
+    tsh: 2.1,
+    free_t4: 1.2,
+    ctx: 380,
   });
 
   if (!isNewCaseModalOpen) return null;
@@ -100,6 +103,28 @@ export default function NewCaseModal() {
     }));
   };
 
+  const getStatus = (key, val) => {
+    const v = parseFloat(val) || 0;
+    switch (key) {
+      case 'pth':
+        return v > 65 ? 'High' : v < 15 ? 'Low' : null;
+      case 'vitaminD':
+        return v < 30 ? 'Low' : v > 100 ? 'High' : null;
+      case 'calcium':
+        return v < 8.6 ? 'Low' : v > 10.3 ? 'High' : null;
+      case 'phosphate':
+        return v < 2.5 ? 'Low' : v > 4.5 ? 'High' : null;
+      case 'alp':
+        return v > 147 ? 'High' : v < 44 ? 'Low' : null;
+      case 'tsh':
+        return v > 4.0 ? 'High' : v < 0.4 ? 'Low' : null;
+      case 'free_t4':
+        return v > 1.8 ? 'High' : v < 0.8 ? 'Low' : null;
+      default:
+        return null;
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const newPatientId = addNewCase(formData);
@@ -108,261 +133,305 @@ export default function NewCaseModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="px-8 py-6 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-blue-600/80 border border-blue-400/40 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Dna size={22} className="text-white" />
+        {/* Modal Top Header */}
+        <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+              <FlaskConical size={18} />
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight">Create New Patient Case</h2>
-              <p className="text-xs text-blue-200 font-medium">
-                Initialize patient profile, endocrine baseline, and 3D preoperative simulation.
-              </p>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">Biomarker Input & Case Intake</h2>
+              <p className="text-xs text-slate-500 font-medium">Enter recent lab results and patient demographics to initialize 3D AI risk profiling.</p>
             </div>
           </div>
           <button
             onClick={() => setIsNewCaseModalOpen(false)}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto flex-1 scrollbar-thin">
-          {/* Quick Presets */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-blue-600" />
-                Quick Clinical Presets (Optional)
-              </label>
-              <span className="text-[11px] text-slate-400 font-semibold">Click to prefill biomarkers</span>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-2.5">
-              {PRESETS.map((preset) => (
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 scrollbar-thin bg-slate-50/50">
+          
+          {/* Quick Preset Selector */}
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
+            <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+              <Sparkles size={14} className="text-blue-600" />
+              Quick Reference Presets:
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              {PRESETS.map((p) => (
                 <button
                   type="button"
-                  key={preset.id}
-                  onClick={() => handleApplyPreset(preset)}
-                  className="p-3 text-left rounded-2xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/40 transition group relative"
+                  key={p.id}
+                  onClick={() => handleApplyPreset(p)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition text-xs font-semibold text-slate-700 flex items-center gap-1.5"
                 >
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black ${preset.badgeCls} mb-1.5`}>
-                    {preset.badge}
-                  </span>
-                  <p className="text-xs font-bold text-slate-900 group-hover:text-blue-700 leading-tight">
-                    {preset.title}
-                  </p>
-                  <p className="text-[10px] text-slate-500 font-medium mt-1 leading-snug">
-                    {preset.desc}
-                  </p>
+                  <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${p.badgeCls}`}>{p.badge}</span>
+                  {p.title}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Section 1: Demographics */}
-          <div className="space-y-3.5">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <UserRound size={14} className="text-blue-600" />
-              1. Patient Demographics & Surgical Target
-            </h3>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs font-bold text-slate-700 mb-1 block">Patient Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Eleanor Vance"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+          {/* Patient Details Strip */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 grid sm:grid-cols-4 gap-3">
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Patient Name</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Age</label>
+              <input
+                type="number"
+                min="18"
+                max="105"
+                required
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Target Procedure</label>
+              <select
+                value={formData.procedure}
+                onChange={(e) => setFormData({ ...formData, procedure: e.target.value })}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {PROCEDURES.map((proc) => (
+                  <option key={proc} value={proc}>{proc}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Biomarker Two-Column Layout (Matching User's Reference Screenshot) */}
+          <div className="grid md:grid-cols-5 gap-5">
+            
+            {/* Left Card (3 cols): Bone Metabolism Panel */}
+            <div className="md:col-span-3 bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <FlaskConical size={18} className="text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">Bone Metabolism Panel</h3>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 mb-1 block">Age (Years)</label>
-                <input
-                  type="number"
-                  min="18"
-                  max="105"
-                  required
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="space-y-3">
+                {/* PTH */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>Parathyroid Hormone (PTH)</span>
+                    <span title="NHANES LBXPT21 (Ref: 15.0–65.0 pg/mL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${
+                      getStatus('pth', formData.pth) === 'High' ? 'border-red-400 ring-1 ring-red-300' : 'border-slate-200'
+                    }`}>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.pth}
+                        onChange={(e) => setFormData({ ...formData, pth: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        pg/mL
+                      </span>
+                    </div>
+                    {getStatus('pth', formData.pth) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Vitamin D */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>Vitamin D (25-OH)</span>
+                    <span title="NHANES 2017–2018 (Ref: 30.0–100.0 ng/mL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${
+                      getStatus('vitaminD', formData.vitaminD) === 'Low' ? 'border-amber-400 ring-1 ring-amber-300' : 'border-slate-200'
+                    }`}>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.vitaminD}
+                        onChange={(e) => setFormData({ ...formData, vitaminD: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        ng/mL
+                      </span>
+                    </div>
+                    {getStatus('vitaminD', formData.vitaminD) === 'Low' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Serum Calcium */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>Serum Calcium</span>
+                    <span title="NHANES LBXSCA (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.calcium}
+                        onChange={(e) => setFormData({ ...formData, calcium: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        mg/dL
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Serum Phosphate */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>Serum Phosphate</span>
+                    <span title="NHANES LBXSPH (Ref: 2.5–4.5 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.phosphate}
+                        onChange={(e) => setFormData({ ...formData, phosphate: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        mg/dL
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alkaline Phosphatase */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>Alkaline Phosphatase (ALP)</span>
+                    <span title="NHANES LBXSAPSI (Ref: 44–147 IU/L)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <input
+                        type="number"
+                        step="1"
+                        value={formData.alp}
+                        onChange={(e) => setFormData({ ...formData, alp: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        IU/L
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Cards (2 cols): Thyroid Function & Action */}
+            <div className="md:col-span-2 space-y-4 flex flex-col justify-between">
+              
+              {/* Thyroid Card */}
+              <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                  <Activity size={18} className="text-blue-600" />
+                  <h3 className="text-sm font-bold text-slate-900">Thyroid Function</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1 text-slate-700 font-semibold">
+                      <span>TSH</span>
+                      <span title="Ref: 0.4–4.0 mIU/L" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                    </div>
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.tsh}
+                        onChange={(e) => setFormData({ ...formData, tsh: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        mIU/L
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1 text-slate-700 font-semibold">
+                      <span>Free T4</span>
+                      <span title="Ref: 0.8–1.8 ng/dL" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                    </div>
+                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={formData.free_t4}
+                        onChange={(e) => setFormData({ ...formData, free_t4: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        ng/dL
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 mb-1 block">Gender</label>
-                <select
-                  value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {/* Action Verification Card (Matching Screenshot) */}
+              <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  Ensure all out-of-range values are verified before proceeding to analysis.
+                </p>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition"
                 >
-                  <option value="Female">Female</option>
-                  <option value="Male">Male</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-slate-700 mb-1 block">Target Procedure</label>
-                <select
-                  value={formData.procedure}
-                  onChange={(e) => setFormData({ ...formData, procedure: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {PROCEDURES.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                  <BarChart2 size={16} />
+                  Analyze Patient Data
+                </button>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 mb-1 block">Clinical Condition / Indication</label>
-                <input
-                  type="text"
-                  value={formData.condition}
-                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                  placeholder="e.g. Osteopenic Bone Fragility"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Section 2: Baseline Biomarkers */}
-          <div className="space-y-3.5">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2">
-              <FlaskConical size={14} className="text-blue-600" />
-              2. Initial Endocrine & Bone Turnover Biomarkers
-            </h3>
-            <div className="grid sm:grid-cols-3 gap-3">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">PTH</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">15–65 pg/mL</span>
-                </div>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.pth}
-                  onChange={(e) => setFormData({ ...formData, pth: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">25-OH Vit D</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">30–100 ng/mL</span>
-                </div>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.vitaminD}
-                  onChange={(e) => setFormData({ ...formData, vitaminD: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">Serum Calcium</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">8.6–10.3 mg/dL</span>
-                </div>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={formData.calcium}
-                  onChange={(e) => setFormData({ ...formData, calcium: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">Phosphate</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">2.5–4.5 mg/dL</span>
-                </div>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={formData.phosphate}
-                  onChange={(e) => setFormData({ ...formData, phosphate: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">ALP</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">44–147 U/L</span>
-                </div>
-                <input
-                  type="number"
-                  step="1"
-                  value={formData.alp}
-                  onChange={(e) => setFormData({ ...formData, alp: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-800">CTX-I (Resorption)</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">&lt; 300 pg/mL</span>
-                </div>
-                <input
-                  type="number"
-                  step="10"
-                  value={formData.ctx}
-                  onChange={(e) => setFormData({ ...formData, ctx: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Pre-op Clinical Notes */}
-          <div>
-            <label className="text-xs font-bold text-slate-700 mb-1 block">Initial Clinical / Surgeon's Note</label>
-            <textarea
-              rows={2}
-              value={formData.initialNote}
-              onChange={(e) => setFormData({ ...formData, initialNote: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            />
-          </div>
-
-          {/* Modal Footer Controls */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsNewCaseModalOpen(false)}
-              className="px-5 py-3 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-black rounded-xl text-xs hover:from-blue-700 hover:to-indigo-700 transition shadow-xl shadow-blue-600/25 flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Launch New Case Analysis
-              <ChevronRight size={14} />
-            </button>
-          </div>
         </form>
       </div>
     </div>
