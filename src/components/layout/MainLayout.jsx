@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WorkflowStepper from './WorkflowStepper';
+import { NewCaseModal } from '../common';
 
 export default function MainLayout() {
   const location = useLocation();
@@ -25,6 +26,8 @@ export default function MainLayout() {
           <Outlet />
         </main>
       </div>
+
+      <NewCaseModal />
     </div>
   );
 }
