@@ -10,7 +10,6 @@ import {
   ArrowUpRight,
   FileCheck,
   Brain,
-  Dna,
   FlaskConical,
 } from 'lucide-react';
 
@@ -22,8 +21,8 @@ export default function LandingView({ onStart }) {
       <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <Dna size={22} className="text-white" strokeWidth={2.3} />
+            <div className="w-11 h-11 ">
+              <img src="/logo.png" alt="EndoBone AI" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">EndoBone AI</h1>

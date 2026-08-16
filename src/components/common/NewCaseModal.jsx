@@ -5,7 +5,6 @@ import {
   Plus,
   Sparkles,
   UserRound,
-  Dna,
   FlaskConical,
   Activity,
   ChevronRight,
