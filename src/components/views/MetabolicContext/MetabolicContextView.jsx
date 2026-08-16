@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -9,7 +8,8 @@ import {
   Sparkles,
   Info,
 } from 'lucide-react';
-import { useBiomarkers, useTrendingData } from '../../../hooks';
+import { usePatientContext } from '../../../context/PatientDataContext';
+import { useTrendingData } from '../../../hooks';
 
 const BIOMARKER_GROUPS = [
   {
@@ -80,11 +80,10 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
   const handleRunAssessment =
     onRunAssessment || (() => navigate(`/patients/${effectivePatientId}/assessment`));
 
-  const { biomarkers, loading } = useBiomarkers(effectivePatientId);
+  const { biomarkers, updateBiomarker } = usePatientContext();
   const { trendData } = useTrendingData(effectivePatientId);
-  const [editable, setEditable] = useState({});
 
-  if (loading || !biomarkers) {
+  if (!biomarkers) {
     return <div className="p-10 text-center text-slate-500">Loading metabolic profile...</div>;
   }
 
@@ -191,13 +190,8 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                             <input
                               type="number"
                               step="0.1"
-                              value={displayVal}
-                              onChange={(e) =>
-                                setEditable((prev) => ({
-                                  ...prev,
-                                  [item.key]: parseFloat(e.target.value),
-                                }))
-                              }
+                              value={data.value}
+                              onChange={(e) => updateBiomarker(effectivePatientId, item.key, e.target.value)}
                               className="w-28 bg-white/70 border border-slate-200 rounded-lg px-3 py-1.5 text-2xl font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                             />
                             <span className="text-sm text-slate-600 font-semibold">{data.unit}</span>
