@@ -103,120 +103,51 @@ export default function LandingView({ onStart }) {
           </div>
 
           <div className="relative">
-            <div className="absolute -top-10 -left-10 w-48 h-48 bg-blue-200/30 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -right-10 w-56 h-56 bg-indigo-200/30 rounded-full blur-3xl" />
+            <div className="absolute -top-10 -left-10 w-56 h-56 bg-blue-400/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl" />
 
-            <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-900/10 overflow-hidden border border-slate-200">
-              <div className="absolute top-0 left-0 right-0 z-10 h-10 bg-gradient-to-b from-slate-50 to-transparent flex items-center px-5 gap-2">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-400" />
-                  <div className="w-3 h-3 rounded-full bg-amber-400" />
-                  <div className="w-3 h-3 rounded-full bg-green-400" />
+            <div className="relative bg-white rounded-3xl shadow-2xl shadow-slate-900/15 overflow-hidden border border-slate-200/80 transition-all duration-300 hover:shadow-blue-500/10">
+              {/* Card Window Topbar */}
+              <div className="h-11 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center justify-between px-5 border-b border-slate-700/60">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400/90" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400/90" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-400/90" />
+                  <span className="text-xs text-slate-300 ml-2 font-bold tracking-tight">EndoBone AI — 3D Surgical Suite</span>
                 </div>
-                <div className="text-xs text-slate-500 ml-3 font-medium">EndoBone AI — Clinical Workspace</div>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-[10px] font-extrabold text-blue-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  <span>LIVE SURGICAL SIMULATION</span>
+                </div>
               </div>
 
-              <div className="pt-12 p-6">
-                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(59,130,246,0.18),transparent_55%)]" />
-                  <div
-                    className="absolute inset-0 opacity-20"
-                    style={{
-                      backgroundImage:
-                        'linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px)',
-                      backgroundSize: '32px 32px',
-                    }}
+              {/* Main Image Container */}
+              <div className="p-4 bg-slate-950">
+                <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-inner group">
+                  <img
+                    src="/hero-bone-display.png"
+                    alt="EndoBone AI 3D Surgical Display"
+                    className="w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
                   />
-
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg viewBox="0 0 300 320" className="w-4/5 h-4/5 drop-shadow-[0_0_40px_rgba(59,130,246,0.5)]">
-                      <defs>
-                        <linearGradient id="boneGrad" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.9" />
-                          <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.85" />
-                          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.8" />
-                        </linearGradient>
-                        <radialGradient id="trabGrad" cx="0.5" cy="0.5" r="0.5">
-                          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.7" />
-                          <stop offset="100%" stopColor="#60a5fa" stopOpacity="0.1" />
-                        </radialGradient>
-                      </defs>
-                      <path
-                        d="M220 40 C 260 55, 275 95, 250 130 C 230 155, 200 165, 180 180 C 170 195, 168 210, 165 230 L 160 270 C 155 290, 145 300, 130 305 C 115 300, 105 290, 100 270 L 95 230 C 92 210, 90 195, 80 180 C 60 165, 30 155, 10 130 C -15 95, 0 55, 40 40 C 65 32, 85 50, 100 70 C 120 90, 120 115, 130 135 C 133 142, 140 145, 145 142 C 155 115, 155 90, 175 70 C 190 50, 210 32, 220 40 Z"
-                        fill="url(#boneGrad)"
-                        stroke="#bfdbfe"
-                        strokeWidth="1.5"
-                        opacity="0.95"
-                      />
-                      <ellipse cx="230" cy="100" rx="32" ry="28" fill="url(#trabGrad)" />
-                      <g opacity="0.75" fill="#e0f2fe">
-                        {Array.from({ length: 28 }).map((_, i) => (
-                          <circle
-                            key={i}
-                            cx={210 + (i % 7) * 8}
-                            cy={80 + Math.floor(i / 7) * 8 + ((i % 2) * 2)}
-                            r={1.2 + ((i * 13) % 10) / 10}
-                          />
-                        ))}
-                      </g>
-                      <path d="M130 160 L 130 240" stroke="#1e3a8a" strokeWidth="2" opacity="0.4" strokeDasharray="4 6" />
-                    </svg>
-                  </div>
-
-                  <div className="absolute top-4 left-4 bg-slate-900/70 backdrop-blur rounded-xl px-3 py-2 border border-slate-700/50">
-                    <div className="flex items-center gap-2 text-xs font-bold text-blue-300">
-                      <Sparkles size={13} />
-                      BONE MINERAL DENSITY
-                    </div>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-xl font-black text-white">0.741</span>
-                      <span className="text-[10px] text-slate-400">g/cm² | T-Score:</span>
-                      <span className="text-sm font-bold text-red-400">-2.8</span>
-                    </div>
-                  </div>
-
-                  <div className="absolute top-4 right-4 bg-slate-900/70 backdrop-blur rounded-xl p-3 border border-slate-700/50 w-44 space-y-2.5">
-                    {[
-                      { label: 'Trabecular vBMD', val: '112.4', unit: 'mg/cm³', color: 'text-amber-300' },
-                      { label: 'Cortical Thickness', val: '1.2', unit: 'mm', color: 'text-red-400' },
-                      { label: 'Trabecular Pattern', val: 'Irregular', unit: '', color: 'text-amber-300' },
-                    ].map((m, i) => (
-                      <div key={i} className="flex justify-between items-start">
-                        <span className="text-[10px] text-slate-400 font-medium leading-tight">{m.label}</span>
-                        <div className="text-right">
-                          <span className={`text-xs font-bold ${m.color}`}>{m.val}</span>
-                          <span className="text-[10px] text-slate-500 ml-1">{m.unit}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="absolute bottom-4 right-4 bg-white rounded-xl px-4 py-3 shadow-xl border border-slate-200">
-                    <div className="text-[11px] font-bold text-slate-500 mb-0.5">T-Score</div>
-                    <div className="text-2xl font-black text-red-600 leading-none">-2.8</div>
-                    <div className="flex items-center gap-1.5 mt-1 text-xs font-bold text-red-600">
-                      <span>⌵</span>
-                      High Risk
-                    </div>
-                  </div>
-
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-emerald-500/20 backdrop-blur border border-emerald-400/30 rounded-full px-3 py-1.5">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[11px] font-bold text-emerald-300">AI ANALYSIS COMPLETE</span>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mt-5">
-                  {[
-                    { label: 'Overall Risk', val: '75%', tone: 'text-red-600', bg: 'bg-red-50', ring: 'ring-red-100' },
-                    { label: 'Structural', val: '30%', tone: 'text-teal-600', bg: 'bg-teal-50', ring: 'ring-teal-100' },
-                    { label: 'Confidence', val: '87%', tone: 'text-blue-600', bg: 'bg-blue-50', ring: 'ring-blue-100' },
-                  ].map((m, i) => (
-                    <div key={i} className={`${m.bg} rounded-xl p-3 ring-1 ${m.ring}`}>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{m.label}</div>
-                      <div className={`text-xl font-black ${m.tone} mt-0.5`}>{m.val}</div>
+                {/* Sub-Metrics Strip */}
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Overall Risk</div>
+                    <div className="text-lg font-black text-red-400 mt-0.5 flex items-baseline gap-1">
+                      75% <span className="text-[10px] font-bold text-red-500/80">HIGH</span>
                     </div>
-                  ))}
+                  </div>
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">DEXA T-Score</div>
+                    <div className="text-lg font-black text-amber-400 mt-0.5">-2.8</div>
+                  </div>
+                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">AI Confidence</div>
+                    <div className="text-lg font-black text-blue-400 mt-0.5">91%</div>
+                  </div>
                 </div>
               </div>
             </div>
