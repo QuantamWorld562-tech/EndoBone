@@ -3,75 +3,15 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
-  Minus,
-  ArrowRight,
   Sparkles,
   Info,
+  FlaskConical,
+  Activity,
+  BarChart2,
+  CheckCircle2,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { useTrendingData } from '../../../hooks';
-
-const BIOMARKER_GROUPS = [
-  {
-    group: 'Serum Biomarkers',
-    items: [
-      { key: 'pth', label: 'Parathyroid Hormone (PTH)', sub: 'Serum Intact' },
-      { key: 'vitaminD', label: '25-OH Vitamin D', sub: 'Total Serum' },
-      { key: 'calcium', label: 'Calcium', sub: 'Total Serum' },
-      { key: 'phosphate', label: 'Phosphate', sub: 'Inorganic' },
-      { key: 'alp', label: 'Alkaline Phosphatase (ALP)', sub: 'Total Serum' },
-    ],
-  },
-  {
-    group: 'Bone Turnover Markers',
-    items: [
-      { key: 'ctx', label: 'CTX-I (C-Telopeptide)', sub: 'Bone Resorption Marker' },
-      { key: 'p1np', label: 'P1NP', sub: 'Bone Formation Marker' },
-    ],
-  },
-  {
-    group: 'Thyroid Function',
-    items: [
-      { key: 'tsh', label: 'TSH', sub: 'Serum' },
-      { key: 'free_t4', label: 'Free T4', sub: 'Serum' },
-    ],
-  },
-  {
-    group: 'Additional Minerals',
-    items: [{ key: 'magnesium', label: 'Magnesium', sub: 'Serum' }],
-  },
-];
-
-const DISPLAY = {
-  elevated: {
-    cls: 'biomarker-elevated',
-    badge: 'status-badge-elevated',
-    arrow: TrendingUp,
-    arrowCls: 'text-red-600',
-    label: 'Elevated',
-  },
-  deficient: {
-    cls: 'biomarker-deficient',
-    badge: 'status-badge-deficient',
-    arrow: TrendingDown,
-    arrowCls: 'text-amber-600',
-    label: 'Deficient',
-  },
-  low: {
-    cls: 'biomarker-low',
-    badge: 'status-badge-low',
-    arrow: TrendingDown,
-    arrowCls: 'text-amber-600',
-    label: 'Low',
-  },
-  normal: {
-    cls: 'biomarker-normal',
-    badge: 'status-badge-normal',
-    arrow: Minus,
-    arrowCls: 'text-teal-600',
-    label: 'Normal',
-  },
-};
 
 export default function MetabolicContextView({ patientId, onRunAssessment }) {
   const params = useParams();
@@ -87,6 +27,28 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     return <div className="p-10 text-center text-slate-500">Loading metabolic profile...</div>;
   }
 
+  const getStatusBadge = (key) => {
+    const data = biomarkers[key];
+    if (!data) return null;
+    const status = data.status || 'normal';
+    if (status === 'elevated' || status === 'high') {
+      return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 text-red-700 ring-1 ring-red-200">High</span>;
+    }
+    if (status === 'low' || status === 'deficient') {
+      return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-700 ring-1 ring-amber-200">Low</span>;
+    }
+    return null;
+  };
+
+  const getBorderColor = (key) => {
+    const data = biomarkers[key];
+    if (!data) return 'border-slate-200';
+    const status = data.status || 'normal';
+    if (status === 'elevated' || status === 'high') return 'border-red-400 ring-1 ring-red-300';
+    if (status === 'low' || status === 'deficient') return 'border-amber-400 ring-1 ring-amber-300';
+    return 'border-slate-200';
+  };
+
   const renderTrendChart = (key, color) => {
     if (!trendData?.lastSixMonths) return null;
     const points = trendData.lastSixMonths;
@@ -95,7 +57,7 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     const min = Math.min(...values) * 0.9;
     const max = Math.max(...values) * 1.05;
     const w = 320;
-    const h = 60;
+    const h = 50;
     const stepX = w / (values.length - 1);
     const coords = values.map((v, i) => {
       const x = i * stepX;
@@ -105,18 +67,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     const path = coords.map((c, i) => (i === 0 ? `M ${c[0]},${c[1]}` : `L ${c[0]},${c[1]}`)).join(' ');
     const areaPath = `${path} L ${w},${h} L 0,${h} Z`;
     return (
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-14">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12">
         <defs>
           <linearGradient id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+            <stop offset="0%" stopColor={color} stopOpacity="0.25" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={areaPath} fill={`url(#grad-${key})`} />
-        <path d={path} stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        {coords.map((c, i) => (
-          <circle key={i} cx={c[0]} cy={c[1]} r="3" fill="#fff" stroke={color} strokeWidth="2" />
-        ))}
+        <path d={path} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   };
@@ -125,186 +84,263 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     ([_, v]) => typeof v === 'object' && v.status && v.status !== 'normal'
   ).length;
 
-  const panelDate = biomarkers.date;
-
   return (
     <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Metabolic Context</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Biomarker Input</h2>
           <p className="text-slate-600 mt-1 text-base">
-            Biochemical profile and endocrine status assessment for this patient.
+            Enter recent lab results to update patient risk profile and 3D simulation.
           </p>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-slate-500 font-semibold">Panel Date</span>
-            <span className="font-bold text-slate-900">{panelDate}</span>
-          </div>
+        <div className="flex items-center gap-3">
           <div
             className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
-              abnormalCount > 0 ? 'bg-red-50 border-red-200' : 'bg-teal-50 border-teal-200'
+              abnormalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-teal-50 border-teal-200 text-teal-700'
             }`}
           >
             <AlertTriangle size={16} className={abnormalCount > 0 ? 'text-red-600' : 'text-teal-600'} />
-            <span className={`font-bold ${abnormalCount > 0 ? 'text-red-700' : 'text-teal-700'}`}>
-              {abnormalCount} abnormal {abnormalCount === 1 ? 'marker' : 'markers'}
+            <span className="font-bold text-xs">
+              {abnormalCount} Out-of-Range {abnormalCount === 1 ? 'Biomarker' : 'Biomarkers'}
             </span>
           </div>
         </div>
       </div>
 
+      {/* Main Grid — matching user reference screenshot */}
       <div className="grid lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 space-y-6">
-          {BIOMARKER_GROUPS.map((grp, gi) => (
-            <div key={gi} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-              <div className="px-7 py-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
-                <h3 className="text-sm font-black text-slate-800 tracking-wide uppercase">{grp.group}</h3>
+        
+        {/* Left Card: Bone Metabolism Panel (3 Cols) */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+          <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+              <FlaskConical size={18} />
+            </div>
+            <h3 className="text-base font-extrabold text-slate-900">Bone Metabolism Panel</h3>
+          </div>
+
+          <div className="space-y-4">
+            {/* PTH */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>Parathyroid Hormone (PTH)</span>
+                <span title="NHANES LBXPT21 (Ref: 15.0–65.0 pg/mL)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
               </div>
-              <div className="divide-y divide-slate-100">
-                {grp.items.map((item) => {
-                  const data = biomarkers[item.key];
-                  if (!data) return null;
-                  const d = DISPLAY[data.status] || DISPLAY.normal;
-                  const Arrow = d.arrow;
-                  return (
-                    <div
-                      key={item.key}
-                      className={`biomarker-card ${d.cls} !rounded-none !border-0 !border-b border-slate-100 !p-6 transition`}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-6">
-                        <div className="flex-1 min-w-[240px]">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="font-bold text-slate-900 text-base">{item.label}</p>
-                              <p className="text-xs text-slate-500 font-medium mt-0.5">{item.sub}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Arrow size={14} className={d.arrowCls} />
-                              <span className={`status-badge ${d.badge} font-bold`}>{d.label}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-baseline gap-3 mt-3">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={data.value}
-                              onChange={(e) => updateBiomarker(effectivePatientId, item.key, e.target.value)}
-                              className="w-28 bg-white/70 border border-slate-200 rounded-lg px-3 py-1.5 text-2xl font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                            />
-                            <span className="text-sm text-slate-600 font-semibold">{data.unit}</span>
-                            <span className="text-xs text-slate-400 font-medium ml-auto">
-                              Ref: <span className="font-bold text-slate-600">{data.ref}</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="w-full sm:w-80">
-                          {renderTrendChart(
-                            item.key,
-                            data.status === 'elevated'
-                              ? '#dc2626'
-                              : data.status === 'low' || data.status === 'deficient'
-                              ? '#f59e0b'
-                              : '#10b981'
-                          )}
-                          {trendData?.lastSixMonths && (
-                            <div className="flex justify-between text-[10px] font-semibold text-slate-400 mt-1">
-                              <span>6 mo ago</span>
-                              <span>Today</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('pth')}`}>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.pth?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'pth', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    pg/mL
+                  </span>
+                </div>
+                {getStatusBadge('pth')}
               </div>
             </div>
-          ))}
 
-          <button
-            onClick={handleRunAssessment}
-            className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-2xl hover:from-blue-700 hover:to-blue-800 transition shadow-xl shadow-blue-600/25 flex items-center justify-center gap-3 text-base border-2 border-dashed border-blue-300"
-          >
-            <Sparkles size={20} />
-            Run Combined AI Assessment
-            <ArrowRight size={18} />
-          </button>
+            {/* Vitamin D */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>Vitamin D (25-OH)</span>
+                <span title="NHANES 2017–2018 (Ref: 30.0–100.0 ng/mL)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('vitaminD')}`}>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.vitaminD?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'vitaminD', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    ng/mL
+                  </span>
+                </div>
+                {getStatusBadge('vitaminD')}
+              </div>
+            </div>
+
+            {/* Serum Calcium */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>Serum Calcium</span>
+                <span title="NHANES LBXSCA (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('calcium')}`}>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.calcium?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'calcium', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    mg/dL
+                  </span>
+                </div>
+                {getStatusBadge('calcium')}
+              </div>
+            </div>
+
+            {/* Serum Phosphate */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>Serum Phosphate</span>
+                <span title="NHANES LBXSPH (Ref: 2.5–4.5 mg/dL)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('phosphate')}`}>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.phosphate?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'phosphate', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    mg/dL
+                  </span>
+                </div>
+                {getStatusBadge('phosphate')}
+              </div>
+            </div>
+
+            {/* Alkaline Phosphatase */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>Alkaline Phosphatase (ALP)</span>
+                <span title="NHANES LBXSAPSI (Ref: 44–147 IU/L)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('alp')}`}>
+                  <input
+                    type="number"
+                    step="1"
+                    value={biomarkers.alp?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'alp', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    IU/L
+                  </span>
+                </div>
+                {getStatusBadge('alp')}
+              </div>
+            </div>
+
+            {/* CTX-I Resorption Marker */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
+                <span>CTX-I (Resorption)</span>
+                <span title="Bone Turnover Resorption Marker (Ref: < 300 pg/mL)" className="text-slate-400 hover:text-slate-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 flex-1 justify-end">
+                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('ctx')}`}>
+                  <input
+                    type="number"
+                    step="10"
+                    value={biomarkers.ctx?.value ?? ''}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'ctx', e.target.value)}
+                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    pg/mL
+                  </span>
+                </div>
+                {getStatusBadge('ctx')}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-extrabold text-slate-900">Historical Trend</h3>
-              <span className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
-                Last 6 months
-              </span>
-            </div>
-
-            <div className="space-y-5">
-              {[
-                { key: 'vitaminD', label: 'Vitamin D', unit: 'ng/mL', color: '#f59e0b', from: 24.2, to: 18.5, dir: 'down', note: '↓ Declining trend' },
-                { key: 'pth', label: 'PTH', unit: 'pg/mL', color: '#dc2626', from: 68.5, to: 85.2, dir: 'up', note: '↑ Elevated — requires intervention' },
-                { key: 'calcium', label: 'Calcium', unit: 'mg/dL', color: '#3b82f6', from: 8.8, to: 8.2, dir: 'down', note: '↓ Low — contributing to 2° HPT' },
-                { key: 'ctx', label: 'CTX-I', unit: 'pg/mL', color: '#8b5cf6', from: 380, to: 450, dir: 'up', note: '↑ High bone resorption rate' },
-              ].map((m) => (
-                <div key={m.key} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{m.label}</p>
-                      <p className="text-[11px] text-slate-500 font-medium">{m.unit}</p>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs text-slate-400 font-semibold">{m.from} →</span>
-                      <span className="text-base font-black" style={{ color: m.color }}>{m.to}</span>
-                    </div>
-                  </div>
-                  <div className="relative">{renderTrendChart(m.key, m.color)}</div>
-                  <p
-                    className={`text-[11px] font-bold flex items-center gap-1 ${
-                      m.dir === 'up' ? 'text-red-600' : 'text-amber-600'
-                    }`}
-                  >
-                    {m.dir === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                    {m.note}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div
-            className={`rounded-2xl border p-6 ${
-              abnormalCount >= 3 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
-            }`}
-          >
-            <div className="flex items-start gap-3 mb-3">
-              <div
-                className={`w-10 h-10 rounded-xl ${
-                  abnormalCount >= 3 ? 'bg-red-600' : 'bg-amber-500'
-                } flex items-center justify-center text-white flex-shrink-0`}
-              >
-                <Info size={18} />
+        {/* Right Column: Thyroid Function & Analyze Action Card (2 Cols) */}
+        <div className="lg:col-span-2 space-y-6 flex flex-col justify-between">
+          
+          {/* Thyroid Function Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                <Activity size={18} />
               </div>
-              <h4 className="font-extrabold text-slate-900">Endocrine Pattern Detected</h4>
+              <h3 className="text-base font-extrabold text-slate-900">Thyroid Function</h3>
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">
-              Elevated PTH <span className="font-bold text-red-700">(85.2 pg/mL)</span> combined with low
-              Vitamin D <span className="font-bold text-amber-700">(18.5 ng/mL)</span> and low Calcium
-              <span className="font-bold text-amber-700"> (8.2 mg/dL)</span> is consistent with{' '}
-              <span className="font-black bg-yellow-200 px-1.5 rounded">secondary hyperparathyroidism</span>,
-              likely driven by vitamin D deficiency. Concurrent CTX elevation indicates increased bone turnover.
-            </p>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1 text-xs font-bold text-slate-700">
+                  <span>TSH</span>
+                  <span title="Ref: 0.4–4.0 mIU/L" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                </div>
+                <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.tsh?.value ?? 2.1}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'tsh', e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    mIU/L
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1 text-xs font-bold text-slate-700">
+                  <span>Free T4</span>
+                  <span title="Ref: 0.8–1.8 ng/dL" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                </div>
+                <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={biomarkers.free_t4?.value ?? 1.2}
+                    onChange={(e) => updateBiomarker(effectivePatientId, 'free_t4', e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none"
+                  />
+                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                    ng/dL
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5 text-xs text-slate-500 leading-relaxed">
-            <span className="font-bold text-slate-700">Reference Ranges:</span> Values based on published
-            clinical standards: PTH 15-65 pg/mL, 25-OH Vitamin D 30-100 ng/mL, Calcium 8.6-10.3 mg/dL,
-            Phosphate 2.5-4.5 mg/dL, ALP 44-147 U/L, CTX &lt; 300 pg/mL, P1NP 15-80 mcg/L, TSH 0.4-4.0
-            mIU/L, Free T4 0.8-1.8 ng/dL.
+          {/* Action Verification Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Ensure all out-of-range values are verified before proceeding to analysis.
+            </p>
+
+            <button
+              onClick={handleRunAssessment}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition"
+            >
+              <BarChart2 size={18} />
+              Analyze Patient Data
+            </button>
           </div>
+
         </div>
       </div>
     </div>
