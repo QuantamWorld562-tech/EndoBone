@@ -6,11 +6,9 @@ import {
   BarChart3,
   Box,
   Shield,
-  Sparkles,
   ArrowUpRight,
   FileCheck,
   Brain,
-  FlaskConical,
 } from 'lucide-react';
 
 export default function LandingView({ onStart }) {
@@ -36,10 +34,10 @@ export default function LandingView({ onStart }) {
             </button>
             <button
               onClick={handleStart}
-              className="group px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-2 border-2 border-dashed border-blue-200"
+              className="group px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-2 border-2 border-dotted border-blue-200"
             >
               Start Assessment
-              <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>
