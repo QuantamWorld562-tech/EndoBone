@@ -236,8 +236,8 @@ export default function Planning3DView({ patientId }) {
 
       {/* ── Model Selection Strip ───────────────────────────────── */}
       <div className="bg-slate-950 rounded-2xl border border-slate-800 px-4 py-3 shadow-xl">
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-700">
-          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap pl-1">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hidden scrollbar-thin scrollbar-thumb-slate-700">
+          <div className="flex  items-center gap-1.5 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap pl-1">
             <Bone size={14} className="text-blue-400" />
             <span>Select Anatomy:</span>
           </div>
@@ -259,7 +259,7 @@ export default function Planning3DView({ patientId }) {
       <div className="grid lg:grid-cols-4 gap-6">
         {/* 3D Viewport Column */}
         <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-3'} space-y-4`}>
-          <div className={`bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col ${isFullscreen ? 'h-full' : ''}`}>
+          <div className={`bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col ${isFullscreen ? 'h-full' : 'h-3/5'}`}>
             
             {/* Top Toolbar: Render Modes & Anatomical Planes */}
             <div className="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">

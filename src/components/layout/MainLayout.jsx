@@ -22,7 +22,7 @@ export default function MainLayout() {
         <TopBar />
         <WorkflowStepper />
 
-        <main className="flex-1 p-8 overflow-x-hidden scrollbar-thin">
+        <main className="flex-1 p-8 overflow-x-hidden scrollbar-hidden">
           <Outlet />
         </main>
       </div>

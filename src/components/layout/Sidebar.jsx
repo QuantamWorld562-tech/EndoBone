@@ -7,14 +7,14 @@ import {
   Settings,
   HelpCircle,
   Plus,
-  FlaskConical,
+  BrainCircuit,
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard' },
   { id: 'metabolic', label: 'Metabolic Context', icon: Activity, path: (pid) => `/patients/${pid}/metabolic` },
-  { id: 'assessment', label: 'AI Assessment', icon: Activity, path: (pid) => `/patients/${pid}/assessment` },
+  { id: 'assessment', label: 'AI Assessment', icon: BrainCircuit, path: (pid) => `/patients/${pid}/assessment` },
   { id: 'planning', label: '3D Planning', icon: Box, path: (pid) => `/patients/${pid}/planning` },
   { id: 'summary', label: 'Pre-Surgical Summary', icon: FileText, path: (pid) => `/patients/${pid}/summary` },
 ];
