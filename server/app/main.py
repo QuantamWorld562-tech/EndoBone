@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import db_manager
 from app.routes import (
+    auth,
     cases,
     biomarkers,
     models,
@@ -42,6 +43,7 @@ app.add_middleware(
 )
 
 # Mount Routers under /api
+app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(cases.router, prefix=settings.API_V1_STR)
 app.include_router(biomarkers.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
