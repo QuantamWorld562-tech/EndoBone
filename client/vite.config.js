@@ -19,6 +19,11 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '/api'),
         timeout: 30000,
       },
+      '/storage': {
+        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        timeout: 30000,
+      },
     },
   },
 
