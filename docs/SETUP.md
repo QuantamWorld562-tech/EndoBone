@@ -96,6 +96,22 @@ REACT_APP_ENVIRONMENT=development
 REACT_APP_ENABLE_MOCK_DATA=true
 ```
 
+#### Backend environment
+
+The backend uses a separate root `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Set `MONGODB_URI`, `GEMINI_API_KEY`, and optionally `PORT`, `GEMINI_MODEL`, and `FRONTEND_ORIGINS`. Start MongoDB, then run the API in a second terminal:
+
+```bash
+npm run server:dev
+```
+
+The API listens on `http://localhost:4000`; the Vite proxy exposes it to the frontend under `/api`.
+
 ### Step 4: Tailwind CSS Setup
 
 Already configured in the project. To verify:
@@ -190,6 +206,14 @@ npm run compose:down
 
 ## 🧪 Testing
 
+### Backend API tests
+
+```bash
+npm run server:test
+```
+
+These tests validate routing, request validation, and the Gemini few-shot contract without requiring a live MongoDB or Gemini request.
+
 ### Unit Tests
 ```bash
 npm test
@@ -250,22 +274,23 @@ Container image definition
 
 ```
 endobone-ai-frontend/
-├── src/
-│   ├── components/
+├── client/
+│   ├── src/
+│   │   ├── components/
 │   │   ├── EndoBoneAI.jsx          # Main component
 │   │   ├── Dashboard/
 │   │   ├── Assessment/
 │   │   ├── Planning/
 │   │   ├── Surgery/
 │   │   └── Common/
-│   ├── hooks/                      # Custom React hooks
-│   ├── services/                   # API services
-│   ├── data/                       # Mock data
-│   ├── styles/
-│   │   └── index.css               # Global styles + Tailwind
-│   └── App.jsx                     # Root component
-├── public/
-│   └── index.html                  # HTML template
+│   │   ├── hooks/                      # Custom React hooks
+│   │   ├── services/                   # API services
+│   │   ├── data/                       # Mock data
+│   │   ├── styles/
+│   │   │   └── index.css               # Global styles + Tailwind
+│   │   └── App.jsx                     # Root component
+│   ├── public/                         # Static assets and 3D models
+│   └── index.html                      # Vite HTML template
 ├── package.json                    # Dependencies & scripts
 ├── vite.config.js                  # Vite configuration
 ├── tailwind.config.js              # Tailwind configuration
