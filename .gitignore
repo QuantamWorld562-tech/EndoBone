@@ -45,6 +45,11 @@ test-results/
 *.tmp
 *.temp
 
-# 3D Raw Models Folder
-src/3D_Models/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.venv/
+venv/
 
