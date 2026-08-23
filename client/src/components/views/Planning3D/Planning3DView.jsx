@@ -137,14 +137,23 @@ export default function Planning3DView({ patientId }) {
             <span className="text-red-600 font-bold">1 critical zone</span> · <span className="text-orange-600 font-bold">1 elevated</span> · Hover or click any zone on the 3D model to inspect
           </p>
         </div>
-        <button
-          onClick={() => navigate(`/patients/${effectivePatientId}/assessment`)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/25 transition cursor-pointer"
-        >
-          <Brain size={14} />
-          Full AI Assessment
-          <ArrowUpRight size={13} />
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => navigate(`/patients/${effectivePatientId}/assessment`)}
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200"
+          >
+            <Brain size={14} />
+            AI Assessment
+          </button>
+          <button
+            onClick={() => navigate(`/patients/${effectivePatientId}/summary`)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/25 transition cursor-pointer"
+          >
+            <FileText size={14} />
+            Pre-Surgery Summary
+            <ArrowUpRight size={13} />
+          </button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-4 gap-5">
