@@ -1,14 +1,16 @@
 /* eslint-disable react/no-unknown-property */
 /**
- * BoneModelViewer — Clinical 3D Bone Visualisation
- * Professional medical-grade UI with zone heatmap, floating HUD,
- * risk legend, camera presets, and X-Ray toggle.
+ * BoneModelViewer — Clinical 3D Bone Visualisation & Pre-Surgical Planning Simulation
+ * Features:
+ * - Phase 1: Glowing Region Highlight contour & Click-to-ROI coordinate capture
+ * - Phase 2: Biomarker-Informed Analysis with interactive 3D pins (PTH, Calcium, Vit D) & Trabecular Heatmap
+ * - Phase 3: 3D Fixation Simulation (Cerclage wire stitches, Cannulated lag screws, Infill)
  */
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine } from 'lucide-react';
+import { Eye, EyeOff, ScanLine, Play, Pause, Activity, Crosshair } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,10 +48,6 @@ const BONE_WHITE    = '#f3f4f6';
 const XRAY_TINT     = '#7dd3fc';
 const XRAY_EMISSIVE = '#075985';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Camera presets
-// ─────────────────────────────────────────────────────────────────────────────
-
 const CAM = {
   overview: { pos: [1.8, 1.2, 2.6],    tgt: [0, 0, 0] },
   anterior: { pos: [0, 0, 3.45],       tgt: [0, 0, 0] },
@@ -58,10 +56,6 @@ const CAM = {
 };
 const ANGLE_MAP = { coronal: 'anterior', sagittal: 'lateral', '3d': 'overview' };
 function resolvePreset(v) { return CAM[v] ? v : (ANGLE_MAP[v] || 'overview'); }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Region helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 const REGION_ALIASES = {
   femoral_neck: 'femoral-neck', 'femoral-neck': 'femoral-neck',
@@ -242,10 +236,6 @@ function applySpatialHeatmap(mesh, zones, rootGroup) {
   return strongest;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Loading spinner
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ModelLoader({ label }) {
   return (
     <Html center>
@@ -272,8 +262,145 @@ function ModelLoader({ label }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Zone pin
+// 3D Visual Elements: Region Highlight, 3D Biomarker Pins & Fixation Hardware
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Phase 1: Glowing Fracture / Surgical Region Contour */
+function RegionHighlightContour({ position = [0.22, 0.72, 0.15], active = true }) {
+  const meshRef = useRef();
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      const t = clock.getElapsedTime();
+      meshRef.current.scale.setScalar(1 + Math.sin(t * 3) * 0.05);
+    }
+  });
+
+  if (!active) return null;
+
+  return (
+    <group position={position}>
+      {/* Outer pulsating red glow */}
+      <mesh ref={meshRef} rotation={[0.2, 0.4, 0]}>
+        <torusGeometry args={[0.32, 0.028, 16, 64]} />
+        <meshStandardMaterial
+          color="#ef4444"
+          emissive="#dc2626"
+          emissiveIntensity={1.8}
+          transparent
+          opacity={0.85}
+          roughness={0.2}
+        />
+      </mesh>
+      {/* Inner highlight mesh fill */}
+      <mesh rotation={[0.2, 0.4, 0]}>
+        <ringGeometry args={[0.05, 0.31, 32]} />
+        <meshBasicMaterial
+          color="#ef4444"
+          transparent
+          opacity={0.18}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+/** Phase 2: Interactive 3D Biomarker Anatomical Pins */
+function BiomarkerPin3D({ name, value, unit, position, color = '#38bdf8', onClick }) {
+  const pinRef = useRef();
+  useFrame(({ clock }) => {
+    if (pinRef.current) {
+      const t = clock.getElapsedTime();
+      pinRef.current.position.y = position[1] + Math.sin(t * 2.5) * 0.02;
+    }
+  });
+
+  return (
+    <group ref={pinRef} position={position} onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
+      {/* Pin head Sphere */}
+      <mesh position={[0, 0.08, 0]}>
+        <sphereGeometry args={[0.045, 24, 24]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.2} roughness={0.1} />
+      </mesh>
+      {/* Pin needle Line/Cylinder */}
+      <mesh position={[0, 0.02, 0]}>
+        <cylinderGeometry args={[0.005, 0.002, 0.08, 12]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {/* HTML Floating Marker Badge */}
+      <Html position={[0.06, 0.12, 0]} distanceFactor={4.5} zIndexRange={[300, 0]}>
+        <div
+          onClick={onClick}
+          className="cursor-pointer select-none px-2.5 py-1 rounded-lg bg-slate-950/90 text-white border border-cyan-500/50 shadow-xl shadow-cyan-500/20 backdrop-blur-md flex items-center gap-1.5 hover:scale-105 transition active:scale-95"
+        >
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          <span className="text-[11px] font-black text-cyan-300">{name}</span>
+          {value !== undefined && (
+            <span className="text-[10px] font-bold text-slate-300">
+              {value} {unit}
+            </span>
+          )}
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+/** Phase 3: 3D Pre-Surgical Fixation Hardware Simulation */
+function FixationSimulationMesh({ activePlan = 'A', isPlaying = false, tension = 50 }) {
+  const groupRef = useRef();
+
+  useFrame(({ clock }) => {
+    if (isPlaying && groupRef.current) {
+      const t = clock.getElapsedTime();
+      groupRef.current.position.y = Math.sin(t * 4) * 0.006;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0.20, 0.70, 0.14]}>
+      {/* Cerclage Metallic Wire Stitches */}
+      <mesh rotation={[0.4, 0.2, 0.8]}>
+        <torusGeometry args={[0.26, 0.014 * (tension / 50), 16, 64]} />
+        <meshStandardMaterial color="#cbd5e1" metalness={0.92} roughness={0.15} />
+      </mesh>
+      <mesh rotation={[-0.3, 0.5, 0.3]}>
+        <torusGeometry args={[0.28, 0.014 * (tension / 50), 16, 64]} />
+        <meshStandardMaterial color="#cbd5e1" metalness={0.92} roughness={0.15} />
+      </mesh>
+      <mesh rotation={[0.1, -0.4, 1.2]}>
+        <torusGeometry args={[0.24, 0.014 * (tension / 50), 16, 64]} />
+        <meshStandardMaterial color="#94a3b8" metalness={0.90} roughness={0.2} />
+      </mesh>
+
+      {/* Cannulated Cross Screws */}
+      <mesh position={[0.05, -0.05, 0.02]} rotation={[0.6, 0.3, -0.5]}>
+        <cylinderGeometry args={[0.018, 0.018, 0.75, 16]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.1} />
+      </mesh>
+      <mesh position={[-0.05, 0.05, -0.02]} rotation={[-0.4, 0.6, 0.8]}>
+        <cylinderGeometry args={[0.018, 0.018, 0.70, 16]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.1} />
+      </mesh>
+
+      {/* Ortho-Biologic Infill Material (Plan A) */}
+      {activePlan === 'A' && (
+        <mesh position={[0.01, 0.02, 0.01]}>
+          <sphereGeometry args={[0.16, 24, 24]} />
+          <meshStandardMaterial
+            color="#38bdf8"
+            emissive="#0284c7"
+            emissiveIntensity={isPlaying ? 1.4 : 0.7}
+            transparent
+            opacity={0.45}
+            roughness={0.3}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+}
 
 function ZonePin({ zone, position, subtle=false }) {
   const coreRef=useRef(), ringRef=useRef();
@@ -305,10 +432,6 @@ function ZonePin({ zone, position, subtle=false }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Clinical HUD card — premium dark-mode floating tooltip
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ClinicalHud({ zone, anchor }) {
   const r = RISK[zone.riskLevel];
 
@@ -331,11 +454,8 @@ function ClinicalHud({ zone, anchor }) {
           border: '1px solid rgba(255,255,255,0.07)',
           boxShadow: '0 24px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)',
         }}>
-          {/* Risk-colour top bar */}
           <div style={{ height: 3, background: `linear-gradient(90deg, ${r.glowHex} 0%, ${r.hex} 60%, transparent 100%)` }} />
-
           <div style={{ padding: '14px 15px 15px' }}>
-            {/* Zone header */}
             <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:10, marginBottom:12 }}>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:4 }}>
@@ -358,10 +478,8 @@ function ClinicalHud({ zone, anchor }) {
               </div>
             </div>
 
-            {/* Divider */}
             <div style={{ height:1, background:'rgba(255,255,255,0.06)', margin:'0 0 12px' }} />
 
-            {/* AI note */}
             <div style={{ marginBottom:12 }}>
               <p style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', color:'#475569', textTransform:'uppercase', marginBottom:6 }}>
                 AI Clinical Observation
@@ -371,7 +489,6 @@ function ClinicalHud({ zone, anchor }) {
               </p>
             </div>
 
-            {/* Risk meter */}
             <div>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
                 <span style={{ fontSize:9, fontWeight:700, color:'#475569', letterSpacing:'0.1em', textTransform:'uppercase' }}>Risk Index</span>
@@ -395,10 +512,6 @@ function ClinicalHud({ zone, anchor }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Camera controller
-// ─────────────────────────────────────────────────────────────────────────────
-
 function CameraController({ preset, controlsRef }) {
   const { camera } = useThree();
   const tp = useRef(new THREE.Vector3(...CAM.overview.pos));
@@ -417,11 +530,24 @@ function CameraController({ preset, controlsRef }) {
   return null;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Normalised bone model
-// ─────────────────────────────────────────────────────────────────────────────
-
-function NormalizedBoneModel({ modelPath, mode, autoRotate, zones, selectedZone, pinnedZone, pinnedAnchor, onInteraction }) {
+function NormalizedBoneModel({
+  modelPath,
+  mode,
+  autoRotate,
+  zones,
+  selectedZone,
+  pinnedZone,
+  pinnedAnchor,
+  onInteraction,
+  phase = 'highlight',
+  isHighlightActive = true,
+  biomarkers = {},
+  onBiomarkerClick,
+  activePlan = 'A',
+  isPlayingSimulation = false,
+  stitchTension = 50,
+  roiMarkers = [],
+}) {
   const { scene } = useGLTF(modelPath);
   const rootRef = useRef();
 
@@ -478,7 +604,7 @@ function NormalizedBoneModel({ modelPath, mode, autoRotate, zones, selectedZone,
       return !best||d<best.d?{z,d}:best;
     },null)?.z : null;
     const zone=direct||nearest||selectedZone||zones[0];
-    return zone&&lp?{zone,anchor:lp.toArray()}:null;
+    return zone&&lp?{zone,anchor:lp.toArray(),point:e.point.toArray()}:null;
   },[zones,selectedZone]);
 
   const handleMove=useCallback(e=>{const it=resolveInteraction(e);if(it)onInteraction?.({...it,type:'hover'});},[resolveInteraction,onInteraction]);
@@ -487,6 +613,61 @@ function NormalizedBoneModel({ modelPath, mode, autoRotate, zones, selectedZone,
   return (
     <group ref={rootRef} onPointerMove={handleMove} onPointerOut={()=>onInteraction?.(null)} onClick={handleClick}>
       <primitive object={group} />
+
+      {/* Phase 1: Glowing Region Contour Highlight */}
+      {phase === 'highlight' && isHighlightActive && (
+        <RegionHighlightContour active={isHighlightActive} position={selectedZone?.anchor || [0.22, 0.72, 0.15]} />
+      )}
+
+      {/* Phase 2: Interactive 3D Biomarker Pins on Bone Landmarks */}
+      {phase === 'biomarkers' && (
+        <group>
+          <BiomarkerPin3D
+            name="PTH"
+            value={biomarkers?.pth?.value || 72.4}
+            unit="pg/mL"
+            position={[0.22, 0.78, 0.16]}
+            color="#ef4444"
+            onClick={() => onBiomarkerClick?.('pth')}
+          />
+          <BiomarkerPin3D
+            name="Calcium"
+            value={biomarkers?.calcium?.value || 9.4}
+            unit="mg/dL"
+            position={[0.08, -0.15, 0.12]}
+            color="#38bdf8"
+            onClick={() => onBiomarkerClick?.('calcium')}
+          />
+          <BiomarkerPin3D
+            name="Vitamin D"
+            value={biomarkers?.vitaminD?.value || 28.1}
+            unit="ng/mL"
+            position={[0.36, 0.52, 0.10]}
+            color="#f59e0b"
+            onClick={() => onBiomarkerClick?.('vitaminD')}
+          />
+        </group>
+      )}
+
+      {/* Phase 3: Pre-Surgical Planning Simulation Fixation Mesh */}
+      {phase === 'simulation' && (
+        <FixationSimulationMesh
+          activePlan={activePlan}
+          isPlaying={isPlayingSimulation}
+          tension={stitchTension}
+        />
+      )}
+
+      {/* Saved Database Custom ROI Markers */}
+      {roiMarkers.map((roi, idx) => (
+        <group key={roi.id || roi._id || idx} position={roi.coordinates ? [roi.coordinates.x / 100 || 0.2, roi.coordinates.y / 100 || 0.5, roi.coordinates.z / 100 || 0.1] : [0.2, 0.5, 0.1]}>
+          <mesh>
+            <sphereGeometry args={[0.035, 16, 16]} />
+            <meshStandardMaterial color="#ec4899" emissive="#db2777" emissiveIntensity={1.5} />
+          </mesh>
+        </group>
+      ))}
+
       {selectedZone&&!pinnedZone&&<ZonePin zone={selectedZone} position={selectedZone.anchor} subtle />}
       {pinnedZone&&pinnedAnchor&&<ClinicalHud zone={pinnedZone} anchor={pinnedAnchor} />}
     </group>
@@ -494,7 +675,7 @@ function NormalizedBoneModel({ modelPath, mode, autoRotate, zones, selectedZone,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2D Clinical Overlay — professional medical panel design
+// 2D Clinical Overlay
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PANEL_BASE = {
@@ -505,7 +686,7 @@ const PANEL_BASE = {
   fontFamily: 'system-ui,-apple-system,sans-serif',
 };
 
-function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, zones }) {
+function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, zones, phase = 'highlight' }) {
   const PRESETS = [
     { id:'anterior', label:'Anterior',  abbr:'AP',  note:'Frontal plane'  },
     { id:'lateral',  label:'Lateral',   abbr:'LAT', note:'Sagittal plane' },
@@ -522,11 +703,25 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
 
-      {/* ── TOP-RIGHT: Camera + X-Ray panel ─────────────────── */}
+      {/* Floating T-Score HUD in Phase 2 */}
+      {phase === 'biomarkers' && (
+        <div className="pointer-events-none absolute left-6 top-6 space-y-2">
+          <div className="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-slate-800 text-white backdrop-blur-md shadow-xl flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs font-bold text-slate-300">Femoral Neck T-Score:</span>
+            <span className="text-xs font-black text-red-400 font-mono">-2.3</span>
+          </div>
+          <div className="px-3.5 py-2 rounded-xl bg-slate-950/85 border border-slate-800 text-white backdrop-blur-md shadow-xl flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="text-xs font-bold text-slate-300">Total Hip T-Score:</span>
+            <span className="text-xs font-black text-amber-400 font-mono">-1.9</span>
+          </div>
+        </div>
+      )}
+
+      {/* Top-Right: Camera + X-Ray controls */}
       <div className="pointer-events-auto absolute right-5 top-5" style={{ width:190 }}>
         <div style={{ ...PANEL_BASE, borderRadius:14, overflow:'hidden' }}>
-
-          {/* Panel header */}
           <div style={{ padding:'9px 13px 8px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', gap:7 }}>
             <div style={{ width:6, height:6, borderRadius:'50%', background:'#38bdf8', boxShadow:'0 0 8px #38bdf8' }} />
             <span style={{ fontSize:9, fontWeight:800, letterSpacing:'0.18em', color:'#7dd3fc', textTransform:'uppercase' }}>
@@ -534,7 +729,6 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
             </span>
           </div>
 
-          {/* Camera preset buttons */}
           <div style={{ padding:'8px 8px 4px' }}>
             <p style={{ fontSize:9, fontWeight:700, letterSpacing:'0.12em', color:'#475569', textTransform:'uppercase', margin:'0 4px 6px' }}>
               Anatomical Plane
@@ -553,10 +747,7 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
                     background: isActive ? 'rgba(59,130,246,0.20)' : 'transparent',
                     cursor:'pointer', textAlign:'left', transition:'all 0.15s',
                   }}
-                  onMouseEnter={e=>{ if(!isActive) e.currentTarget.style.background='rgba(255,255,255,0.05)'; }}
-                  onMouseLeave={e=>{ if(!isActive) e.currentTarget.style.background='transparent'; }}
                 >
-                  {/* Abbr badge */}
                   <div style={{
                     width:30, height:20, borderRadius:5, flexShrink:0,
                     display:'flex', alignItems:'center', justifyContent:'center',
@@ -579,10 +770,8 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
             })}
           </div>
 
-          {/* Divider */}
           <div style={{ height:1, background:'rgba(255,255,255,0.05)', margin:'4px 12px' }} />
 
-          {/* X-Ray toggle */}
           <div style={{ padding:'6px 8px 10px' }}>
             <button
               type="button"
@@ -607,91 +796,44 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
         </div>
       </div>
 
-      {/* ── BOTTOM-RIGHT: Risk legend ──────────────────────── */}
-      <div className="pointer-events-none absolute right-5 bottom-20">
+      {/* Bottom-Right: BMD Density Map Scale */}
+      <div className="pointer-events-none absolute right-5 bottom-8">
         <div style={{ ...PANEL_BASE, borderRadius:14, overflow:'hidden', width:190 }}>
-
-          {/* Legend header */}
           <div style={{ padding:'9px 13px 8px', borderBottom:'1px solid rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div style={{ display:'flex', alignItems:'center', gap:7 }}>
               <ScanLine size={11} color="#7dd3fc" />
               <span style={{ fontSize:9, fontWeight:800, letterSpacing:'0.18em', color:'#7dd3fc', textTransform:'uppercase' }}>
-                Risk Legend
+                BMD Scale
               </span>
             </div>
-            {(highCount>0||moderateCount>0) && (
-              <div style={{
-                padding:'2px 7px', borderRadius:999,
-                fontSize:9, fontWeight:800,
-                color: highCount>0?'#fca5a5':'#fde68a',
-                background: highCount>0?'rgba(239,68,68,0.15)':'rgba(245,158,11,0.15)',
-                border: `1px solid ${highCount>0?'rgba(239,68,68,0.35)':'rgba(245,158,11,0.35)'}`,
-              }}>
-                {highCount>0 ? `${highCount} CRITICAL` : `${moderateCount} ELEVATED`}
-              </div>
-            )}
+            <span style={{ fontSize:9, fontWeight:800, color:'#38bdf8' }}>T-Score</span>
           </div>
 
           <div style={{ padding:'12px 14px 13px', display:'flex', gap:12, alignItems:'center' }}>
-            {/* Gradient bar */}
             <div style={{ position:'relative', flexShrink:0 }}>
               <div style={{
-                width:10, height:100, borderRadius:5,
-                background:'linear-gradient(to top,#22c55e 0%,#f59e0b 50%,#ef4444 100%)',
-                boxShadow:'0 0 20px rgba(239,68,68,0.20)',
-              }} />
-              {/* Active level tick */}
-              <div style={{
-                position:'absolute', right:-3,
-                top: peakRisk==='high'?4 : peakRisk==='moderate'?44:84,
-                width:16, height:2, borderRadius:1,
-                background: peakColour,
-                boxShadow:`0 0 6px ${peakColour}`,
-                transition:'top 0.4s ease',
+                width:10, height:80, borderRadius:5,
+                background:'linear-gradient(to top,#0284c7 0%,#10b981 35%,#f59e0b 70%,#ef4444 100%)',
               }} />
             </div>
 
-            {/* Labels column */}
-            <div style={{ flex:1 }}>
-              {[
-                { rk:'high',     label:'Critical',  sub:'Immediate action', colour:'#fca5a5' },
-                { rk:'moderate', label:'Elevated',  sub:'Monitor closely',  colour:'#fde68a' },
-                { rk:'low',      label:'Normal',    sub:'Within range',     colour:'#6ee7b7' },
-              ].map(({ rk, label, sub, colour }) => {
-                const isActive = peakRisk===rk;
-                const count = rk==='high' ? highCount : rk==='moderate' ? moderateCount : (zones?.filter(z=>z.riskLevel==='low').length||0);
-                return (
-                  <div key={rk} style={{ display:'flex', alignItems:'center', gap:7, marginBottom: rk==='low'?0:12 }}>
-                    <div style={{
-                      width:8, height:8, borderRadius:2, flexShrink:0,
-                      background: rk==='low'?'#22c55e': RISK[rk].hex,
-                      boxShadow: isActive?`0 0 8px ${rk==='low'?'#22c55e':RISK[rk].hex}`:undefined,
-                    }} />
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                        <span style={{ fontSize:10.5, fontWeight: isActive?800:600, color: isActive?colour:'#64748b', lineHeight:1.2 }}>
-                          {label}
-                        </span>
-                        {count>0 && (
-                          <span style={{ fontSize:9, fontWeight:700, color: isActive?colour:'#334155' }}>{count}</span>
-                        )}
-                      </div>
-                      <span style={{ fontSize:8.5, color:'#334155' }}>{sub}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* AI confidence footer */}
-          <div style={{ padding:'7px 14px 10px', borderTop:'1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <span style={{ fontSize:9, color:'#334155', fontWeight:600, letterSpacing:'0.06em' }}>AI CONFIDENCE</span>
-              <span style={{ fontSize:9, fontWeight:800, color:'#38bdf8' }}>91%</span>
-            </div>
-            <div style={{ height:3, borderRadius:2, background:'rgba(255,255,255,0.06)', marginTop:5, overflow:'hidden' }}>
-              <div style={{ height:'100%', width:'91%', borderRadius:2, background:'linear-gradient(90deg,#0ea5e9,#38bdf8)' }} />
+            <div style={{ flex:1, fontSize:10, spaceY:2 }}>
+              <div className="flex items-center justify-between text-blue-400 font-bold mb-1">
+                <span>Normal</span>
+                <span>&gt; 1.0</span>
+              </div>
+              <div className="flex items-center justify-between text-emerald-400 font-bold mb-1">
+                <span>Healthy</span>
+                <span>&gt; -1.0</span>
+              </div>
+              <div className="flex items-center justify-between text-amber-400 font-bold mb-1">
+                <span>Osteopenia</span>
+                <span>-1.0 to -2.5</span>
+              </div>
+              <div className="flex items-center justify-between text-red-400 font-bold">
+                <span>Osteoporosis</span>
+                <span>&lt; -2.5</span>
+              </div>
             </div>
           </div>
         </div>
@@ -701,7 +843,7 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Root export
+// Root Export
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BoneModelViewer({
@@ -721,6 +863,15 @@ export default function BoneModelViewer({
   onViewAngleChange,
   onXrayChange,
   onResetRef,
+  phase = 'highlight',
+  isHighlightActive = true,
+  biomarkers = {},
+  onBiomarkerClick,
+  activePlan = 'A',
+  isPlayingSimulation = false,
+  stitchTension = 50,
+  roiMarkers = [],
+  onBoneMeshClick,
 }) {
   const controlsRef = useRef();
   const [xrayOn,       setXrayOn]       = useState(xray);
@@ -750,8 +901,9 @@ export default function BoneModelViewer({
     if (it.type==='click') {
       setPinnedZone(it.zone); setPinnedAnchor(it.anchor); setHoverZone(null);
       onSelectRegion?.(it.zone.id);
+      if (it.point) onBoneMeshClick?.({ point: it.point, zone: it.zone });
     } else { setHoverZone(it); }
-  }, [onSelectRegion]);
+  }, [onSelectRegion, onBoneMeshClick]);
 
   const handlePreset = useCallback(p => { setCamPreset(p); onViewAngleChange?.(p); }, [onViewAngleChange]);
   const handleXray   = useCallback(() => { const n=!xrayOn; setXrayOn(n); onXrayChange?.(n); }, [xrayOn,onXrayChange]);
@@ -790,12 +942,21 @@ export default function BoneModelViewer({
             pinnedZone={hudZone}
             pinnedAnchor={hudAnchor ? new THREE.Vector3(...hudAnchor) : null}
             onInteraction={handleInteraction}
+            phase={phase}
+            isHighlightActive={isHighlightActive}
+            biomarkers={biomarkers}
+            onBiomarkerClick={onBiomarkerClick}
+            activePlan={activePlan}
+            isPlayingSimulation={isPlayingSimulation}
+            stitchTension={stitchTension}
+            roiMarkers={roiMarkers}
           />
         </Suspense>
       </Canvas>
       <ClinicalOverlay
         activePreset={camPreset} isXray={xrayOn}
         onPresetChange={handlePreset} onToggleXray={handleXray} zones={zones}
+        phase={phase}
       />
     </div>
   );
