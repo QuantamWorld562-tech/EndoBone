@@ -8,17 +8,33 @@ import { toUiPatient } from './apiAdapters';
 
 export const patientService = {
   getPatients: async () => {
-    return getAllPatients();
+    try {
+      const response = await apiClient.get('/cases');
+      return response.data.cases.map(toUiPatient);
+    } catch (e) {
+      console.warn("Backend cases not found or empty, falling back to mock data.");
+      return getAllPatients();
+    }
   },
 
   getPatientById: async (patientId) => {
-    const response = await apiClient.get(`/cases/${patientId}`);
-    return toUiPatient(response.data);
+    try {
+      const response = await apiClient.get(`/cases/${patientId}`);
+      return toUiPatient(response.data);
+    } catch (e) {
+      console.warn(`Backend case ${patientId} not found, falling back to mock data.`);
+      return getPatientById(patientId);
+    }
   },
 
   createPatient: async (patient) => {
-    const response = await apiClient.post('/cases', patient);
-    return toUiPatient(response.data);
+    try {
+      const response = await apiClient.post('/cases', patient);
+      return toUiPatient(response.data);
+    } catch (e) {
+      console.error("Failed to create patient on backend.");
+      throw e;
+    }
   },
 
   filterPatients: (patientList, { searchTerm = '', statusFilter = 'all' } = {}) => {
