@@ -13,16 +13,19 @@ import BoneModelViewer from './BoneModelViewer';
 // Bone Model Registry
 // ─────────────────────────────────────────────────────────────
 const BONE_MODELS = [
-  { id:'skeleton', label:'Full Skeleton',   emoji:'🦴', path:'/storage/bones/skeleton.glb',      category:'Systemic',       note:'Whole body axial & appendicular system' },
   { id:'femur',    label:'Femur',           emoji:'🦵', path:'/storage/bones/femur.glb',         category:'Lower Limb',     note:'Femoral head, neck, trochanter & shaft' },
-  { id:'tibia',    label:'Tibia & Fibula',  emoji:'🦵', path:'/storage/bones/tibia.glb',         category:'Lower Limb',     note:'Weight-bearing tibial plateau & shaft' },
-  { id:'skull',    label:'Skull',           emoji:'💀', path:'/storage/bones/skull.glb',         category:'Axial Skeleton', note:'Complete cranial vault and facial skeleton' },
-  { id:'hand',     label:'Upper Limb',      emoji:'💪', path:'/storage/bones/hand.glb',          category:'Upper Limb',     note:'Left arm, radius, ulna and humerus' },
-  { id:'spine',    label:'Lumbar Spine',    emoji:'🪱', path:'/storage/bones/spine.glb',         category:'Spine',          note:'L1–L5 lumbar vertebral bodies & pedicles' },
-  { id:'ribcage',  label:'Ribcage',         emoji:'🫀', path:'/storage/bones/ribcage.glb',       category:'Thorax',         note:'True, false ribs & costal cartilage frame' },
-  { id:'pelvis-m', label:'Pelvis (M)',      emoji:'🦴', path:'/storage/bones/pelvis_male.glb',   category:'Pelvic Girdle',  note:'Ilium, ischium, pubis & acetabulum' },
-  { id:'pelvis-f', label:'Pelvis (F)',      emoji:'🦴', path:'/storage/bones/pelvis_female.glb', category:'Pelvic Girdle',  note:'Gynecoid pelvic inlet & iliac crest' },
 ];
+// const BONE_MODELS = [
+//   { id:'skeleton', label:'Full Skeleton',   emoji:'🦴', path:'/storage/bones/skeleton.glb',      category:'Systemic',       note:'Whole body axial & appendicular system' },
+//   { id:'femur',    label:'Femur',           emoji:'🦵', path:'/storage/bones/femur.glb',         category:'Lower Limb',     note:'Femoral head, neck, trochanter & shaft' },
+//   { id:'tibia',    label:'Tibia & Fibula',  emoji:'🦵', path:'/storage/bones/tibia.glb',         category:'Lower Limb',     note:'Weight-bearing tibial plateau & shaft' },
+//   { id:'skull',    label:'Skull',           emoji:'💀', path:'/storage/bones/skull.glb',         category:'Axial Skeleton', note:'Complete cranial vault and facial skeleton' },
+//   { id:'hand',     label:'Upper Limb',      emoji:'💪', path:'/storage/bones/hand.glb',          category:'Upper Limb',     note:'Left arm, radius, ulna and humerus' },
+//   { id:'spine',    label:'Lumbar Spine',    emoji:'🪱', path:'/storage/bones/spine.glb',         category:'Spine',          note:'L1–L5 lumbar vertebral bodies & pedicles' },
+//   { id:'ribcage',  label:'Ribcage',         emoji:'🫀', path:'/storage/bones/ribcage.glb',       category:'Thorax',         note:'True, false ribs & costal cartilage frame' },
+//   { id:'pelvis-m', label:'Pelvis (M)',      emoji:'🦴', path:'/storage/bones/pelvis_male.glb',   category:'Pelvic Girdle',  note:'Ilium, ischium, pubis & acetabulum' },
+//   { id:'pelvis-f', label:'Pelvis (F)',      emoji:'🦴', path:'/storage/bones/pelvis_female.glb', category:'Pelvic Girdle',  note:'Gynecoid pelvic inlet & iliac crest' },
+// ];
 
 const BIOMARKER_INPUTS = [
   { key:'pth',       label:'PTH',        fullLabel:'Parathyroid Hormone', unit:'pg/mL', ref:'15–65',    step:1   },

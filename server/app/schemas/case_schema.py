@@ -3,25 +3,43 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 class CaseBase(BaseModel):
-    case_id: str = Field(..., description="Unique case identifier, e.g. CASE-2026-001")
-    model_id: str = Field(..., description="Referenced 3D CT bone model tracking ID, e.g. '01'")
-    patient_name: Optional[str] = Field("Anonymous Patient", description="Full name or pseudonym")
-    patient_age: Optional[int] = Field(65, ge=0, le=120, description="Age in years")
-    patient_gender: Optional[str] = Field("Female", description="Biological sex/gender")
+    case_id: Optional[str] = Field(None, description="Unique case identifier, e.g. CASE-2026-001 or PEB-8842-A")
+    model_id: Optional[str] = Field("01", description="Referenced 3D CT bone model tracking ID, e.g. '01'")
+    patient_name: Optional[str] = Field(None, description="Full name or pseudonym")
+    patient_age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
+    patient_gender: Optional[str] = Field(None, description="Biological sex/gender")
     clinical_indication: Optional[str] = Field(
         "Pre-surgical evaluation for femoral osteotomy and arthroplasty",
         description="Clinical diagnosis and orthopedic indications"
     )
+    procedure: Optional[str] = None
+    condition: Optional[str] = None
+    name: Optional[str] = None
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    status: Optional[str] = "active"
 
 class CaseCreate(CaseBase):
-    initial_biomarkers: Optional[Dict[str, Optional[float]]] = None
+    initial_biomarkers: Optional[Dict[str, Any]] = None
+    pth: Optional[float] = None
+    vitaminD: Optional[float] = None
+    vitamin_d: Optional[float] = None
+    calcium: Optional[float] = None
+    phosphate: Optional[float] = None
+    alp: Optional[float] = None
+    tsh: Optional[float] = None
+    free_t4: Optional[float] = None
+    ctx: Optional[float] = None
 
 class CaseUpdate(BaseModel):
     patient_name: Optional[str] = None
     patient_age: Optional[int] = None
     patient_gender: Optional[str] = None
     clinical_indication: Optional[str] = None
+    procedure: Optional[str] = None
+    condition: Optional[str] = None
     model_id: Optional[str] = None
+    status: Optional[str] = None
 
 class CaseResponse(CaseBase):
     id: Optional[str] = Field(None, alias="_id")
@@ -30,11 +48,19 @@ class CaseResponse(CaseBase):
 
     class Config:
         populate_by_name = True
+        extra = "allow"
 
 class FullCaseResponse(CaseResponse):
     model: Optional[Dict[str, Any]] = None
     biomarker: Optional[Dict[str, Any]] = None
     assessment: Optional[Dict[str, Any]] = None
+    roi: Optional[List[Dict[str, Any]]] = []
+    annotations: Optional[List[Dict[str, Any]]] = []
+    simulation: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+        extra = "allow"
 
 class ROIBase(BaseModel):
     region_name: str = Field("femoral-neck", description="ROI region identifier, e.g. proximal-femur, femoral-neck, shaft")
@@ -65,6 +91,7 @@ class ROIResponse(ROIBase):
 
     class Config:
         populate_by_name = True
+        extra = "allow"
 
 class AnnotationBase(BaseModel):
     text: str = Field(..., description="Clinician note or 3D annotation text")
@@ -91,6 +118,7 @@ class AnnotationResponse(AnnotationBase):
 
     class Config:
         populate_by_name = True
+        extra = "allow"
 
 class SimulationBase(BaseModel):
     load_vector_n: Optional[float] = Field(4200.0, description="Axial/transverse load applied in Newtons")
@@ -121,6 +149,7 @@ class SimulationResponse(SimulationBase):
 
     class Config:
         populate_by_name = True
+        extra = "allow"
 
 class CompleteCaseResponse(BaseModel):
     case: Dict[str, Any]

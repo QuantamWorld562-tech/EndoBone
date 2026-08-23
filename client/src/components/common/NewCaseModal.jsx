@@ -2,15 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X,
-  Plus,
   Sparkles,
-  UserRound,
   FlaskConical,
-  Activity,
   Info,
-  ChevronRight,
   BarChart2,
-  CheckCircle2,
+  Stethoscope,
+  Users,
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 
@@ -26,8 +23,6 @@ const PRESETS = [
       calcium: 9.4,
       phosphate: 3.2,
       alp: 112,
-      tsh: 2.1,
-      free_t4: 1.2,
       ctx: 380,
     },
   },
@@ -42,8 +37,6 @@ const PRESETS = [
       calcium: 8.8,
       phosphate: 3.0,
       alp: 92,
-      tsh: 1.8,
-      free_t4: 1.1,
       ctx: 310,
     },
   },
@@ -58,20 +51,42 @@ const PRESETS = [
       calcium: 9.6,
       phosphate: 3.5,
       alp: 78,
-      tsh: 1.5,
-      free_t4: 1.3,
       ctx: 210,
     },
   },
 ];
 
 const PROCEDURES = [
-  'Posterior Lumbar Interbody Fusion (L4-L5)',
-  'Total Hip Arthroplasty (THA)',
-  'Femoral Neck Cannulated Screw Fixation',
-  'Total Knee Arthroplasty (TKA)',
-  'Anterior Cervical Discectomy & Fusion (ACDF)',
-  'Proximal Femoral Nailing (PFN)',
+  {
+    id: 'tka',
+    name: 'Total Knee Arthroplasty (TKA)',
+    desc: 'Distal femur/knee 3D anatomy, ROI, planning annotations and scenario visualization',
+  },
+  {
+    id: 'tha',
+    name: 'Total Hip Arthroplasty (THA)',
+    desc: 'Proximal femur/hip anatomy and implant/planning considerations',
+  },
+  {
+    id: 'fff',
+    name: 'Femoral fracture fixation',
+    desc: '3D fracture-region visualization, ROI and fixation-planning concepts',
+  },
+  {
+    id: 'dfff',
+    name: 'Distal femur fracture fixation',
+    desc: 'Directly compatible with a femur-focused system',
+  },
+  {
+    id: 'pfff',
+    name: 'Proximal femur fracture fixation',
+    desc: 'Useful future extension around femoral neck/intertrochanteric region',
+  },
+  {
+    id: 'rap',
+    name: 'Revision arthroplasty planning',
+    desc: 'Bone-stock/anatomical review with clinical biomarkers',
+  },
 ];
 
 export default function NewCaseModal() {
@@ -79,18 +94,13 @@ export default function NewCaseModal() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: 'Eleanor Vance',
-    age: 64,
+    procedure: PROCEDURES[1].name, // Total Hip Arthroplasty (THA) default
     gender: 'Female',
-    procedure: PROCEDURES[0],
-    condition: 'Pre-Surgical Bone Mineral Density Evaluation',
     pth: 72.4,
     vitaminD: 28.1,
     calcium: 9.4,
     phosphate: 3.2,
     alp: 112,
-    tsh: 2.1,
-    free_t4: 1.2,
     ctx: 380,
   });
 
@@ -116,10 +126,6 @@ export default function NewCaseModal() {
         return v < 2.5 ? 'Low' : v > 4.5 ? 'High' : null;
       case 'alp':
         return v > 147 ? 'High' : v < 44 ? 'Low' : null;
-      case 'tsh':
-        return v > 4.0 ? 'High' : v < 0.4 ? 'Low' : null;
-      case 'free_t4':
-        return v > 1.8 ? 'High' : v < 0.8 ? 'Low' : null;
       default:
         return null;
     }
@@ -146,7 +152,7 @@ export default function NewCaseModal() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 leading-tight">Biomarker Input & Case Intake</h2>
-              <p className="text-xs text-slate-500 font-medium">Enter recent lab results and patient demographics to initialize 3D AI risk profiling.</p>
+              <p className="text-xs text-slate-500 font-medium">Configure surgical procedure and lab values to initialize 3D AI risk profiling.</p>
             </div>
           </div>
           <button
@@ -181,56 +187,47 @@ export default function NewCaseModal() {
             </div>
           </div>
 
-          {/* Patient Details Strip */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 grid sm:grid-cols-4 gap-3">
-            <div>
-              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Patient Name</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Age</label>
-              <input
-                type="number"
-                min="18"
-                max="105"
-                required
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Gender</label>
-              <select
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] font-bold text-slate-600 mb-1 block">Target Procedure</label>
+          {/* Surgical Procedure & Gender Strip */}
+          <div className="grid md:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div className="md:col-span-2 space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Stethoscope size={14} className="text-blue-600" />
+                Surgical Procedure
+              </label>
               <select
                 value={formData.procedure}
                 onChange={(e) => setFormData({ ...formData, procedure: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
-                {PROCEDURES.map((proc) => (
-                  <option key={proc} value={proc}>{proc}</option>
+                {PROCEDURES.map((p) => (
+                  <option key={p.id} value={p.name}>
+                    {p.name}
+                  </option>
                 ))}
+              </select>
+              <p className="text-[11px] text-slate-500 italic">
+                {PROCEDURES.find((p) => p.name === formData.procedure)?.desc || ''}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Users size={14} className="text-blue-600" />
+                Gender
+              </label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
               </select>
             </div>
           </div>
 
-          {/* Biomarker Two-Column Layout (Matching User's Reference Screenshot) */}
+          {/* Biomarker Two-Column Layout */}
           <div className="grid md:grid-cols-5 gap-5">
             
             {/* Left Card (3 cols): Bone Metabolism Panel */}
@@ -298,8 +295,8 @@ export default function NewCaseModal() {
                 {/* Serum Calcium */}
                 <div className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
-                    <span>Serum Calcium</span>
-                    <span title="NHANES LBXSCA (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                    <span>Total Calcium</span>
+                    <span title="NHANES LBXSC3SI (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
                     <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
@@ -363,58 +360,19 @@ export default function NewCaseModal() {
               </div>
             </div>
 
-            {/* Right Cards (2 cols): Thyroid Function & Action */}
+            {/* Right Cards (2 cols): Action Card */}
             <div className="md:col-span-2 space-y-4 flex flex-col justify-between">
-              
-              {/* Thyroid Card */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                  <Activity size={18} className="text-blue-600" />
-                  <h3 className="text-sm font-bold text-slate-900">Thyroid Function</h3>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-1 text-slate-700 font-semibold">
-                      <span>TSH</span>
-                      <span title="Ref: 0.4–4.0 mIU/L" className="text-slate-400 cursor-help"><Info size={13} /></span>
-                    </div>
-                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={formData.tsh}
-                        onChange={(e) => setFormData({ ...formData, tsh: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
-                      />
-                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
-                        mIU/L
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-1 text-slate-700 font-semibold">
-                      <span>Free T4</span>
-                      <span title="Ref: 0.8–1.8 ng/dL" className="text-slate-400 cursor-help"><Info size={13} /></span>
-                    </div>
-                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={formData.free_t4}
-                        onChange={(e) => setFormData({ ...formData, free_t4: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
-                      />
-                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
-                        ng/dL
-                      </span>
-                    </div>
-                  </div>
-                </div>
+              <div className="bg-blue-50/70 rounded-xl border border-blue-200/60 p-5 space-y-3">
+                <h4 className="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-blue-600" />
+                  AI Assessment Pipeline
+                </h4>
+                <p className="text-xs text-blue-900/80 leading-relaxed">
+                  Upon intake, the EndoBone AI rule engine evaluates bone mineral density indicators, calculates cortical risk, and initializes 3D anatomical planning.
+                </p>
               </div>
 
-              {/* Action Verification Card (Matching Screenshot) */}
+              {/* Action Verification Card */}
               <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Ensure all out-of-range values are verified before proceeding to analysis.

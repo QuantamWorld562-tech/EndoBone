@@ -96,7 +96,7 @@ export default function TopBar({ onSelectPatient }) {
 
         {/* Live Search Results Dropdown */}
         {isSearchFocused && searchTerm.trim().length > 0 && (
-          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+          <div className="absolute  left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
             <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
               <span>Search Results</span>
               <span>{searchResults.length} {searchResults.length === 1 ? 'case' : 'cases'}</span>
@@ -141,7 +141,7 @@ export default function TopBar({ onSelectPatient }) {
         )}
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex mx-2 items-center gap-5">
         {patient && (
           <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
@@ -178,11 +178,11 @@ export default function TopBar({ onSelectPatient }) {
             ))}
           </select>
         </div>
-
+{/* 
         <button className="relative w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition">
           <Bell size={18} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-        </button>
+        </button> */}
 
         <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
