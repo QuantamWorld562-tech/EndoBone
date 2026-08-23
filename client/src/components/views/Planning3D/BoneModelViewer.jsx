@@ -3,21 +3,19 @@
  * BoneModelViewer — Clinical Anatomical 3D Bone Model & Dynamic Risk Heatmap Shader
  * Features:
  * - Real human anatomical femur 3D geometry (/storage/bones/femur.glb)
- * - Shading: Normal/Healthy Bone = Clean White (#ffffff), Moderate = Orange (#f97316), High Risk = Red (#ef4444)
- * - Removed blue/cyan cortical tint in favor of pure white for normal bone
+ * - Shading: High-Risk Zone = Vibrant Red (#ef4444), Moderate Zone = Bright Orange (#f97316), Healthy Bone = Clean White (#ffffff)
+ * - Removed all floating HTML popups/callouts from canvas; all inspection is handled professionally in the clinical sidebar
  * - Render modes: Anatomical, Risk Heatmap, X-Ray, Wireframe, and FEA Mesh mode
- * - Interactive 3D pins and event emission to the clinical inspection sidebar
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
+import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import { Eye, EyeOff, ScanLine } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Risk Heatmap Colors
-// Normal = White (#ffffff), Moderate = Orange (#f97316), High Risk = Red (#ef4444)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const COLOR_WHITE = new THREE.Color('#ffffff');
@@ -28,12 +26,6 @@ const RISK_HEX = {
   high: '#ef4444',
   moderate: '#f97316',
   low: '#ffffff',
-};
-
-const RISK_RING = {
-  high: '#fca5a5',
-  moderate: '#fed7aa',
-  low: '#e2e8f0',
 };
 
 const CAM = {
@@ -60,17 +52,17 @@ const MESH_TOKENS = {
 };
 
 const ANCHORS = {
-  'femoral-neck':       [0.22, 0.78, 0.14],
-  'greater-trochanter': [0.34, 0.58, 0.08],
-  shaft:                [0.12, 0.00, 0.08],
+  'femoral-neck':       [0.26, 0.74, 0.12],
+  'greater-trochanter': [-0.18, 0.54, 0.08],
+  shaft:                [0.02, -0.05, 0.06],
   'vertebral-body':     [0.00, 0.05, 0.22],
   acetabulum:           [-0.18, -0.58, 0.18],
 };
 
 const RADII = {
-  'femoral-neck': 0.42,
-  'greater-trochanter': 0.35,
-  shaft: 0.45,
+  'femoral-neck': 0.52,
+  'greater-trochanter': 0.46,
+  shaft: 0.55,
   'vertebral-body': 0.42,
   acetabulum: 0.32,
 };
@@ -118,7 +110,7 @@ function normalizeZones(raw, fallback) {
       tScore: z.tScore || z.t_score || (rawId === 'femoral-neck' ? '-2.3' : rawId === 'greater-trochanter' ? '-1.9' : '-0.5'),
       vBMD: z.vBMD || (rawId === 'femoral-neck' ? '112.4' : rawId === 'greater-trochanter' ? '198.6' : '845.1'),
       anchor: Array.isArray(sa) && sa.length === 3 ? sa.map(Number) : (ANCHORS[canId] || [0.2, 0.6, 0.14]),
-      radius: Number(z.radius) || RADII[canId] || 0.38,
+      radius: Number(z.radius) || RADII[canId] || 0.45,
       meshTokens: [...new Set(tokens)],
     };
   });
@@ -136,7 +128,7 @@ function findZoneByMeshName(meshName, zones) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dynamic Risk Shading: Normal = White, Moderate = Orange, High Risk = Red
+// Dynamic Risk Shading: Red (High Risk), Orange (Moderate), White (Healthy)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function applyRiskShading(mesh, zones, rootGroup) {
@@ -146,6 +138,10 @@ function applyRiskShading(mesh, zones, rootGroup) {
 
   rootGroup.updateMatrixWorld(true);
   mesh.updateMatrixWorld(true);
+
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const heightRange = Math.max(0.001, bb.max.y - bb.min.y);
 
   const mappedZones = zones.map(z => {
     const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
@@ -162,13 +158,17 @@ function applyRiskShading(mesh, zones, rootGroup) {
     // Normal bone base is clean WHITE
     tempCol.copy(COLOR_WHITE);
 
+    // Anatomical normalized height
+    const normY = THREE.MathUtils.clamp((vert.y - bb.min.y) / heightRange, 0.0, 1.0);
+
     let maxHighInf = 0.0;
     let maxModInf = 0.0;
 
+    // 1. Spatial proximity to defined zone anchors
     for (const z of mappedZones) {
       if (z.riskLevel === 'low') continue;
       const dist = vert.distanceTo(z.local);
-      const inf = 1.0 - THREE.MathUtils.smoothstep(dist, z.radius * 0.10, z.radius);
+      const inf = 1.0 - THREE.MathUtils.smoothstep(dist, z.radius * 0.08, z.radius);
 
       if (inf > 0) {
         if (z.riskLevel === 'high') {
@@ -179,13 +179,28 @@ function applyRiskShading(mesh, zones, rootGroup) {
       }
     }
 
+    // 2. Anatomical regional fallback if high risk is active in femoral head/neck
+    const hasHighRiskNeck = mappedZones.some(z => z.canonicalId === 'femoral-neck' && z.riskLevel === 'high');
+    if (hasHighRiskNeck && normY > 0.68) {
+      const proximalInf = (normY - 0.68) / 0.32;
+      maxHighInf = Math.max(maxHighInf, proximalInf * 0.85);
+    }
+
+    // 3. Anatomical regional fallback if moderate risk is active in trochanter
+    const hasModTrochanter = mappedZones.some(z => z.canonicalId === 'greater-trochanter' && z.riskLevel === 'moderate');
+    if (hasModTrochanter && normY >= 0.48 && normY <= 0.72 && vert.x < 0.05) {
+      const trochanterInf = 1.0 - Math.abs(normY - 0.60) / 0.15;
+      if (trochanterInf > 0) {
+        maxModInf = Math.max(maxModInf, trochanterInf * 0.80);
+      }
+    }
+
+    // Apply color gradient: White -> Orange (Moderate) -> Crimson Red (High Risk)
     if (maxHighInf > 0) {
-      // High Risk Zone: Blends from clean White -> Orange -> Vibrant Red
-      const redWeight = Math.pow(maxHighInf, 1.15);
-      tempCol.lerp(COLOR_ORANGE, redWeight * 0.45).lerp(COLOR_RED, redWeight * 0.95);
+      const redWeight = Math.pow(maxHighInf, 1.1);
+      tempCol.lerp(COLOR_ORANGE, redWeight * 0.40).lerp(COLOR_RED, redWeight * 0.95);
     } else if (maxModInf > 0) {
-      // Moderate Zone: Blends from clean White -> Bright Orange
-      tempCol.lerp(COLOR_ORANGE, maxModInf * 0.88);
+      tempCol.lerp(COLOR_ORANGE, maxModInf * 0.90);
     }
 
     colors[i * 3]     = tempCol.r;
@@ -270,12 +285,12 @@ function createBoneMaterial(mode) {
       // Soft clean medical Fresnel rim sheen
       vec3 vDir = normalize(cameraPosition - vWorldPos);
       float fresnel = pow(1.0 - max(0.0, dot(normalize(vNormal), vDir)), 2.4);
-      gl_FragColor.rgb += vec3(0.95, 0.98, 1.0) * fresnel * 0.35;
+      gl_FragColor.rgb += vec3(0.95, 0.98, 1.0) * fresnel * 0.30;
 
       // Subtle porous trabecular texture modulation
       float cell = voronoi(vWorldPos * 34.0);
       float lattice = smoothstep(0.12, 0.65, cell);
-      gl_FragColor.rgb *= mix(0.85, 1.15, lattice);
+      gl_FragColor.rgb *= mix(0.88, 1.12, lattice);
     `);
   };
 
@@ -351,35 +366,7 @@ function RealAnatomicalBoneModel({ modelPath, mode, autoRotate, zones, onZoneEve
       onClick={e => { e.stopPropagation(); const r = getZoneAtEvent(e); if (r.zone) onZoneEvent?.({ ...r, type: 'click' }); }}
     >
       <primitive object={group} />
-
-      {/* Minimal T-Score Callout Annotations on At-Risk Zones */}
-      {zones.filter(z => z.riskLevel !== 'low').map(z => {
-        const isHigh = z.riskLevel === 'high';
-        const isFemNeck = z.canonicalId === 'femoral-neck';
-        return (
-          <Html
-            key={z.id}
-            position={[z.anchor[0] + (isFemNeck ? -0.48 : 0.42), z.anchor[1], z.anchor[2]]}
-            distanceFactor={4.2}
-            zIndexRange={[100, 0]}
-          >
-            <div className="pointer-events-none select-none" style={{ whiteSpace: 'nowrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {!isFemNeck && <div style={{ width: 32, height: 1, background: 'rgba(255,255,255,0.45)' }} />}
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.92)', fontFamily: 'system-ui' }}>
-                    {z.label}
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: isHigh ? '#f87171' : '#fb923c', fontFamily: 'system-ui' }}>
-                    T-Score: {z.tScore}
-                  </div>
-                </div>
-                {isFemNeck && <div style={{ width: 32, height: 1, background: 'rgba(255,255,255,0.45)' }} />}
-              </div>
-            </div>
-          </Html>
-        );
-      })}
+      {/* All floating HTML popups removed for a completely clean 3D canvas */}
     </group>
   );
 }
@@ -457,7 +444,7 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
         </div>
       </div>
 
-      {/* Bottom-Right: Clean Risk Heatmap Legend (White Normal, Orange Moderate, Red High Risk) */}
+      {/* Bottom-Right: Clean Risk Heatmap Legend */}
       <div className="pointer-events-none absolute right-4 bottom-5">
         <div style={{ ...P, overflow: 'hidden', width: 178 }}>
           <div style={{ padding: '7px 11px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -476,15 +463,15 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 10, fontWeight: 700 }}>
               <div className="flex justify-between text-red-400">
                 <span>High Risk</span>
-                <span>{highCount}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
               </div>
               <div className="flex justify-between text-orange-400">
                 <span>Moderate</span>
-                <span>{modCount}</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
               </div>
               <div className="flex justify-between text-slate-100">
                 <span>Normal Bone</span>
-                <span>White</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400" />
               </div>
             </div>
           </div>
