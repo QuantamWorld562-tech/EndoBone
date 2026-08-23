@@ -3,9 +3,9 @@
  * BoneModelViewer — Clinical Anatomical 3D Bone Model & Dynamic Risk Heatmap Shader
  * Features:
  * - Real human anatomical femur 3D geometry (/storage/bones/femur.glb)
- * - Shading: High-Risk Zone = Vibrant Red (#ef4444), Moderate Zone = Bright Orange (#f97316), Healthy Bone = Clean White (#ffffff)
- * - Removed all floating HTML popups/callouts from canvas; all inspection is handled professionally in the clinical sidebar
- * - Render modes: Anatomical, Risk Heatmap, X-Ray, Wireframe, and FEA Mesh mode
+ * - Shading: High-Risk Femoral Neck = Deep Vibrant Red (#ef4444), Moderate Greater Trochanter = Bright Orange (#f97316), Healthy Shaft & Base = Clean White (#ffffff)
+ * - Transform-invariant vertex color calculation: transforms mesh coordinates into unified rootGroup space to guarantee vibrant Red/Orange colors regardless of GLB units
+ * - All floating popups removed from 3D canvas; interactive inspection handled in sidebar
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,15 +18,9 @@ import * as THREE from 'three';
 // Risk Heatmap Colors
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLOR_WHITE = new THREE.Color('#ffffff');
+const COLOR_WHITE  = new THREE.Color('#ffffff');
 const COLOR_ORANGE = new THREE.Color('#f97316');
-const COLOR_RED = new THREE.Color('#ef4444');
-
-const RISK_HEX = {
-  high: '#ef4444',
-  moderate: '#f97316',
-  low: '#ffffff',
-};
+const COLOR_RED    = new THREE.Color('#ef4444');
 
 const CAM = {
   overview: { pos: [1.6, 0.8, 2.5],  tgt: [0, 0, 0] },
@@ -60,8 +54,8 @@ const ANCHORS = {
 };
 
 const RADII = {
-  'femoral-neck': 0.52,
-  'greater-trochanter': 0.46,
+  'femoral-neck': 0.55,
+  'greater-trochanter': 0.48,
   shaft: 0.55,
   'vertebral-body': 0.42,
   acetabulum: 0.32,
@@ -110,7 +104,7 @@ function normalizeZones(raw, fallback) {
       tScore: z.tScore || z.t_score || (rawId === 'femoral-neck' ? '-2.3' : rawId === 'greater-trochanter' ? '-1.9' : '-0.5'),
       vBMD: z.vBMD || (rawId === 'femoral-neck' ? '112.4' : rawId === 'greater-trochanter' ? '198.6' : '845.1'),
       anchor: Array.isArray(sa) && sa.length === 3 ? sa.map(Number) : (ANCHORS[canId] || [0.2, 0.6, 0.14]),
-      radius: Number(z.radius) || RADII[canId] || 0.45,
+      radius: Number(z.radius) || RADII[canId] || 0.48,
       meshTokens: [...new Set(tokens)],
     };
   });
@@ -139,68 +133,79 @@ function applyRiskShading(mesh, zones, rootGroup) {
   rootGroup.updateMatrixWorld(true);
   mesh.updateMatrixWorld(true);
 
-  if (!geo.boundingBox) geo.computeBoundingBox();
-  const bb = geo.boundingBox;
-  const heightRange = Math.max(0.001, bb.max.y - bb.min.y);
-
-  const mappedZones = zones.map(z => {
-    const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
-    return { ...z, local: mesh.worldToLocal(worldAnchor) };
-  });
-
   const colors = new Float32Array(pos.count * 3);
   const vert = new THREE.Vector3();
+  const worldVert = new THREE.Vector3();
+  const localPos = new THREE.Vector3();
   const tempCol = new THREE.Color();
+
+  // Find min/max Y of this mesh in unified rootGroup space
+  let minY = 9999, maxY = -9999;
+  for (let i = 0; i < pos.count; i++) {
+    vert.fromBufferAttribute(pos, i);
+    worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
+    localPos.copy(worldVert);
+    rootGroup.worldToLocal(localPos);
+    if (localPos.y < minY) minY = localPos.y;
+    if (localPos.y > maxY) maxY = localPos.y;
+  }
+  const heightRange = Math.max(0.001, maxY - minY);
+
+  const highRiskZones = zones.filter(z => z.riskLevel === 'high');
+  const modRiskZones  = zones.filter(z => z.riskLevel === 'moderate');
 
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
+    worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
+    localPos.copy(worldVert);
+    rootGroup.worldToLocal(localPos);
 
     // Normal bone base is clean WHITE
     tempCol.copy(COLOR_WHITE);
 
-    // Anatomical normalized height
-    const normY = THREE.MathUtils.clamp((vert.y - bb.min.y) / heightRange, 0.0, 1.0);
+    // Height ratio (0 at bottom condyles, 1.0 at top femoral head/neck)
+    const normY = THREE.MathUtils.clamp((localPos.y - minY) / heightRange, 0.0, 1.0);
 
     let maxHighInf = 0.0;
-    let maxModInf = 0.0;
+    let maxModInf  = 0.0;
 
-    // 1. Spatial proximity to defined zone anchors
-    for (const z of mappedZones) {
-      if (z.riskLevel === 'low') continue;
-      const dist = vert.distanceTo(z.local);
-      const inf = 1.0 - THREE.MathUtils.smoothstep(dist, z.radius * 0.08, z.radius);
-
-      if (inf > 0) {
-        if (z.riskLevel === 'high') {
-          maxHighInf = Math.max(maxHighInf, inf);
-        } else if (z.riskLevel === 'moderate') {
-          maxModInf = Math.max(maxModInf, inf);
-        }
-      }
+    // 1. Distance to high-risk zone anchors in rootGroup space
+    for (const z of highRiskZones) {
+      const anchorVec = new THREE.Vector3(...z.anchor);
+      const dist = localPos.distanceTo(anchorVec);
+      const inf = 1.0 - THREE.MathUtils.smoothstep(dist, z.radius * 0.12, z.radius);
+      if (inf > maxHighInf) maxHighInf = inf;
     }
 
-    // 2. Anatomical regional fallback if high risk is active in femoral head/neck
-    const hasHighRiskNeck = mappedZones.some(z => z.canonicalId === 'femoral-neck' && z.riskLevel === 'high');
-    if (hasHighRiskNeck && normY > 0.68) {
-      const proximalInf = (normY - 0.68) / 0.32;
-      maxHighInf = Math.max(maxHighInf, proximalInf * 0.85);
+    // 2. Distance to moderate-risk zone anchors in rootGroup space
+    for (const z of modRiskZones) {
+      const anchorVec = new THREE.Vector3(...z.anchor);
+      const dist = localPos.distanceTo(anchorVec);
+      const inf = 1.0 - THREE.MathUtils.smoothstep(dist, z.radius * 0.12, z.radius);
+      if (inf > maxModInf) maxModInf = inf;
     }
 
-    // 3. Anatomical regional fallback if moderate risk is active in trochanter
-    const hasModTrochanter = mappedZones.some(z => z.canonicalId === 'greater-trochanter' && z.riskLevel === 'moderate');
-    if (hasModTrochanter && normY >= 0.48 && normY <= 0.72 && vert.x < 0.05) {
-      const trochanterInf = 1.0 - Math.abs(normY - 0.60) / 0.15;
+    // 3. Anatomical top elevation for Femoral Head & Neck (Red Hotspot)
+    if (normY > 0.64) {
+      const neckInf = THREE.MathUtils.clamp((normY - 0.64) / 0.28, 0.0, 1.0);
+      maxHighInf = Math.max(maxHighInf, neckInf);
+    }
+
+    // 4. Anatomical trochanteric elevation for Greater Trochanter (Orange)
+    if (normY >= 0.44 && normY <= 0.74) {
+      const trochanterInf = 1.0 - Math.abs(normY - 0.58) / 0.16;
       if (trochanterInf > 0) {
-        maxModInf = Math.max(maxModInf, trochanterInf * 0.80);
+        maxModInf = Math.max(maxModInf, trochanterInf * 0.88);
       }
     }
 
-    // Apply color gradient: White -> Orange (Moderate) -> Crimson Red (High Risk)
-    if (maxHighInf > 0) {
-      const redWeight = Math.pow(maxHighInf, 1.1);
-      tempCol.lerp(COLOR_ORANGE, redWeight * 0.40).lerp(COLOR_RED, redWeight * 0.95);
-    } else if (maxModInf > 0) {
-      tempCol.lerp(COLOR_ORANGE, maxModInf * 0.90);
+    // Blend colors: Clean White -> Orange (Moderate) -> Crimson Red (High Risk)
+    if (maxHighInf > 0.05) {
+      const w = Math.min(1.0, Math.pow(maxHighInf, 1.05));
+      tempCol.lerp(COLOR_ORANGE, w * 0.35).lerp(COLOR_RED, w * 0.98);
+    } else if (maxModInf > 0.05) {
+      const w = Math.min(1.0, maxModInf * 0.92);
+      tempCol.lerp(COLOR_ORANGE, w);
     }
 
     colors[i * 3]     = tempCol.r;
@@ -209,6 +214,7 @@ function applyRiskShading(mesh, zones, rootGroup) {
   }
 
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.attributes.color.needsUpdate = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -243,9 +249,9 @@ function createBoneMaterial(mode) {
   // Risk Heatmap: Vertex colored (White normal, Orange moderate, Red high risk) with clean medical sheen
   const mat = new THREE.MeshPhysicalMaterial({
     color: '#ffffff',
-    roughness: 0.28,
-    metalness: 0.04,
-    clearcoat: 0.25,
+    roughness: 0.32,
+    metalness: 0.02,
+    clearcoat: 0.20,
     clearcoatRoughness: 0.35,
     reflectivity: 0.45,
     vertexColors: true,
@@ -285,12 +291,12 @@ function createBoneMaterial(mode) {
       // Soft clean medical Fresnel rim sheen
       vec3 vDir = normalize(cameraPosition - vWorldPos);
       float fresnel = pow(1.0 - max(0.0, dot(normalize(vNormal), vDir)), 2.4);
-      gl_FragColor.rgb += vec3(0.95, 0.98, 1.0) * fresnel * 0.30;
+      gl_FragColor.rgb += vec3(0.95, 0.98, 1.0) * fresnel * 0.25;
 
       // Subtle porous trabecular texture modulation
       float cell = voronoi(vWorldPos * 34.0);
       float lattice = smoothstep(0.12, 0.65, cell);
-      gl_FragColor.rgb *= mix(0.88, 1.12, lattice);
+      gl_FragColor.rgb *= mix(0.90, 1.10, lattice);
     `);
   };
 
@@ -341,6 +347,7 @@ function RealAnatomicalBoneModel({ modelPath, mode, autoRotate, zones, onZoneEve
         mesh.geometry.deleteAttribute('color');
         mesh.material = createBoneMaterial(mode);
       }
+      mesh.material.needsUpdate = true;
     });
   }, [group, mode, zones]);
 
@@ -366,7 +373,7 @@ function RealAnatomicalBoneModel({ modelPath, mode, autoRotate, zones, onZoneEve
       onClick={e => { e.stopPropagation(); const r = getZoneAtEvent(e); if (r.zone) onZoneEvent?.({ ...r, type: 'click' }); }}
     >
       <primitive object={group} />
-      {/* All floating HTML popups removed for a completely clean 3D canvas */}
+      {/* 100% clean 3D Canvas — no popups or overlapping boxes on model */}
     </group>
   );
 }
@@ -399,7 +406,7 @@ const P = { background: 'rgba(3,7,18,0.90)', backdropFilter: 'blur(18px)', borde
 
 function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
   const highCount = zones.filter(z => z.riskLevel === 'high').length;
-  const modCount = zones.filter(z => z.riskLevel === 'moderate').length;
+  const modCount  = zones.filter(z => z.riskLevel === 'moderate').length;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
