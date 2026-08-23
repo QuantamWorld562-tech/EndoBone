@@ -430,6 +430,35 @@ export function PatientDataProvider({ children }) {
     return patientId;
   }, []);
 
+  // Delete a patient case from backend database and local state
+  const deleteCase = useCallback(async (caseId) => {
+    try {
+      await patientService.deletePatient(caseId);
+    } catch (e) {
+      console.warn('Delete case backend error:', e);
+    }
+
+    setPatientList((prev) => {
+      const remaining = prev.filter((p) => p.id !== caseId && p.case_id !== caseId && p._id !== caseId);
+      if (activePatientId === caseId && remaining.length > 0) {
+        setActivePatientId(remaining[0].id);
+      }
+      return remaining;
+    });
+
+    setAllBiomarkers((prev) => {
+      const next = { ...prev };
+      delete next[caseId];
+      return next;
+    });
+
+    setRoiNotes((prev) => {
+      const next = { ...prev };
+      delete next[caseId];
+      return next;
+    });
+  }, [activePatientId]);
+
   // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
     return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || biomarkersDB['PEB-8842-A'];
@@ -607,6 +636,7 @@ export function PatientDataProvider({ children }) {
     patientList,
     isLoadingPatients,
     addNewCase,
+    deleteCase,
     isNewCaseModalOpen,
     setIsNewCaseModalOpen,
     biomarkers: activeBiomarkers,
