@@ -231,6 +231,23 @@ export default function NewCaseModal() {
               </div>
             </div>
 
+            {/* Gender */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Users size={14} className="text-blue-600" />
+                Gender
+              </label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
             {/* Surgical Procedure */}
             <div className="md:col-span-1 space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -251,23 +268,6 @@ export default function NewCaseModal() {
               <p className="text-[11px] text-slate-500 italic leading-snug">
                 {PROCEDURES.find((p) => p.name === formData.procedure)?.desc || ''}
               </p>
-            </div>
-
-            {/* Gender */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Users size={14} className="text-blue-600" />
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              >
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-                <option value="Other">Other</option>
-              </select>
             </div>
           </div>
 
