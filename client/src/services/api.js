@@ -32,8 +32,62 @@ export const apiService = {
     const response = await apiClient.get(`/cases/${caseId}/full`);
     return response.data;
   },
+  getCompleteCase: async (caseId) => {
+    const response = await apiClient.get(`/cases/${caseId}/complete`);
+    return response.data;
+  },
   createPatient: async (patientData) => {
     const response = await apiClient.post('/cases', patientData);
+    return response.data;
+  },
+
+  // 1. ROI Management
+  getROIs: async (caseId) => {
+    const response = await apiClient.get(`/cases/${caseId}/roi`);
+    return response.data?.roi || [];
+  },
+  createROI: async (caseId, roiData) => {
+    const response = await apiClient.post(`/cases/${caseId}/roi`, roiData);
+    return response.data;
+  },
+  updateROI: async (caseId, roiId, roiData) => {
+    const response = await apiClient.put(`/cases/${caseId}/roi/${roiId}`, roiData);
+    return response.data;
+  },
+  deleteROI: async (caseId, roiId) => {
+    const response = await apiClient.delete(`/cases/${caseId}/roi/${roiId}`);
+    return response.data;
+  },
+
+  // 2. Annotations Management
+  getAnnotations: async (caseId) => {
+    const response = await apiClient.get(`/cases/${caseId}/annotations`);
+    return response.data?.annotations || [];
+  },
+  createAnnotation: async (caseId, annotationData) => {
+    const response = await apiClient.post(`/cases/${caseId}/annotations`, annotationData);
+    return response.data;
+  },
+  updateAnnotation: async (caseId, annotationId, annotationData) => {
+    const response = await apiClient.put(`/cases/${caseId}/annotations/${annotationId}`, annotationData);
+    return response.data;
+  },
+  deleteAnnotation: async (caseId, annotationId) => {
+    const response = await apiClient.delete(`/cases/${caseId}/annotations/${annotationId}`);
+    return response.data;
+  },
+
+  // 3. Simulation Management
+  getSimulations: async (caseId) => {
+    const response = await apiClient.get(`/cases/${caseId}/simulation`);
+    return response.data?.simulations || [];
+  },
+  createSimulation: async (caseId, simulationData) => {
+    const response = await apiClient.post(`/cases/${caseId}/simulation`, simulationData);
+    return response.data;
+  },
+  updateSimulation: async (caseId, simulationId, simulationData) => {
+    const response = await apiClient.put(`/cases/${caseId}/simulation/${simulationId}`, simulationData);
     return response.data;
   },
 
