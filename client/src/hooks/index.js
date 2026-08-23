@@ -177,7 +177,12 @@ export const useSurgicalPlan = (patientId) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastFetched, setLastFetched] = useState(null);
+  const [hardwareSelection, setHardwareSelection] = useState({});
   const cancelledRef = useRef(false);
+
+  const updateHardwareSelection = useCallback((id, selected) => {
+    setHardwareSelection((prev) => ({ ...prev, [id]: selected }));
+  }, []);
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -216,10 +221,13 @@ export const useSurgicalPlan = (patientId) => {
   }, [patientId]);
 
   return {
+    plan: surgicalPlan,
     surgicalPlan,
     loading,
     error,
-    lastFetched
+    lastFetched,
+    hardwareSelection,
+    updateHardwareSelection,
   };
 };
 
