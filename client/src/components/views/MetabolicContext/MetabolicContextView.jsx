@@ -102,7 +102,7 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Biomarker Input</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Endocrine Biomarker Input</h2>
           <p className="text-slate-600 mt-1 text-base">
             Enter recent lab results to update patient risk profile and 3D simulation.
           </p>
