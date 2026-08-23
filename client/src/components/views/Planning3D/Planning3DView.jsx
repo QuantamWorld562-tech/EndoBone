@@ -109,6 +109,12 @@ export default function Planning3DView({ patientId }) {
   const navigate = useNavigate();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
 
+  const getModelUrl = (path) => {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+    return baseUrl ? `${baseUrl}${path}` : path;
+  };
+
   const {
     biomarkers, updateBiomarker,
     selectedRegion, setSelectedRegion,
@@ -327,7 +333,7 @@ export default function Planning3DView({ patientId }) {
 
               <BoneModelViewer
                 key={`${selectedModelId}-${viewerKey}`}
-                modelPath={activeModel.path}
+                modelPath={getModelUrl(activeModel.path)}
                 modelLabel={activeModel.label}
                 viewAngle={viewAngle}
                 heatmap={renderMode === 'heatmap'}
