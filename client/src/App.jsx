@@ -2,16 +2,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout';
 import { PatientDataProvider } from './context/PatientDataContext';
 import { hydrateAuthHeader } from './services';
-import {
-  LandingView,
-  LoginView,
-  RegisterView,
-  DashboardView,
-  MetabolicContextView,
-  AIAssessmentView,
-  Planning3DView,
-  PreSurgicalSummaryView,
-} from './components/views';
+import { Suspense, lazy } from 'react';
+
+const LandingView = lazy(() => import('./components/views/Landing/LandingView'));
+const LoginView = lazy(() => import('./components/views/Login/LoginView'));
+const RegisterView = lazy(() => import('./components/views/Register/RegisterView'));
+const DashboardView = lazy(() => import('./components/views/Dashboard/DashboardView'));
+const MetabolicContextView = lazy(() => import('./components/views/MetabolicContext/MetabolicContextView'));
+const AIAssessmentView = lazy(() => import('./components/views/AIAssessment/AIAssessmentView'));
+const Planning3DView = lazy(() => import('./components/views/Planning3D/Planning3DView'));
+const PreSurgicalSummaryView = lazy(() => import('./components/views/PreSurgicalSummary/PreSurgicalSummaryView'));
 
 function ProtectedRoute({ children }) {
   const token = hydrateAuthHeader();
@@ -27,7 +27,8 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <PatientDataProvider>
-        <Routes>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-slate-500 font-medium">Loading Application...</div>}>
+          <Routes>
           {/* Public Landing Page */}
           <Route path="/" element={<LandingView />} />
           <Route
@@ -67,7 +68,8 @@ export default function App() {
 
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </PatientDataProvider>
     </BrowserRouter>
   );
