@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /**
  * BoneModelViewer — Clinical 3D Bone Visualisation
  * Professional medical-grade UI with zone heatmap, floating HUD,
@@ -7,7 +8,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine, ChevronRight, Crosshair, Layers } from 'lucide-react';
+import { Eye, EyeOff, ScanLine } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
