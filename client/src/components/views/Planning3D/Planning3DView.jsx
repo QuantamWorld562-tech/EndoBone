@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import BoneModelViewer from './BoneModelViewer';
-import SurgicalSiteOverview from './SurgicalSiteOverview';
 
 const BONE_MODELS = [
   { id: 'femur', label: 'Femur', emoji: '🦵', category: 'Lower Limb', note: 'Femoral head, neck, trochanter & shaft' },
