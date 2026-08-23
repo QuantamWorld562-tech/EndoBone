@@ -87,16 +87,16 @@ export default function DashboardView({ onSelectPatient }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <input
+          {/* <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search patients, conditions..."
             className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
-          />
+          /> */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -104,13 +104,13 @@ export default function DashboardView({ onSelectPatient }) {
             <option value="completed">Completed</option>
           </select>
 
-          <button
+          {/* <button
             onClick={() => setIsNewCaseModalOpen(true)}
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 flex items-center gap-2 transition"
           >
             <Plus size={16} />
             New Case Analysis
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -139,8 +139,8 @@ export default function DashboardView({ onSelectPatient }) {
                   s.color === 'red'
                     ? 'text-red-600'
                     : s.color === 'amber'
-                    ? 'text-amber-600'
-                    : 'text-blue-600'
+                      ? 'text-amber-600'
+                      : 'text-blue-600'
                 }
               />
               <span className="text-xs font-semibold text-slate-700">

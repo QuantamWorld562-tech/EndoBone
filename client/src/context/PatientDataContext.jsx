@@ -304,41 +304,68 @@ export function PatientDataProvider({ children }) {
 
   // Create and register a brand new patient case
   const addNewCase = useCallback(async (newCase) => {
+    const gender = newCase.gender || 'Female';
+    const generatedId = newCase.id || `PEB-${Math.floor(1000 + Math.random() * 9000)}-${gender[0].toUpperCase()}`;
+    const procedure = newCase.procedure || 'Total Hip Arthroplasty (THA)';
+    const patientName = newCase.name?.trim() || `Patient ${generatedId}`;
+
+    const pthVal = Number(newCase.pth) || 72.4;
+    const vitDVal = Number(newCase.vitaminD) || 28.1;
+    const calcVal = Number(newCase.calcium) || 9.4;
+    const phosVal = Number(newCase.phosphate) || 3.2;
+    const alpVal = Number(newCase.alp) || 112;
+    const ctxVal = Number(newCase.ctx) || 380;
+
     let backendPatient;
     try {
       backendPatient = await patientService.createPatient({
-        name: newCase.name?.trim() || 'New Patient Case',
+        case_id: generatedId,
+        model_id: '01',
+        patient_name: patientName,
+        name: patientName,
+        patient_age: Number(newCase.age) || 58,
         age: Number(newCase.age) || 58,
-        gender: newCase.gender || 'Female',
+        patient_gender: gender,
+        gender: gender,
+        procedure: procedure,
+        clinical_indication: procedure,
+        condition: 'Pre-Surgical Bone Mineral Density Evaluation',
+        pth: pthVal,
+        vitamin_d: vitDVal,
+        vitaminD: vitDVal,
+        calcium: calcVal,
+        phosphate: phosVal,
+        alp: alpVal,
+        ctx: ctxVal,
+        initial_biomarkers: {
+          pth: pthVal,
+          vitamin_d: vitDVal,
+          calcium: calcVal,
+          phosphate: phosVal,
+          alp: alpVal,
+          ctx: ctxVal,
+        },
       });
       setApiError(null);
     } catch (error) {
-      setApiError(error.response?.data?.error || 'Unable to create patient in the API');
+      console.warn('Backend createPatient error or offline, fallback to local state:', error);
+      setApiError(null);
     }
 
-    const patientId =
-      backendPatient?.id || newCase.id ||
-      `PEB-${Math.floor(1000 + Math.random() * 9000)}-${(newCase.gender || 'F')[0].toUpperCase()}`;
+    const patientId = backendPatient?.case_id || backendPatient?.id || generatedId;
 
     const fullPatient = {
       id: patientId,
-      name: newCase.name?.trim() || 'New Patient Case',
+      name: patientName,
       age: Number(newCase.age) || 58,
-      gender: newCase.gender || 'Female',
-      condition: newCase.condition || 'Pre-Surgical Bone Mineral Density Evaluation',
-      procedure: newCase.procedure || 'Posterior Lumbar Interbody Fusion (L4-L5)',
+      gender: gender,
+      condition: 'Pre-Surgical Bone Mineral Density Evaluation',
+      procedure: procedure,
       status: 'active',
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
-    setPatientList((prev) => [fullPatient, ...prev]);
-
-    const pthVal = Number(newCase.pth) || 72;
-    const vitDVal = Number(newCase.vitaminD) || 19;
-    const calcVal = Number(newCase.calcium) || 8.6;
-    const phosVal = Number(newCase.phosphate) || 3.2;
-    const alpVal = Number(newCase.alp) || 95;
-    const ctxVal = Number(newCase.ctx) || 380;
+    setPatientList((prev) => [fullPatient, ...prev.filter((p) => p.id !== patientId)]);
 
     const initialBiomarkers = {
       pth: {
