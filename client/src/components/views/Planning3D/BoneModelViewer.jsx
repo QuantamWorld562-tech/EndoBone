@@ -154,6 +154,33 @@ function findZoneByMeshName(meshName, zones) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Multi-Stop Spectral Colormap (Density / T-Score Mapping)
+// Deep Blue (High Density) -> Cyan -> Green -> Yellow -> Orange -> Crimson Red
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SPECTRAL_STOPS = [
+  { t: 0.00, color: new THREE.Color('#0a2569') }, // Deep Blue (Healthy Cortical Bone / High BMD)
+  { t: 0.20, color: new THREE.Color('#06b6d4') }, // Cyan
+  { t: 0.40, color: new THREE.Color('#10b981') }, // Green
+  { t: 0.60, color: new THREE.Color('#facc15') }, // Yellow
+  { t: 0.80, color: new THREE.Color('#f97316') }, // Orange
+  { t: 1.00, color: new THREE.Color('#ef4444') }, // Crimson Red (Critical Resorption / Osteopenia)
+];
+
+function sampleSpectralColormap(t, targetColor = new THREE.Color()) {
+  const clamped = THREE.MathUtils.clamp(t, 0, 1);
+  for (let i = 0; i < SPECTRAL_STOPS.length - 1; i++) {
+    const s1 = SPECTRAL_STOPS[i];
+    const s2 = SPECTRAL_STOPS[i + 1];
+    if (clamped >= s1.t && clamped <= s2.t) {
+      const localT = (clamped - s1.t) / (s2.t - s1.t);
+      return targetColor.copy(s1.color).lerp(s2.color, localT);
+    }
+  }
+  return targetColor.copy(SPECTRAL_STOPS[SPECTRAL_STOPS.length - 1].color);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Dynamic Spatial Heatmap Shader (Highlights ONLY regions at risk)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -185,12 +212,10 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
 
   const colors = new Float32Array(pos.count * 3);
   const vert = new THREE.Vector3();
-  const baseIvory = new THREE.Color(BONE_IVORY);
   const tempCol = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
-    tempCol.copy(baseIvory);
 
     let maxInfluence = 0;
     let strongestZone = null;
@@ -199,16 +224,17 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
       const dist = vert.distanceTo(zone.local);
       // Smoothstep gradient boundary around the anatomical risk zone
       const influence = 1 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.15, zone.radius);
-      if (influence > maxInfluence) {
-        maxInfluence = influence;
+      const riskWeight = zone.riskLevel === 'high' ? 1.0 : 0.65;
+      const weightedInfluence = influence * riskWeight;
+
+      if (weightedInfluence > maxInfluence) {
+        maxInfluence = weightedInfluence;
         strongestZone = zone;
       }
     }
 
-    if (strongestZone && maxInfluence > 0) {
-      const riskColor = new THREE.Color(RISK[strongestZone.riskLevel].hex);
-      tempCol.lerp(riskColor, maxInfluence * 0.92);
-    }
+    // Map the continuous influence scalar (0.0 to 1.0) through the multi-stop spectral colormap
+    sampleSpectralColormap(maxInfluence, tempCol);
 
     colors[i * 3]     = tempCol.r;
     colors[i * 3 + 1] = tempCol.g;
@@ -220,7 +246,7 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Authentic Medical Bone Material Factory
+// Authentic Medical Bone Material Factory (With Fresnel Edge Glow & Voronoi Trabeculae)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
@@ -251,19 +277,96 @@ function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
     });
   }
 
-  // Realistic Physical Medical Bone Material
-  return new THREE.MeshPhysicalMaterial({
+  // Realistic Physical Medical Bone Material with procedural trabecular noise and Fresnel rim glow
+  const material = new THREE.MeshPhysicalMaterial({
     color: hasVertexColors ? '#ffffff' : (zone && isHeatmap ? risk.hex : BONE_IVORY),
-    emissive: isHeatmap && zone && zone.riskLevel === 'high' ? risk.emissiveHex : '#000000',
-    emissiveIntensity: isHeatmap && zone && zone.riskLevel === 'high' ? 0.4 : 0,
-    roughness: 0.42,
-    metalness: 0.02,
-    clearcoat: 0.12,
-    clearcoatRoughness: 0.6,
-    reflectivity: 0.35,
+    roughness: 0.32,
+    metalness: 0.04,
+    clearcoat: 0.22,
+    clearcoatRoughness: 0.4,
+    reflectivity: 0.45,
     vertexColors: Boolean(hasVertexColors),
     side: THREE.DoubleSide,
   });
+
+  // Inject custom GLSL chunks for Holographic Fresnel Rim Glow + Spongy Trabecular Voronoi Pattern
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uFresnelColor = { value: new THREE.Color('#38bdf8') };
+    shader.uniforms.uFresnelPower = { value: 2.6 };
+    shader.uniforms.uTrabecularScale = { value: 42.0 };
+    shader.uniforms.uTrabecularStrength = { value: isHeatmap ? 0.38 : 0.15 };
+
+    shader.vertexShader = `
+      varying vec3 vWorldPos;
+      ${shader.vertexShader}
+    `.replace(
+      '#include <worldpos_vertex>',
+      `
+      #include <worldpos_vertex>
+      vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      `
+    );
+
+    shader.fragmentShader = `
+      uniform vec3 uFresnelColor;
+      uniform float uFresnelPower;
+      uniform float uTrabecularScale;
+      uniform float uTrabecularStrength;
+      varying vec3 vWorldPos;
+
+      // 3D hash for procedural cellular noise
+      vec3 hash3(vec3 p) {
+        p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
+                 dot(p, vec3(269.5, 183.3, 246.1)),
+                 dot(p, vec3(113.5, 271.9, 124.6)));
+        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+      }
+
+      // 3D Voronoi Cellular Noise to simulate porous spongy trabecular micro-architecture
+      float voronoi3D(vec3 x) {
+        vec3 p = floor(x);
+        vec3 f = fract(x);
+        float res = 100.0;
+        for (int k = -1; k <= 1; k++) {
+          for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+              vec3 b = vec3(float(i), float(j), float(k));
+              vec3 r = vec3(b) - f + hash3(p + b) * 0.5 + 0.5;
+              float d = dot(r, r);
+              if (d < res) {
+                res = d;
+              }
+            }
+          }
+        }
+        return sqrt(res);
+      }
+
+      ${shader.fragmentShader}
+    `.replace(
+      '#include <dithering_fragment>',
+      `
+      #include <dithering_fragment>
+
+      // 1. Holographic Fresnel Edge Glow
+      vec3 viewDirection = normalize(cameraPosition - vWorldPos);
+      vec3 norm = normalize(vNormal);
+      float fresnelFactor = pow(1.0 - max(0.0, dot(viewDirection, norm)), uFresnelPower);
+
+      // 2. Procedural Trabecular Porous Network
+      float cell = voronoi3D(vWorldPos * uTrabecularScale);
+      float lattice = smoothstep(0.15, 0.70, cell);
+
+      // Modulate bone surface with spongy trabecular depth
+      gl_FragColor.rgb *= mix(1.0 - uTrabecularStrength, 1.0 + uTrabecularStrength * 0.5, lattice);
+
+      // Add luminous cyan/blue Fresnel rim sheen
+      gl_FragColor.rgb += uFresnelColor * fresnelFactor * 0.70;
+      `
+    );
+  };
+
+  return material;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
