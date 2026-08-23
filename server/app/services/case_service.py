@@ -11,9 +11,10 @@ class CaseService:
         if db_manager.is_connected and db_manager.db is not None:
             cursor = db_manager.db.cases.find({})
             cases = await cursor.to_list(length=200)
-            for c in cases:
-                c["_id"] = str(c["_id"])
-            return cases
+            if cases:
+                for c in cases:
+                    c["_id"] = str(c["_id"])
+                return cases
         
         # Fallback to local JSON storage
         local_data = db_manager.get_local_data()

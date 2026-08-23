@@ -11,9 +11,10 @@ class BiomarkerService:
         if db_manager.is_connected and db_manager.db is not None:
             cursor = db_manager.db.biomarkers.find({})
             records = await cursor.to_list(length=200)
-            for r in records:
-                r["_id"] = str(r["_id"])
-            return records
+            if records:
+                for r in records:
+                    r["_id"] = str(r["_id"])
+                return records
         
         local_data = db_manager.get_local_data()
         return local_data.get("biomarkers", [])

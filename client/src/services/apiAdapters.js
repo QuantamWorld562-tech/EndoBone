@@ -20,9 +20,13 @@ export function toUiPatient(patient) {
   if (!patient) return null;
   return {
     ...patient,
-    id: patient._id || patient.id,
-    mrn: patient.mrn || patient._id,
-    procedure: patient.procedure || 'Pre-surgical bone planning',
+    id: patient.case_id || patient._id || patient.id,
+    name: patient.patient_name || patient.name || 'Anonymous Patient',
+    age: patient.patient_age ?? patient.age ?? 65,
+    gender: patient.patient_gender || patient.gender || 'Female',
+    mrn: patient.mrn || patient.case_id || patient._id || patient.id,
+    procedure: patient.procedure || patient.clinical_indication || 'Pre-surgical bone planning',
+    condition: patient.condition || patient.clinical_indication || 'Pre-Surgical Bone Mineral Density Evaluation',
     status: patient.status || 'active',
   };
 }

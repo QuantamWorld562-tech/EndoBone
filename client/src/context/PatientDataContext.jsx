@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import {
   patients,
   biomarkersDB,
@@ -8,6 +8,7 @@ import {
   referenceRanges,
 } from '../data/mockData';
 import { patientService } from '../services/patientService';
+import { biomarkerService } from '../services/biomarkerService';
 import { assessmentService } from '../services/assessmentService';
 import { toApiRegion, backendToUiRegion } from '../services/apiAdapters';
 
@@ -234,17 +235,60 @@ export function PatientDataProvider({ children }) {
   // Global state across patient views
   const [activePatientId, setActivePatientId] = useState('PEB-8842-A');
   const [patientList, setPatientList] = useState(() => [...patients]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [persistedAssessment, setPersistedAssessment] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [apiError, setApiError] = useState(null);
 
   const clearApiError = useCallback(() => setApiError(null), []);
 
+  // Fetch live patient list from backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPatients() {
+      try {
+        const remotePatients = await patientService.getPatients();
+        if (isMounted && remotePatients && remotePatients.length > 0) {
+          setPatientList(remotePatients);
+        }
+      } catch (err) {
+        console.warn('Could not load patients from backend:', err);
+      } finally {
+        if (isMounted) setIsLoadingPatients(false);
+      }
+    }
+    loadPatients();
+    return () => { isMounted = false; };
+  }, []);
+
   // Modal open state for "New Case Analysis"
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
 
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
+
+  // Load patient biomarkers from backend when patient switches
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBiomarkers() {
+      try {
+        const b = await biomarkerService.getBiomarkers(activePatientId);
+        if (isMounted && b) {
+          setAllBiomarkers((prev) => ({
+            ...prev,
+            [activePatientId]: {
+              ...(prev[activePatientId] || {}),
+              ...b,
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn('Could not load biomarkers for patient:', activePatientId, err);
+      }
+    }
+    loadBiomarkers();
+    return () => { isMounted = false; };
+  }, [activePatientId]);
 
   // Selected Region of Interest (shared across 3D and other views)
   const [selectedRegion, setSelectedRegion] = useState('proximal-femur');
@@ -534,6 +578,7 @@ export function PatientDataProvider({ children }) {
     setActivePatientId,
     patients: patientList,
     patientList,
+    isLoadingPatients,
     addNewCase,
     isNewCaseModalOpen,
     setIsNewCaseModalOpen,
