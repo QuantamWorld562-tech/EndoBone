@@ -12,12 +12,12 @@ export const patientService = {
   },
 
   getPatientById: async (patientId) => {
-    const response = await apiClient.get(`/patients/${patientId}`);
+    const response = await apiClient.get(`/cases/${patientId}`);
     return toUiPatient(response.data);
   },
 
   createPatient: async (patient) => {
-    const response = await apiClient.post('/patients', patient);
+    const response = await apiClient.post('/cases', patient);
     return toUiPatient(response.data);
   },
 
