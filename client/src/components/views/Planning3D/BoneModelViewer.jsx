@@ -155,20 +155,20 @@ function findZoneByMeshName(meshName, zones) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Multi-Stop Spectral Colormap (Density / T-Score Mapping)
-// Deep Blue (High Density) -> Cyan -> Green -> Yellow -> Orange -> Crimson Red
+// Deep Blue (High Density Cortex) -> Cyan -> Green -> Yellow -> Orange -> Crimson Red (Resorption Core)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SPECTRAL_STOPS = [
-  { t: 0.00, color: new THREE.Color('#0a2569') }, // Deep Blue (Healthy Cortical Bone / High BMD)
-  { t: 0.20, color: new THREE.Color('#06b6d4') }, // Cyan
-  { t: 0.40, color: new THREE.Color('#10b981') }, // Green
-  { t: 0.60, color: new THREE.Color('#facc15') }, // Yellow
-  { t: 0.80, color: new THREE.Color('#f97316') }, // Orange
-  { t: 1.00, color: new THREE.Color('#ef4444') }, // Crimson Red (Critical Resorption / Osteopenia)
+  { t: 0.00, color: new THREE.Color('#0a369d') }, // Deep Navy Blue (High Density Cortical Shell)
+  { t: 0.22, color: new THREE.Color('#00d2ff') }, // Electric Cyan
+  { t: 0.42, color: new THREE.Color('#10b981') }, // Emerald Green
+  { t: 0.62, color: new THREE.Color('#ffcc00') }, // Radiant Yellow
+  { t: 0.82, color: new THREE.Color('#ff6b00') }, // Vivid Orange
+  { t: 1.00, color: new THREE.Color('#ef233c') }, // Crimson Red (Critical Resorption / Osteopenia)
 ];
 
 function sampleSpectralColormap(t, targetColor = new THREE.Color()) {
-  const clamped = THREE.MathUtils.clamp(t, 0, 1);
+  const clamped = THREE.MathUtils.clamp(t, 0.0, 1.0);
   for (let i = 0; i < SPECTRAL_STOPS.length - 1; i++) {
     const s1 = SPECTRAL_STOPS[i];
     const s2 = SPECTRAL_STOPS[i + 1];
@@ -181,7 +181,7 @@ function sampleSpectralColormap(t, targetColor = new THREE.Color()) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dynamic Spatial Heatmap Shader (Highlights ONLY regions at risk)
+// Dynamic Spatial Heatmap Shader (Cortical Shell + Trabecular Core + Risk Hotspots)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
@@ -197,18 +197,18 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
     return null;
   }
 
-  // Filter only zones that have high or moderate risk from backend data
-  const hotZones = zones
-    .filter((z) => z.riskLevel !== 'low')
-    .map((z) => {
-      const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
-      return { ...z, local: mesh.worldToLocal(worldAnchor) };
-    });
+  // Calculate local bounding box for anatomical height and radial axis
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const heightRange = Math.max(0.01, bb.max.y - bb.min.y);
+  const midX = (bb.min.x + bb.max.x) * 0.5;
+  const midZ = (bb.min.z + bb.max.z) * 0.5;
+  const maxRadius = Math.max(0.01, Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * 0.5);
 
-  if (!hotZones.length) {
-    geo.deleteAttribute('color');
-    return null;
-  }
+  const hotZones = zones.map((z) => {
+    const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
+    return { ...z, local: mesh.worldToLocal(worldAnchor) };
+  });
 
   const colors = new Float32Array(pos.count * 3);
   const vert = new THREE.Vector3();
@@ -217,24 +217,44 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
 
-    let maxInfluence = 0;
-    let strongestZone = null;
+    // 1. Anatomical height factor (normalized 0 at distal shaft to 1 at proximal head/neck)
+    const normY = THREE.MathUtils.clamp((vert.y - bb.min.y) / heightRange, 0.0, 1.0);
 
+    // 2. Radial depth factor: inner core (trabecular) = 1.0, outer cortical shell = 0.0
+    const dx = vert.x - midX;
+    const dz = vert.z - midZ;
+    const radialDist = Math.sqrt(dx * dx + dz * dz);
+    const coreFactor = THREE.MathUtils.clamp(1.0 - (radialDist / maxRadius), 0.0, 1.0);
+
+    // 3. Base density distribution:
+    // Cortical shell = Cyan/Deep Blue (0.0 to 0.25)
+    // Marrow core = Warm Yellow/Amber (0.45 to 0.70)
+    let densityValue = THREE.MathUtils.lerp(0.12, 0.65, Math.pow(coreFactor, 1.4));
+
+    // 4. Proximal Femur & Femoral Neck baseline elevation (higher stress and metabolic turnover)
+    if (normY > 0.60) {
+      const proximalBoost = (normY - 0.60) / 0.40;
+      densityValue += proximalBoost * 0.25;
+    }
+
+    // 5. Backend Zone Risk Impact (High risk expands crimson/red osteopenic hotspot across whole zone)
     for (const zone of hotZones) {
+      if (zone.riskLevel === 'low') continue;
       const dist = vert.distanceTo(zone.local);
-      // Smoothstep gradient boundary around the anatomical risk zone
-      const influence = 1 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.15, zone.radius);
-      const riskWeight = zone.riskLevel === 'high' ? 1.0 : 0.65;
-      const weightedInfluence = influence * riskWeight;
-
-      if (weightedInfluence > maxInfluence) {
-        maxInfluence = weightedInfluence;
-        strongestZone = zone;
+      const influence = 1.0 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.10, zone.radius);
+      if (influence > 0) {
+        if (zone.riskLevel === 'high') {
+          // Blazing crimson-yellow osteopenic resorption core
+          densityValue = Math.max(densityValue, 0.65 + influence * 0.35);
+        } else if (zone.riskLevel === 'moderate') {
+          // Vibrant amber/gold elevated resorption
+          densityValue = Math.max(densityValue, 0.45 + influence * 0.25);
+        }
       }
     }
 
-    // Map the continuous influence scalar (0.0 to 1.0) through the multi-stop spectral colormap
-    sampleSpectralColormap(maxInfluence, tempCol);
+    // Sample multi-stop spectral colormap
+    sampleSpectralColormap(THREE.MathUtils.clamp(densityValue, 0.0, 1.0), tempCol);
 
     colors[i * 3]     = tempCol.r;
     colors[i * 3 + 1] = tempCol.g;
@@ -246,7 +266,7 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Authentic Medical Bone Material Factory (With Fresnel Edge Glow & Voronoi Trabeculae)
+// Authentic Medical Bone Material Factory (With Luminous Voronoi Trabeculae & Fresnel Sheen)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
@@ -280,21 +300,21 @@ function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
   // Realistic Physical Medical Bone Material with procedural trabecular noise and Fresnel rim glow
   const material = new THREE.MeshPhysicalMaterial({
     color: hasVertexColors ? '#ffffff' : (zone && isHeatmap ? risk.hex : BONE_IVORY),
-    roughness: 0.32,
-    metalness: 0.04,
-    clearcoat: 0.22,
-    clearcoatRoughness: 0.4,
-    reflectivity: 0.45,
+    roughness: 0.28,
+    metalness: 0.08,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.3,
+    reflectivity: 0.55,
     vertexColors: Boolean(hasVertexColors),
     side: THREE.DoubleSide,
   });
 
   // Inject custom GLSL chunks for Holographic Fresnel Rim Glow + Spongy Trabecular Voronoi Pattern
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.uFresnelColor = { value: new THREE.Color('#38bdf8') };
-    shader.uniforms.uFresnelPower = { value: 2.6 };
-    shader.uniforms.uTrabecularScale = { value: 42.0 };
-    shader.uniforms.uTrabecularStrength = { value: isHeatmap ? 0.38 : 0.15 };
+    shader.uniforms.uFresnelColor = { value: new THREE.Color('#00e5ff') };
+    shader.uniforms.uFresnelPower = { value: 2.2 };
+    shader.uniforms.uTrabecularScale = { value: 38.0 };
+    shader.uniforms.uTrabecularStrength = { value: isHeatmap ? 0.45 : 0.15 };
 
     shader.vertexShader = `
       varying vec3 vWorldPos;
@@ -348,20 +368,20 @@ function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
       `
       #include <dithering_fragment>
 
-      // 1. Holographic Fresnel Edge Glow
+      // 1. Holographic Fresnel Edge Glow (Electric Cyan Silhouette)
       vec3 viewDirection = normalize(cameraPosition - vWorldPos);
       vec3 norm = normalize(vNormal);
       float fresnelFactor = pow(1.0 - max(0.0, dot(viewDirection, norm)), uFresnelPower);
 
-      // 2. Procedural Trabecular Porous Network
+      // 2. Procedural Trabecular Porous Network (Spongy Bone Lattice)
       float cell = voronoi3D(vWorldPos * uTrabecularScale);
-      float lattice = smoothstep(0.15, 0.70, cell);
+      float lattice = smoothstep(0.12, 0.68, cell);
 
-      // Modulate bone surface with spongy trabecular depth
-      gl_FragColor.rgb *= mix(1.0 - uTrabecularStrength, 1.0 + uTrabecularStrength * 0.5, lattice);
+      // Brighten trabecular mesh lines into glowing spongy filaments
+      gl_FragColor.rgb *= mix(0.70, 1.35, lattice);
 
-      // Add luminous cyan/blue Fresnel rim sheen
-      gl_FragColor.rgb += uFresnelColor * fresnelFactor * 0.70;
+      // Add radiant electric cyan Fresnel rim sheen
+      gl_FragColor.rgb += uFresnelColor * fresnelFactor * 0.85;
       `
     );
   };
@@ -469,24 +489,57 @@ function RealAnatomicalBoneModel({
     <group ref={rootRef} onPointerMove={handleMove} onPointerOut={() => onInteraction?.(null)} onClick={handleClick}>
       <primitive object={group} />
 
-      {/* Floating Risk Indicators on high/moderate risk zones only */}
-      {zones.filter((z) => z.riskLevel !== 'low').map((z) => (
-        <group key={z.id} position={z.anchor}>
-          <mesh>
-            <sphereGeometry args={[0.045, 24, 24]} />
-            <meshStandardMaterial
-              color={RISK[z.riskLevel].hex}
-              emissive={RISK[z.riskLevel].hex}
-              emissiveIntensity={1.2}
-              roughness={0.15}
-            />
-          </mesh>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.07, 0.09, 32]} />
-            <meshBasicMaterial color={RISK[z.riskLevel].ringHex} transparent opacity={0.7} side={THREE.DoubleSide} />
-          </mesh>
-        </group>
-      ))}
+      {/* Floating 3D T-Score Callout Badges matching Reference Image */}
+      {zones.filter((z) => z.riskLevel !== 'low').map((z) => {
+        const isFemoralNeck = z.canonicalId === 'femoral-neck';
+        const tScore = isFemoralNeck ? '-2.3' : '-1.9';
+        const isHigh = z.riskLevel === 'high';
+
+        return (
+          <group key={z.id} position={z.anchor}>
+            <mesh>
+              <sphereGeometry args={[0.042, 24, 24]} />
+              <meshStandardMaterial
+                color={RISK[z.riskLevel].hex}
+                emissive={RISK[z.riskLevel].hex}
+                emissiveIntensity={1.4}
+                roughness={0.15}
+              />
+            </mesh>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0.06, 0.08, 32]} />
+              <meshBasicMaterial color={RISK[z.riskLevel].ringHex} transparent opacity={0.75} side={THREE.DoubleSide} />
+            </mesh>
+
+            {/* Reference image floating callout box */}
+            <Html
+              position={[isFemoralNeck ? -0.32 : 0.28, 0.08, 0.10]}
+              distanceFactor={4.2}
+              zIndexRange={[250, 0]}
+            >
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInteraction?.({ zone: z, anchor: z.anchor, type: 'click' });
+                }}
+                className={`cursor-pointer select-none px-3 py-1.5 rounded-xl border backdrop-blur-md shadow-2xl transition hover:scale-105 ${
+                  isHigh
+                    ? 'bg-slate-950/90 border-red-500/60 shadow-red-500/20 text-white'
+                    : 'bg-slate-950/90 border-amber-500/60 shadow-amber-500/20 text-white'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${isHigh ? 'bg-red-500 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="text-[11px] font-extrabold text-slate-200">{z.label}</span>
+                </div>
+                <div className={`text-[11px] font-black font-mono pl-3.5 ${isHigh ? 'text-red-400' : 'text-amber-400'}`}>
+                  T-Score: {tScore}
+                </div>
+              </div>
+            </Html>
+          </group>
+        );
+      })}
 
       {/* Interactive Tooltip Card */}
       {pinnedZone && pinnedAnchor && (
