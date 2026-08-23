@@ -10,17 +10,21 @@ import {
   ArrowUpRight,
   Clock,
   UserRound,
-  Plus,
+  Trash2,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
   const handleSelectPatient = onSelectPatient || ((id) => navigate(`/patients/${id}/metabolic`));
-  const { patients, setIsNewCaseModalOpen } = usePatientContext();
+  const { patients, deleteCase } = usePatientContext();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [caseToDelete, setCaseToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
@@ -28,6 +32,7 @@ export default function DashboardView({ onSelectPatient }) {
         !searchTerm ||
         p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.procedure?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.condition?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchStatus = statusFilter === 'all' || p.status === statusFilter;
       return matchSearch && matchStatus;
@@ -77,6 +82,17 @@ export default function DashboardView({ onSelectPatient }) {
     return map[status] || map.active;
   };
 
+  const handleConfirmDelete = async () => {
+    if (!caseToDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteCase(caseToDelete.id);
+    } finally {
+      setIsDeleting(false);
+      setCaseToDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -87,12 +103,6 @@ export default function DashboardView({ onSelectPatient }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {/* <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search patients, conditions..."
-            className="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
-          /> */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -103,14 +113,6 @@ export default function DashboardView({ onSelectPatient }) {
             <option value="pending-review">Pending Review</option>
             <option value="completed">Completed</option>
           </select>
-
-          {/* <button
-            onClick={() => setIsNewCaseModalOpen(true)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-600/20 flex items-center gap-2 transition"
-          >
-            <Plus size={16} />
-            New Case Analysis
-          </button> */}
         </div>
       </div>
 
@@ -158,11 +160,11 @@ export default function DashboardView({ onSelectPatient }) {
           <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100">
             <div>
               <h3 className="text-xl font-extrabold text-slate-900">Recent Cases</h3>
-              <p className="text-sm text-slate-500">Click any patient card to open their workflow.</p>
+              <p className="text-sm text-slate-500">Click any patient card to open their workflow, or delete completed cases.</p>
             </div>
-            <button className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              View All <ArrowUpRight size={14} />
-            </button>
+            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+              {filteredPatients.length} Total
+            </span>
           </div>
           <div className="divide-y divide-slate-100">
             {filteredPatients.length === 0 ? (
@@ -171,45 +173,69 @@ export default function DashboardView({ onSelectPatient }) {
               filteredPatients.map((p) => {
                 const badge = getRiskBadge(p.status);
                 return (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => handleSelectPatient(p.id)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition group text-left"
+                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50/80 transition group"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold">
+                    <button
+                      onClick={() => handleSelectPatient(p.id)}
+                      className="flex-1 flex items-center gap-4 text-left focus:outline-none"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shrink-0">
                         <UserRound size={22} />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-slate-900">{p.id}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-slate-900 hover:text-blue-600 transition">{p.id}</p>
                           <span className="text-xs text-slate-400">•</span>
-                          <p className="text-sm text-slate-600 font-medium">{p.name}</p>
+                          <p className="text-sm text-slate-700 font-semibold truncate">{p.name}</p>
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
                           <p className="text-xs text-slate-500 font-medium">{p.procedure}</p>
                           <span className="text-xs text-slate-400">•</span>
                           <p className="text-xs text-slate-500 font-medium">
                             {p.age} yrs • {p.gender}
                           </p>
-                          <span className="text-xs text-slate-400">•</span>
-                          <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-                            <Clock size={12} />
-                            {p.referralDate}
-                          </div>
+                          {p.referralDate && (
+                            <>
+                              <span className="text-xs text-slate-400">•</span>
+                              <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
+                                <Clock size={12} />
+                                {p.referralDate}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
+                    </button>
+
+                    <div className="flex items-center gap-2 pl-3">
                       <span className={`px-3 py-1.5 rounded-full text-xs font-black ring-1 ${badge.cls}`}>
                         {badge.text}
                       </span>
-                      <ChevronRight
-                        size={18}
-                        className="text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition"
-                      />
+                      
+                      {/* Delete Case Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCaseToDelete(p);
+                        }}
+                        title={`Delete case ${p.id}`}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition ml-1"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectPatient(p.id)}
+                        className="p-1 text-slate-400 group-hover:text-blue-600 transition"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })
             )}
@@ -255,6 +281,65 @@ export default function DashboardView({ onSelectPatient }) {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {caseToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+                  <AlertCircle size={22} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Delete Case from Database</h3>
+                  <p className="text-xs text-slate-500 font-medium">Permanent database removal</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setCaseToDelete(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              <p className="text-xs text-slate-700 leading-relaxed">
+                Are you sure you want to permanently delete patient case{' '}
+                <span className="font-bold text-slate-950 font-mono">{caseToDelete.id}</span>
+                {caseToDelete.name ? ` (${caseToDelete.name})` : ''}?
+              </p>
+              <p className="text-[11px] text-red-600 font-medium">
+                • This action will erase associated biomarker profiles, 3D anatomical planning notes, and simulation data from the database.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setCaseToDelete(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl shadow-md shadow-red-600/20 flex items-center gap-1.5 transition disabled:opacity-50"
+              >
+                <Trash2 size={14} />
+                {isDeleting ? 'Deleting...' : 'Delete Case'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

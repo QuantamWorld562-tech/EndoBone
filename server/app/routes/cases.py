@@ -28,6 +28,13 @@ async def get_single_case(case_id: str):
         raise HTTPException(status_code=404, detail=f"Case with ID '{case_id}' not found")
     return case_record
 
+@router.delete("/{case_id}", status_code=status.HTTP_200_OK)
+async def delete_single_case(case_id: str):
+    deleted = await CaseService.delete_case(case_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Case with ID '{case_id}' not found")
+    return {"message": "Case deleted successfully", "case_id": case_id}
+
 @router.get("/{case_id}/full", response_model=FullCaseResponse)
 async def get_full_case_view(case_id: str):
     full_case = await CaseService.get_full_case_view(case_id)

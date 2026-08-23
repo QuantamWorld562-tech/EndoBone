@@ -37,6 +37,16 @@ export const patientService = {
     }
   },
 
+  deletePatient: async (patientId) => {
+    try {
+      const response = await apiClient.delete(`/cases/${patientId}`);
+      return response.data;
+    } catch (e) {
+      console.warn(`Backend case ${patientId} delete failed, applying local delete.`);
+      return { success: true, id: patientId };
+    }
+  },
+
   filterPatients: (patientList, { searchTerm = '', statusFilter = 'all' } = {}) => {
     let result = [...patientList];
 

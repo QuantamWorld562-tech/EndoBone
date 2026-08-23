@@ -57,3 +57,20 @@ def test_create_case_flexible_and_get_full():
     assert full_data["assessment"] is not None
     assert len(full_data["roi"]) > 0
     assert full_data["simulation"] is not None
+
+def test_delete_case():
+    # Create a temporary case
+    payload = {
+        "name": "Delete Me",
+        "age": 55,
+        "gender": "Male",
+        "procedure": "Total Hip Arthroplasty (THA)"
+    }
+    create_resp = client.post("/api/cases", json=payload)
+    assert create_resp.status_code == 201
+    case_id = create_resp.json()["case_id"]
+
+    # Delete case
+    del_resp = client.delete(f"/api/cases/{case_id}")
+    assert del_resp.status_code == 200
+    assert del_resp.json()["message"] == "Case deleted successfully"
