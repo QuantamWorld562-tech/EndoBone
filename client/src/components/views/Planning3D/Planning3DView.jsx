@@ -132,6 +132,7 @@ export default function Planning3DView({ patientId }) {
                   { id: 'heatmap', label: 'Risk Heatmap', activeClass: 'bg-orange-600 text-white shadow-md shadow-orange-600/30' },
                   { id: 'xray', label: 'X-Ray', activeClass: 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30' },
                   { id: 'wireframe', label: 'Wireframe', activeClass: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' },
+                  { id: 'mesh', label: 'Mesh', activeClass: 'bg-teal-600 text-white shadow-md shadow-teal-600/30' },
                 ].map((btn) => (
                   <button
                     key={btn.id}
@@ -182,6 +183,7 @@ export default function Planning3DView({ patientId }) {
                 viewAngle={viewAngle}
                 heatmap={renderMode === 'heatmap'}
                 wireframe={renderMode === 'wireframe'}
+                meshMode={renderMode === 'mesh'}
                 xray={renderMode === 'xray'}
                 autoRotate={autoRotate}
                 selectedRegion={selectedRegion}

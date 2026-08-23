@@ -1,46 +1,46 @@
 /* eslint-disable react/no-unknown-property */
 /**
- * BoneModelViewer — Authentic Anatomical 3D Bone Model & Dynamic Risk Heatmap Shader
+ * BoneModelViewer — Clinical Anatomical 3D Bone Model & Risk Heatmap Shader
  * Features:
- * - Retains 100% genuine anatomical human bone geometry from real 3D scans (/storage/bones/femur.glb)
- * - Authentic medical ivory bone material with natural bone micro-roughness
- * - Dynamic Backend Data Shading: Calculates 3D vertex distances to shade and highlight ONLY regions at risk (High Risk: Red/Crimson, Moderate: Amber, Normal: Natural Bone)
- * - Interactive clinical zone pins, camera presets, and X-ray mode
+ * - Real human anatomical femur 3D geometry (/storage/bones/femur.glb)
+ * - Heatmap Shading: High Risk = Red, Moderate = Orange, Healthy = Clean White
+ * - Render modes: Anatomical, Risk Heatmap, X-Ray, Wireframe, and FEA Mesh mode
+ * - Interactive 3D pins, clinical HUD, and camera plane controls
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState, Component } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine, RotateCw, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, ScanLine, RotateCw, Layers } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Design System & Risk Colors
+// Risk Colors & Constants
 // ─────────────────────────────────────────────────────────────────────────────
+
+const COLOR_HEALTHY_WHITE = '#ffffff';
+const COLOR_MODERATE_ORANGE = '#f97316';
+const COLOR_HIGH_RED = '#ef4444';
 
 const RISK = {
   high: {
-    hex: '#ef4444', emissiveHex: '#991b1b', glowHex: '#dc2626',
+    hex: COLOR_HIGH_RED, emissiveHex: '#991b1b', glowHex: '#dc2626',
     pinHex: '#ef4444', ringHex: '#fecaca', label: 'High Risk',
     badgeBg: 'rgba(239,68,68,0.15)', badgeBorder: 'rgba(239,68,68,0.45)', badgeText: '#fca5a5',
-    trackPct: '85%',
   },
   moderate: {
-    hex: '#f59e0b', emissiveHex: '#78350f', glowHex: '#d97706',
-    pinHex: '#f59e0b', ringHex: '#fde68a', label: 'Moderate',
-    badgeBg: 'rgba(245,158,11,0.15)', badgeBorder: 'rgba(245,158,11,0.45)', badgeText: '#fde68a',
-    trackPct: '52%',
+    hex: COLOR_MODERATE_ORANGE, emissiveHex: '#9a3412', glowHex: '#ea580c',
+    pinHex: '#f97316', ringHex: '#fed7aa', label: 'Moderate',
+    badgeBg: 'rgba(249,115,22,0.15)', badgeBorder: 'rgba(249,115,22,0.45)', badgeText: '#fdba74',
   },
   low: {
-    hex: '#f4f3ee', emissiveHex: '#000000', glowHex: '#10b981',
-    pinHex: '#22c55e', ringHex: '#bbf7d0', label: 'Normal',
-    badgeBg: 'rgba(16,185,129,0.15)', badgeBorder: 'rgba(16,185,129,0.45)', badgeText: '#6ee7b7',
-    trackPct: '15%',
+    hex: COLOR_HEALTHY_WHITE, emissiveHex: '#000000', glowHex: '#ffffff',
+    pinHex: '#38bdf8', ringHex: '#bae6fd', label: 'Healthy',
+    badgeBg: 'rgba(255,255,255,0.15)', badgeBorder: 'rgba(255,255,255,0.3)', badgeText: '#f8fafc',
   },
 };
 
-const BONE_IVORY    = '#f4f3ee';
-const BONE_SPECULAR = '#ffffff';
+const BONE_IVORY    = '#ffffff';
 const XRAY_TINT     = '#7dd3fc';
 const XRAY_EMISSIVE = '#075985';
 
@@ -50,9 +50,6 @@ const CAM = {
   lateral:  { pos: [3.2, 0, 0],        tgt: [0, 0, 0] },
   axial:    { pos: [0, 3.2, 0.001],    tgt: [0, 0, 0] },
 };
-
-const ANGLE_MAP = { coronal: 'anterior', sagittal: 'lateral', '3d': 'overview' };
-function resolvePreset(v) { return CAM[v] ? v : (ANGLE_MAP[v] || 'overview'); }
 
 const REGION_ALIASES = {
   femoral_neck: 'femoral-neck', 'femoral-neck': 'femoral-neck',
@@ -80,8 +77,8 @@ const ANCHORS = {
 };
 
 const RADII = {
-  'femoral-neck': 0.38,
-  'greater-trochanter': 0.32,
+  'femoral-neck': 0.42,
+  'greater-trochanter': 0.35,
   shaft: 0.45,
   'vertebral-body': 0.42,
   acetabulum: 0.32,
@@ -114,9 +111,9 @@ function normalizeZones(raw, fallback) {
 
   if (!src.length) {
     src = [
-      { id: 'femoral-neck', riskLevel: 'high', note: 'High mechanical stress concentration and osteopenic resorption at femoral neck' },
-      { id: 'greater-trochanter', riskLevel: 'moderate', note: 'Moderate cortical thinning observed at trochanteric insertion' },
-      { id: 'shaft', riskLevel: 'low', note: 'Cortical bone density and thickness within normal biomechanical tolerance' },
+      { id: 'femoral-neck', riskLevel: 'high', note: 'Critical mechanical stress concentration & osteopenic resorption at femoral neck.' },
+      { id: 'greater-trochanter', riskLevel: 'moderate', note: 'Moderate cortical thinning observed at trochanteric region.' },
+      { id: 'shaft', riskLevel: 'low', note: 'Cortical bone density within normal biomechanical tolerance.' },
     ];
   }
 
@@ -133,7 +130,7 @@ function normalizeZones(raw, fallback) {
       riskLevel: normalizeRisk(z.riskLevel ?? z.risk_level ?? fallback.riskLevel),
       note: z.note || z.clinicalNote || z.observation || fallback.clinicalNote || 'Clinical evaluation zone.',
       anchor: Array.isArray(sa) && sa.length === 3 ? sa.map(Number) : (ANCHORS[canId] || [0.2, 0.6, 0.14]),
-      radius: Number(z.radius) || RADII[canId] || 0.35,
+      radius: Number(z.radius) || RADII[canId] || 0.38,
       meshTokens: [...new Set(tokens)],
     };
   });
@@ -154,34 +151,7 @@ function findZoneByMeshName(meshName, zones) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Multi-Stop Spectral Colormap (Density / T-Score Mapping)
-// Deep Blue (High Density Cortex) -> Cyan -> Green -> Yellow -> Orange -> Crimson Red (Resorption Core)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const SPECTRAL_STOPS = [
-  { t: 0.00, color: new THREE.Color('#0a369d') }, // Deep Navy Blue (High Density Cortical Shell)
-  { t: 0.22, color: new THREE.Color('#00d2ff') }, // Electric Cyan
-  { t: 0.42, color: new THREE.Color('#10b981') }, // Emerald Green
-  { t: 0.62, color: new THREE.Color('#ffcc00') }, // Radiant Yellow
-  { t: 0.82, color: new THREE.Color('#ff6b00') }, // Vivid Orange
-  { t: 1.00, color: new THREE.Color('#ef233c') }, // Crimson Red (Critical Resorption / Osteopenia)
-];
-
-function sampleSpectralColormap(t, targetColor = new THREE.Color()) {
-  const clamped = THREE.MathUtils.clamp(t, 0.0, 1.0);
-  for (let i = 0; i < SPECTRAL_STOPS.length - 1; i++) {
-    const s1 = SPECTRAL_STOPS[i];
-    const s2 = SPECTRAL_STOPS[i + 1];
-    if (clamped >= s1.t && clamped <= s2.t) {
-      const localT = (clamped - s1.t) / (s2.t - s1.t);
-      return targetColor.copy(s1.color).lerp(s2.color, localT);
-    }
-  }
-  return targetColor.copy(SPECTRAL_STOPS[SPECTRAL_STOPS.length - 1].color);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dynamic Spatial Heatmap Shader (Cortical Shell + Trabecular Core + Risk Hotspots)
+// Dynamic Spatial Heatmap: Red (High Risk) -> Orange (Moderate) -> White (Healthy)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
@@ -197,14 +167,6 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
     return null;
   }
 
-  // Calculate local bounding box for anatomical height and radial axis
-  if (!geo.boundingBox) geo.computeBoundingBox();
-  const bb = geo.boundingBox;
-  const heightRange = Math.max(0.01, bb.max.y - bb.min.y);
-  const midX = (bb.min.x + bb.max.x) * 0.5;
-  const midZ = (bb.min.z + bb.max.z) * 0.5;
-  const maxRadius = Math.max(0.01, Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * 0.5);
-
   const hotZones = zones.map((z) => {
     const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
     return { ...z, local: mesh.worldToLocal(worldAnchor) };
@@ -212,53 +174,44 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
 
   const colors = new Float32Array(pos.count * 3);
   const vert = new THREE.Vector3();
-  const tempCol = new THREE.Color();
+  const healthyWhite = new THREE.Color(COLOR_HEALTHY_WHITE);
+  const orangeCol = new THREE.Color(COLOR_MODERATE_ORANGE);
+  const redCol = new THREE.Color(COLOR_HIGH_RED);
+  const finalColor = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
+    finalColor.copy(healthyWhite);
 
-    // 1. Anatomical height factor (normalized 0 at distal shaft to 1 at proximal head/neck)
-    const normY = THREE.MathUtils.clamp((vert.y - bb.min.y) / heightRange, 0.0, 1.0);
+    let maxHighInfluence = 0.0;
+    let maxModInfluence = 0.0;
 
-    // 2. Radial depth factor: inner core (trabecular) = 1.0, outer cortical shell = 0.0
-    const dx = vert.x - midX;
-    const dz = vert.z - midZ;
-    const radialDist = Math.sqrt(dx * dx + dz * dz);
-    const coreFactor = THREE.MathUtils.clamp(1.0 - (radialDist / maxRadius), 0.0, 1.0);
-
-    // 3. Base density distribution:
-    // Cortical shell = Cyan/Deep Blue (0.0 to 0.25)
-    // Marrow core = Warm Yellow/Amber (0.45 to 0.70)
-    let densityValue = THREE.MathUtils.lerp(0.12, 0.65, Math.pow(coreFactor, 1.4));
-
-    // 4. Proximal Femur & Femoral Neck baseline elevation (higher stress and metabolic turnover)
-    if (normY > 0.60) {
-      const proximalBoost = (normY - 0.60) / 0.40;
-      densityValue += proximalBoost * 0.25;
-    }
-
-    // 5. Backend Zone Risk Impact (High risk expands crimson/red osteopenic hotspot across whole zone)
     for (const zone of hotZones) {
-      if (zone.riskLevel === 'low') continue;
       const dist = vert.distanceTo(zone.local);
-      const influence = 1.0 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.10, zone.radius);
+      const influence = 1.0 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.12, zone.radius);
+
       if (influence > 0) {
         if (zone.riskLevel === 'high') {
-          // Blazing crimson-yellow osteopenic resorption core
-          densityValue = Math.max(densityValue, 0.65 + influence * 0.35);
+          maxHighInfluence = Math.max(maxHighInfluence, influence);
         } else if (zone.riskLevel === 'moderate') {
-          // Vibrant amber/gold elevated resorption
-          densityValue = Math.max(densityValue, 0.45 + influence * 0.25);
+          maxModInfluence = Math.max(maxModInfluence, influence);
         }
       }
     }
 
-    // Sample multi-stop spectral colormap
-    sampleSpectralColormap(THREE.MathUtils.clamp(densityValue, 0.0, 1.0), tempCol);
+    // Blend: Healthy White -> Orange (Moderate) -> Red (High Risk)
+    if (maxHighInfluence > 0) {
+      // High risk zone: blends smoothly from orange to deep crimson red
+      const redInfluence = Math.pow(maxHighInfluence, 1.1);
+      finalColor.lerp(orangeCol, redInfluence * 0.5).lerp(redCol, redInfluence * 0.95);
+    } else if (maxModInfluence > 0) {
+      // Moderate zone: blends from healthy white to bright orange
+      finalColor.lerp(orangeCol, maxModInfluence * 0.90);
+    }
 
-    colors[i * 3]     = tempCol.r;
-    colors[i * 3 + 1] = tempCol.g;
-    colors[i * 3 + 2] = tempCol.b;
+    colors[i * 3]     = finalColor.r;
+    colors[i * 3 + 1] = finalColor.g;
+    colors[i * 3 + 2] = finalColor.b;
   }
 
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
@@ -266,13 +219,14 @@ function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Authentic Medical Bone Material Factory (With Luminous Voronoi Trabeculae & Fresnel Sheen)
+// Authentic Medical Bone Material Factory
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
   const isHeatmap = mode === 'heatmap';
   const isXray = mode === 'xray';
   const isWireframe = mode === 'wireframe';
+  const isMesh = mode === 'mesh';
 
   const risk = RISK[zone?.riskLevel || 'low'];
 
@@ -297,96 +251,30 @@ function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
     });
   }
 
-  // Realistic Physical Medical Bone Material with procedural trabecular noise and Fresnel rim glow
-  const material = new THREE.MeshPhysicalMaterial({
+  if (isMesh) {
+    // FEA Polygon Surface Mesh with wireframe structural overlay
+    return new THREE.MeshStandardMaterial({
+      color: '#38bdf8',
+      roughness: 0.3,
+      metalness: 0.2,
+      wireframe: true,
+      side: THREE.DoubleSide,
+    });
+  }
+
+  // Realistic Physical Medical Bone Material
+  return new THREE.MeshPhysicalMaterial({
     color: hasVertexColors ? '#ffffff' : (zone && isHeatmap ? risk.hex : BONE_IVORY),
-    roughness: 0.28,
-    metalness: 0.08,
-    clearcoat: 0.35,
-    clearcoatRoughness: 0.3,
-    reflectivity: 0.55,
+    emissive: isHeatmap && zone && zone.riskLevel === 'high' ? risk.emissiveHex : '#000000',
+    emissiveIntensity: isHeatmap && zone && zone.riskLevel === 'high' ? 0.35 : 0,
+    roughness: 0.38,
+    metalness: 0.03,
+    clearcoat: 0.15,
+    clearcoatRoughness: 0.5,
+    reflectivity: 0.35,
     vertexColors: Boolean(hasVertexColors),
     side: THREE.DoubleSide,
   });
-
-  // Inject custom GLSL chunks for Holographic Fresnel Rim Glow + Spongy Trabecular Voronoi Pattern
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uFresnelColor = { value: new THREE.Color('#00e5ff') };
-    shader.uniforms.uFresnelPower = { value: 2.2 };
-    shader.uniforms.uTrabecularScale = { value: 38.0 };
-    shader.uniforms.uTrabecularStrength = { value: isHeatmap ? 0.45 : 0.15 };
-
-    shader.vertexShader = `
-      varying vec3 vWorldPos;
-      ${shader.vertexShader}
-    `.replace(
-      '#include <worldpos_vertex>',
-      `
-      #include <worldpos_vertex>
-      vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
-      `
-    );
-
-    shader.fragmentShader = `
-      uniform vec3 uFresnelColor;
-      uniform float uFresnelPower;
-      uniform float uTrabecularScale;
-      uniform float uTrabecularStrength;
-      varying vec3 vWorldPos;
-
-      // 3D hash for procedural cellular noise
-      vec3 hash3(vec3 p) {
-        p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
-                 dot(p, vec3(269.5, 183.3, 246.1)),
-                 dot(p, vec3(113.5, 271.9, 124.6)));
-        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
-      }
-
-      // 3D Voronoi Cellular Noise to simulate porous spongy trabecular micro-architecture
-      float voronoi3D(vec3 x) {
-        vec3 p = floor(x);
-        vec3 f = fract(x);
-        float res = 100.0;
-        for (int k = -1; k <= 1; k++) {
-          for (int j = -1; j <= 1; j++) {
-            for (int i = -1; i <= 1; i++) {
-              vec3 b = vec3(float(i), float(j), float(k));
-              vec3 r = vec3(b) - f + hash3(p + b) * 0.5 + 0.5;
-              float d = dot(r, r);
-              if (d < res) {
-                res = d;
-              }
-            }
-          }
-        }
-        return sqrt(res);
-      }
-
-      ${shader.fragmentShader}
-    `.replace(
-      '#include <dithering_fragment>',
-      `
-      #include <dithering_fragment>
-
-      // 1. Holographic Fresnel Edge Glow (Electric Cyan Silhouette)
-      vec3 viewDirection = normalize(cameraPosition - vWorldPos);
-      vec3 norm = normalize(vNormal);
-      float fresnelFactor = pow(1.0 - max(0.0, dot(viewDirection, norm)), uFresnelPower);
-
-      // 2. Procedural Trabecular Porous Network (Spongy Bone Lattice)
-      float cell = voronoi3D(vWorldPos * uTrabecularScale);
-      float lattice = smoothstep(0.12, 0.68, cell);
-
-      // Brighten trabecular mesh lines into glowing spongy filaments
-      gl_FragColor.rgb *= mix(0.70, 1.35, lattice);
-
-      // Add radiant electric cyan Fresnel rim sheen
-      gl_FragColor.rgb += uFresnelColor * fresnelFactor * 0.85;
-      `
-    );
-  };
-
-  return material;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -489,7 +377,7 @@ function RealAnatomicalBoneModel({
     <group ref={rootRef} onPointerMove={handleMove} onPointerOut={() => onInteraction?.(null)} onClick={handleClick}>
       <primitive object={group} />
 
-      {/* Floating 3D T-Score Callout Badges matching Reference Image */}
+      {/* Floating 3D T-Score Callout Badges */}
       {zones.filter((z) => z.riskLevel !== 'low').map((z) => {
         const isFemoralNeck = z.canonicalId === 'femoral-neck';
         const tScore = isFemoralNeck ? '-2.3' : '-1.9';
@@ -511,7 +399,6 @@ function RealAnatomicalBoneModel({
               <meshBasicMaterial color={RISK[z.riskLevel].ringHex} transparent opacity={0.75} side={THREE.DoubleSide} />
             </mesh>
 
-            {/* Reference image floating callout box */}
             <Html
               position={[isFemoralNeck ? -0.32 : 0.28, 0.08, 0.10]}
               distanceFactor={4.2}
@@ -525,14 +412,14 @@ function RealAnatomicalBoneModel({
                 className={`cursor-pointer select-none px-3 py-1.5 rounded-xl border backdrop-blur-md shadow-2xl transition hover:scale-105 ${
                   isHigh
                     ? 'bg-slate-950/90 border-red-500/60 shadow-red-500/20 text-white'
-                    : 'bg-slate-950/90 border-amber-500/60 shadow-amber-500/20 text-white'
+                    : 'bg-slate-950/90 border-orange-500/60 shadow-orange-500/20 text-white'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${isHigh ? 'bg-red-500 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className={`w-2 h-2 rounded-full ${isHigh ? 'bg-red-500 animate-pulse' : 'bg-orange-500'}`} />
                   <span className="text-[11px] font-extrabold text-slate-200">{z.label}</span>
                 </div>
-                <div className={`text-[11px] font-black font-mono pl-3.5 ${isHigh ? 'text-red-400' : 'text-amber-400'}`}>
+                <div className={`text-[11px] font-black font-mono pl-3.5 ${isHigh ? 'text-red-400' : 'text-orange-400'}`}>
                   T-Score: {tScore}
                 </div>
               </div>
@@ -588,7 +475,7 @@ function CameraController({ preset, controlsRef }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Viewport HUD Controls & BMD Scale
+// Viewport HUD Controls & Risk Heatmap Scale
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PANEL_BASE = {
@@ -700,7 +587,7 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <div style={{
                 width: 8, height: 75, borderRadius: 4,
-                background: 'linear-gradient(to top,#f4f3ee 0%,#f59e0b 50%,#ef4444 100%)',
+                background: 'linear-gradient(to top,#ffffff 0%,#f97316 50%,#ef4444 100%)',
                 boxShadow: '0 0 12px rgba(239,68,68,0.3)',
               }} />
             </div>
@@ -708,15 +595,15 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, z
             <div style={{ flex: 1, fontSize: 10 }} className="space-y-1 font-medium">
               <div className="flex items-center justify-between text-red-400 font-bold">
                 <span>High Risk</span>
-                <span>{highCount} Zone</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
               </div>
-              <div className="flex items-center justify-between text-amber-400 font-bold">
+              <div className="flex items-center justify-between text-orange-400 font-bold">
                 <span>Moderate</span>
-                <span>{moderateCount} Zone</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
               </div>
-              <div className="flex items-center justify-between text-slate-300 font-bold">
+              <div className="flex items-center justify-between text-slate-100 font-bold">
                 <span>Healthy Bone</span>
-                <span>Normal</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400" />
               </div>
             </div>
           </div>
@@ -735,6 +622,7 @@ export default function BoneModelViewer({
   viewAngle = 'overview',
   heatmap = true,
   wireframe = false,
+  meshMode = false,
   xray = false,
   autoRotate = false,
   selectedRegion = 'femoral-neck',
@@ -763,7 +651,7 @@ export default function BoneModelViewer({
     return zones.find((z) => slug(z.id) === slug(selectedRegion)) || zones[0];
   }, [zones, selectedRegion]);
 
-  const mode = xrayOn ? 'xray' : heatmap ? 'heatmap' : wireframe ? 'wireframe' : 'anatomical';
+  const mode = xrayOn ? 'xray' : meshMode ? 'mesh' : heatmap ? 'heatmap' : wireframe ? 'wireframe' : 'anatomical';
 
   const handlePreset = useCallback((p) => {
     setCamPreset(p);
@@ -799,11 +687,11 @@ export default function BoneModelViewer({
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.1;
+          gl.toneMappingExposure = 1.15;
         }}
       >
-        <ambientLight intensity={0.65} color="#ffffff" />
-        <directionalLight position={[4, 6, 4]} intensity={1.35} color="#ffffff" castShadow />
+        <ambientLight intensity={0.7} color="#ffffff" />
+        <directionalLight position={[4, 6, 4]} intensity={1.4} color="#ffffff" castShadow />
         <directionalLight position={[-4, 2, -2]} intensity={0.6} color="#93c5fd" />
         <directionalLight position={[0, -4, -4]} intensity={0.4} color="#38bdf8" />
         <Environment preset="city" />
