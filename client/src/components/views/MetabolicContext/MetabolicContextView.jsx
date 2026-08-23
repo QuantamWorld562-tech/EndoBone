@@ -29,7 +29,6 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
   }, [biomarkers]);
 
   const handleRunAssessment = onRunAssessment || (async () => {
-    if (!isInputValid) return;
     await runAssessment(effectivePatientId, biomarkers);
     navigate(`/patients/${effectivePatientId}/assessment`);
   });
@@ -291,6 +290,7 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
         <div className="lg:col-span-2 space-y-6 flex flex-col justify-between">
           
           {/* Thyroid Function Card */}
+          {/*
           <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
             <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
@@ -339,6 +339,7 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
               </div>
             </div>
           </div>
+          */}
 
           {/* Action Verification Card */}
           {isAnalyzing ? (
@@ -349,21 +350,10 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                 Ensure all out-of-range values are verified before proceeding to analysis.
               </p>
 
-              {!isInputValid && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs font-semibold flex items-center gap-2">
-                  <AlertTriangle size={15} className="text-amber-600 shrink-0" />
-                  <span>Please fill all biomarker fields with valid numeric values to run analysis.</span>
-                </div>
-              )}
-
               <button
                 onClick={handleRunAssessment}
-                disabled={isAnalyzing || !isInputValid}
-                className={`w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg ${
-                  isInputValid
-                    ? 'bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                }`}
+                disabled={isAnalyzing}
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer"
               >
                 <BarChart2 size={18} />
                 Analyze Patient Data
