@@ -8,6 +8,8 @@ import {
   BarChart2,
   Stethoscope,
   Users,
+  UserCircle,
+  Calendar,
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 
@@ -94,14 +96,16 @@ export default function NewCaseModal() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    name: '',
+    age: '',
     procedure: PROCEDURES[1].name, // Total Hip Arthroplasty (THA) default
     gender: 'Female',
-    pth: 72.4,
-    vitaminD: 28.1,
-    calcium: 9.4,
-    phosphate: 3.2,
-    alp: 112,
-    ctx: 380,
+    pth: '',
+    vitaminD: '',
+    calcium: '',
+    phosphate: '',
+    alp: '',
+    ctx: '',
   });
 
   if (!isNewCaseModalOpen) return null;
@@ -187,9 +191,48 @@ export default function NewCaseModal() {
             </div>
           </div>
 
-          {/* Surgical Procedure & Gender Strip */}
-          <div className="grid md:grid-cols-3 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="md:col-span-2 space-y-1.5">
+          {/* Patient Info & Surgical Procedure Strip */}
+          <div className="grid md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            {/* Patient Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <UserCircle size={14} className="text-blue-600" />
+                Patient Name
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Priya Sharma"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Age */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Calendar size={14} className="text-blue-600" />
+                Age
+              </label>
+              <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20">
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  step="1"
+                  placeholder="e.g. 58"
+                  value={formData.age}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  className="w-full px-3 py-2 text-xs font-medium text-slate-900 bg-transparent focus:outline-none placeholder:text-slate-400"
+                />
+                <span className="px-2.5 py-2 bg-slate-100 text-slate-500 font-medium text-[11px] border-l border-slate-200 whitespace-nowrap">
+                  yrs
+                </span>
+              </div>
+            </div>
+
+            {/* Surgical Procedure */}
+            <div className="md:col-span-1 space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <Stethoscope size={14} className="text-blue-600" />
                 Surgical Procedure
@@ -205,11 +248,12 @@ export default function NewCaseModal() {
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-500 italic">
+              <p className="text-[11px] text-slate-500 italic leading-snug">
                 {PROCEDURES.find((p) => p.name === formData.procedure)?.desc || ''}
               </p>
             </div>
 
+            {/* Gender */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <Users size={14} className="text-blue-600" />
