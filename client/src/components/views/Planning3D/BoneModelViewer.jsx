@@ -7,11 +7,58 @@
  * - Phase 3: 3D Fixation Simulation (Cerclage wire stitches, Cannulated lag screws, Infill)
  */
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
 import { Eye, EyeOff, ScanLine, Play, Pause, Activity, Crosshair } from 'lucide-react';
 import * as THREE from 'three';
+
+class ModelErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error) {
+    console.warn("3D Model load error, activating procedural anatomical fallback:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <group>
+          {/* Procedural Anatomical Bone Model */}
+          <mesh position={[0.35, 0.75, 0]}>
+            <sphereGeometry args={[0.22, 32, 32]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+          <mesh position={[0.18, 0.58, 0]} rotation={[0, 0, -0.6]}>
+            <cylinderGeometry args={[0.12, 0.15, 0.38, 24]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+          <mesh position={[-0.08, 0.52, 0]}>
+            <dodecahedronGeometry args={[0.18, 1]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+          <mesh position={[0, 0, 0]}>
+            <cylinderGeometry args={[0.14, 0.16, 1.25, 24]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+          <mesh position={[-0.06, -0.65, 0]}>
+            <sphereGeometry args={[0.18, 24, 24]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+          <mesh position={[0.08, -0.65, 0]}>
+            <sphereGeometry args={[0.18, 24, 24]} />
+            <meshStandardMaterial color="#f3f4f6" roughness={0.35} />
+          </mesh>
+        </group>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design system
@@ -936,21 +983,23 @@ export default function BoneModelViewer({
           enableDamping dampingFactor={0.08} minDistance={0.5} maxDistance={8} makeDefault
         />
         <Suspense fallback={<ModelLoader label={modelLabel} />}>
-          <NormalizedBoneModel
-            modelPath={modelPath} mode={mode} autoRotate={autoRotate}
-            zones={zones} selectedZone={selectedZone}
-            pinnedZone={hudZone}
-            pinnedAnchor={hudAnchor ? new THREE.Vector3(...hudAnchor) : null}
-            onInteraction={handleInteraction}
-            phase={phase}
-            isHighlightActive={isHighlightActive}
-            biomarkers={biomarkers}
-            onBiomarkerClick={onBiomarkerClick}
-            activePlan={activePlan}
-            isPlayingSimulation={isPlayingSimulation}
-            stitchTension={stitchTension}
-            roiMarkers={roiMarkers}
-          />
+          <ModelErrorBoundary>
+            <NormalizedBoneModel
+              modelPath={modelPath} mode={mode} autoRotate={autoRotate}
+              zones={zones} selectedZone={selectedZone}
+              pinnedZone={hudZone}
+              pinnedAnchor={hudAnchor ? new THREE.Vector3(...hudAnchor) : null}
+              onInteraction={handleInteraction}
+              phase={phase}
+              isHighlightActive={isHighlightActive}
+              biomarkers={biomarkers}
+              onBiomarkerClick={onBiomarkerClick}
+              activePlan={activePlan}
+              isPlayingSimulation={isPlayingSimulation}
+              stitchTension={stitchTension}
+              roiMarkers={roiMarkers}
+            />
+          </ModelErrorBoundary>
         </Suspense>
       </Canvas>
       <ClinicalOverlay
