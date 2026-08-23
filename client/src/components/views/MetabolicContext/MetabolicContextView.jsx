@@ -2,14 +2,10 @@ import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  Sparkles,
   Info,
   FlaskConical,
   Activity,
   BarChart2,
-  CheckCircle2,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { useTrendingData } from '../../../hooks';

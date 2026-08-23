@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   ChevronRight,
-  Upload,
   Clock,
   UserRound,
   AlertCircle,
@@ -30,6 +29,24 @@ export default function PreSurgicalSummaryView({ patientId }) {
     'Patient presents with accelerated bone turnover. Advise augmentation of instrumented levels. 2-week pre-op Vitamin D & Calcium optimization protocol initiated.'
   );
   const [isFinalized, setIsFinalized] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const handleShare = () => {
+    showToast('Report sharing link copied to clipboard.');
+  };
+
+  const handleExportPdf = () => {
+    showToast('Exporting PDF... (Simulated)');
+  };
+
+  const handleSaveDraft = () => {
+    showToast('Draft saved successfully.');
+  };
 
   if (loading || !plan) {
     return <div className="p-10 text-center text-slate-500">Generating pre-surgical summary...</div>;
