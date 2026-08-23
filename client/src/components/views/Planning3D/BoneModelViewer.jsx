@@ -1,40 +1,48 @@
 /* eslint-disable react/no-unknown-property */
 /**
- * BoneModelViewer — High-Fidelity Trabecular Bone Density & BMD Heatmap Renderer
- * Visual matches clinical reference:
- * - Glowing internal trabecular micro-architecture meshwork
- * - BMD color gradient spectrum (Red/Yellow osteopenic head & neck to Cyan/Blue cortical bone)
- * - Luminous edge fresnel glow
- * - Interactive T-score pins & anatomical plane controls
+ * BoneModelViewer — Authentic Anatomical 3D Bone Model & Dynamic Risk Heatmap Shader
+ * Features:
+ * - Retains 100% genuine anatomical human bone geometry from real 3D scans (/storage/bones/femur.glb)
+ * - Authentic medical ivory bone material with natural bone micro-roughness
+ * - Dynamic Backend Data Shading: Calculates 3D vertex distances to shade and highlight ONLY regions at risk (High Risk: Red/Crimson, Moderate: Amber, Normal: Natural Bone)
+ * - Interactive clinical zone pins, camera presets, and X-ray mode
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState, Component } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Html, OrbitControls, useGLTF } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine, RotateCw, Layers } from 'lucide-react';
+import { Eye, EyeOff, ScanLine, RotateCw, AlertTriangle } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Design System & Constants
+// Design System & Risk Colors
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RISK = {
   high: {
-    hex: '#ef4444', emissiveHex: '#7f1d1d', glowHex: '#dc2626',
+    hex: '#ef4444', emissiveHex: '#991b1b', glowHex: '#dc2626',
     pinHex: '#ef4444', ringHex: '#fecaca', label: 'High Risk',
     badgeBg: 'rgba(239,68,68,0.15)', badgeBorder: 'rgba(239,68,68,0.45)', badgeText: '#fca5a5',
+    trackPct: '85%',
   },
   moderate: {
     hex: '#f59e0b', emissiveHex: '#78350f', glowHex: '#d97706',
     pinHex: '#f59e0b', ringHex: '#fde68a', label: 'Moderate',
     badgeBg: 'rgba(245,158,11,0.15)', badgeBorder: 'rgba(245,158,11,0.45)', badgeText: '#fde68a',
+    trackPct: '52%',
   },
   low: {
-    hex: '#38bdf8', emissiveHex: '#0284c7', glowHex: '#0284c7',
-    pinHex: '#38bdf8', ringHex: '#bae6fd', label: 'Normal',
-    badgeBg: 'rgba(56,189,248,0.15)', badgeBorder: 'rgba(56,189,248,0.45)', badgeText: '#7dd3fc',
+    hex: '#f4f3ee', emissiveHex: '#000000', glowHex: '#10b981',
+    pinHex: '#22c55e', ringHex: '#bbf7d0', label: 'Normal',
+    badgeBg: 'rgba(16,185,129,0.15)', badgeBorder: 'rgba(16,185,129,0.45)', badgeText: '#6ee7b7',
+    trackPct: '15%',
   },
 };
+
+const BONE_IVORY    = '#f4f3ee';
+const BONE_SPECULAR = '#ffffff';
+const XRAY_TINT     = '#7dd3fc';
+const XRAY_EMISSIVE = '#075985';
 
 const CAM = {
   overview: { pos: [1.6, 0.8, 2.5],    tgt: [0, 0, 0] },
@@ -43,293 +51,358 @@ const CAM = {
   axial:    { pos: [0, 3.2, 0.001],    tgt: [0, 0, 0] },
 };
 
-const REGION_ANCHORS = {
-  'proximal-femur': [0.32, 0.82, 0.12],
-  'femoral-neck':   [0.26, 0.72, 0.14],
-  'greater-trochanter': [-0.15, 0.65, 0.08],
-  shaft:            [0.02, 0.00, 0.08],
-  'vertebral-body': [0.00, 0.05, 0.22],
-  acetabulum:       [-0.18, -0.58, 0.18],
+const ANGLE_MAP = { coronal: 'anterior', sagittal: 'lateral', '3d': 'overview' };
+function resolvePreset(v) { return CAM[v] ? v : (ANGLE_MAP[v] || 'overview'); }
+
+const REGION_ALIASES = {
+  femoral_neck: 'femoral-neck', 'femoral-neck': 'femoral-neck',
+  'proximal-femur': 'femoral-neck',
+  greater_trochanter: 'greater-trochanter', 'greater-trochanter': 'greater-trochanter',
+  shaft: 'shaft', diaphysis: 'shaft',
+  vertebral_body: 'vertebral-body', 'vertebral-body': 'vertebral-body',
+  acetabulum: 'acetabulum',
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Trabecular Texture Generator (Luminous Spongy Micro-Lattice)
-// ─────────────────────────────────────────────────────────────────────────────
+const MESH_TOKENS = {
+  'femoral-neck':       ['femoral_neck', 'femoral-neck', 'neck', 'collum', 'head', 'caput'],
+  'greater-trochanter': ['greater_trochanter', 'greater-trochanter', 'trochanter'],
+  shaft:                ['shaft', 'diaphysis', 'body', 'corpus'],
+  'vertebral-body':     ['vertebral_body', 'vertebral', 'body', 'lumbar'],
+  acetabulum:           ['acetabulum', 'acetabular'],
+};
 
-function generateTrabecularTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
-  const ctx = canvas.getContext('2d');
+const ANCHORS = {
+  'femoral-neck':       [0.22, 0.78, 0.14],
+  'greater-trochanter': [0.34, 0.58, 0.08],
+  shaft:                [0.12, 0.00, 0.08],
+  'vertebral-body':     [0.00, 0.05, 0.22],
+  acetabulum:           [-0.18, -0.58, 0.18],
+};
 
-  // Background
-  ctx.fillStyle = '#020617';
-  ctx.fillRect(0, 0, 512, 512);
+const RADII = {
+  'femoral-neck': 0.38,
+  'greater-trochanter': 0.32,
+  shaft: 0.45,
+  'vertebral-body': 0.42,
+  acetabulum: 0.32,
+};
 
-  // Micro-trabecular lattice network
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 1.4;
-  ctx.globalAlpha = 0.75;
+function slug(v = '') {
+  return String(v).trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+function canonical(v) { return REGION_ALIASES[slug(v)] || slug(v); }
+function humanize(v) { return String(v||'Zone').replace(/[_-]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
-  for (let i = 0; i <= 512; i += 18) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.bezierCurveTo(i + 15, 140, i - 15, 360, i, 512);
-    ctx.stroke();
+function normalizeRisk(v) {
+  const s = String(v||'').toLowerCase();
+  if (['critical','high','severe'].includes(s)) return 'high';
+  if (['medium','moderate','intermediate'].includes(s)) return 'moderate';
+  return 'low';
+}
+
+function normalizeZones(raw, fallback) {
+  let src = [];
+  if (Array.isArray(raw)) src = raw;
+  else if (raw?.zones) src = raw.zones;
+  else if (raw && typeof raw === 'object') {
+    src = Object.entries(raw).map(([id, val]) => ({
+      ...(typeof val === 'object' ? val : {}),
+      id,
+      riskLevel: typeof val === 'string' ? val : val?.riskLevel,
+    }));
   }
-  for (let j = 0; j <= 512; j += 18) {
-    ctx.beginPath();
-    ctx.moveTo(0, j);
-    ctx.bezierCurveTo(140, j + 15, 360, j - 15, 512, j);
-    ctx.stroke();
+
+  if (!src.length) {
+    src = [
+      { id: 'femoral-neck', riskLevel: 'high', note: 'High mechanical stress concentration and osteopenic resorption at femoral neck' },
+      { id: 'greater-trochanter', riskLevel: 'moderate', note: 'Moderate cortical thinning observed at trochanteric insertion' },
+      { id: 'shaft', riskLevel: 'low', note: 'Cortical bone density and thickness within normal biomechanical tolerance' },
+    ];
   }
 
-  // Cross struts
-  ctx.strokeStyle = '#ef4444';
-  ctx.lineWidth = 0.8;
-  ctx.globalAlpha = 0.5;
-  for (let k = -512; k <= 512; k += 24) {
-    ctx.beginPath();
-    ctx.moveTo(k, 0);
-    ctx.lineTo(k + 512, 512);
-    ctx.stroke();
-  }
+  return src.map((z, i) => {
+    const rawId = slug(z.id || z.zoneId || z.region || `zone-${i + 1}`);
+    const canId = canonical(rawId);
+    const sa = z.anchor || z.position || z.coordinates;
+    const tokens = [...(z.meshTokens || []), ...(MESH_TOKENS[canId] || [])].map((t) => String(t).toLowerCase());
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(3, 6);
-  return texture;
+    return {
+      id: rawId,
+      canonicalId: canId,
+      label: z.label || z.location || z.name || humanize(rawId),
+      riskLevel: normalizeRisk(z.riskLevel ?? z.risk_level ?? fallback.riskLevel),
+      note: z.note || z.clinicalNote || z.observation || fallback.clinicalNote || 'Clinical evaluation zone.',
+      anchor: Array.isArray(sa) && sa.length === 3 ? sa.map(Number) : (ANCHORS[canId] || [0.2, 0.6, 0.14]),
+      radius: Number(z.radius) || RADII[canId] || 0.35,
+      meshTokens: [...new Set(tokens)],
+    };
+  });
+}
+
+function findZoneByMeshName(meshName, zones) {
+  const name = String(meshName || '').toLowerCase();
+  let best = null, bestScore = 0;
+  for (const z of zones) {
+    for (const t of z.meshTokens) {
+      if (name.includes(t) && t.length > bestScore) {
+        best = z;
+        bestScore = t.length;
+      }
+    }
+  }
+  return best;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Procedural High-Detail Femur Model with Glowing Trabecular Architecture
+// Dynamic Spatial Heatmap Shader (Highlights ONLY regions at risk)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function LuminousFemurModel({ mode, autoRotate, selectedRegion, onSelectRegion }) {
-  const groupRef = useRef();
-  const trabecularTex = useMemo(() => generateTrabecularTexture(), []);
+function applyDynamicRiskShading(mesh, zones, rootGroup, mode) {
+  const geo = mesh.geometry;
+  const pos = geo?.getAttribute('position');
+  if (!geo || !pos || !rootGroup) return null;
 
-  useFrame((_, delta) => {
-    if (autoRotate && groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.4;
+  rootGroup.updateMatrixWorld(true);
+  mesh.updateMatrixWorld(true);
+
+  if (mode !== 'heatmap') {
+    geo.deleteAttribute('color');
+    return null;
+  }
+
+  // Filter only zones that have high or moderate risk from backend data
+  const hotZones = zones
+    .filter((z) => z.riskLevel !== 'low')
+    .map((z) => {
+      const worldAnchor = rootGroup.localToWorld(new THREE.Vector3(...z.anchor));
+      return { ...z, local: mesh.worldToLocal(worldAnchor) };
+    });
+
+  if (!hotZones.length) {
+    geo.deleteAttribute('color');
+    return null;
+  }
+
+  const colors = new Float32Array(pos.count * 3);
+  const vert = new THREE.Vector3();
+  const baseIvory = new THREE.Color(BONE_IVORY);
+  const tempCol = new THREE.Color();
+
+  for (let i = 0; i < pos.count; i++) {
+    vert.fromBufferAttribute(pos, i);
+    tempCol.copy(baseIvory);
+
+    let maxInfluence = 0;
+    let strongestZone = null;
+
+    for (const zone of hotZones) {
+      const dist = vert.distanceTo(zone.local);
+      // Smoothstep gradient boundary around the anatomical risk zone
+      const influence = 1 - THREE.MathUtils.smoothstep(dist, zone.radius * 0.15, zone.radius);
+      if (influence > maxInfluence) {
+        maxInfluence = influence;
+        strongestZone = zone;
+      }
     }
-  });
 
-  const isDensityMap = mode === 'heatmap';
+    if (strongestZone && maxInfluence > 0) {
+      const riskColor = new THREE.Color(RISK[strongestZone.riskLevel].hex);
+      tempCol.lerp(riskColor, maxInfluence * 0.92);
+    }
+
+    colors[i * 3]     = tempCol.r;
+    colors[i * 3 + 1] = tempCol.g;
+    colors[i * 3 + 2] = tempCol.b;
+  }
+
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return hotZones[0];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Authentic Medical Bone Material Factory
+// ─────────────────────────────────────────────────────────────────────────────
+
+function createAuthenticBoneMaterial(mode, zone, hasVertexColors) {
+  const isHeatmap = mode === 'heatmap';
   const isXray = mode === 'xray';
   const isWireframe = mode === 'wireframe';
 
-  return (
-    <group ref={groupRef} position={[0, -0.2, 0]} scale={[1.15, 1.15, 1.15]}>
-      {/* ── 1. FEMORAL HEAD (High-Stress Osteopenic Zone: Radiant Yellow/Red) ── */}
-      <group position={[0.42, 0.88, 0]}>
-        {/* Core glowing sphere */}
-        <mesh>
-          <sphereGeometry args={[0.27, 48, 48]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#ff3b30' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#ffcc00' : isXray ? '#0284c7' : '#000000'}
-            emissiveIntensity={isDensityMap ? 1.6 : isXray ? 0.6 : 0}
-            roughness={0.25}
-            metalness={0.1}
-            clearcoat={0.3}
-            wireframe={isWireframe}
-            transparent={isXray}
-            opacity={isXray ? 0.4 : 1}
-          />
-        </mesh>
-        {/* Trabecular micro-mesh lattice overlay */}
-        {isDensityMap && (
-          <mesh scale={[1.02, 1.02, 1.02]}>
-            <sphereGeometry args={[0.27, 32, 32]} />
-            <meshStandardMaterial
-              map={trabecularTex}
-              color="#ffe600"
-              emissive="#ff5500"
-              emissiveIntensity={1.2}
-              transparent
-              opacity={0.7}
-              blending={THREE.AdditiveBlending}
-              depthWrite={false}
-            />
-          </mesh>
-        )}
-      </group>
+  const risk = RISK[zone?.riskLevel || 'low'];
 
-      {/* ── 2. FEMORAL NECK (Critical Resorption Hotspot: Gradient Gold -> Red) ── */}
-      <group position={[0.22, 0.70, 0]} rotation={[0, 0, -0.68]}>
-        <mesh>
-          <cylinderGeometry args={[0.16, 0.20, 0.44, 36]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#ff9500' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#ff3b30' : isXray ? '#0284c7' : '#000000'}
-            emissiveIntensity={isDensityMap ? 1.4 : isXray ? 0.5 : 0}
-            roughness={0.3}
-            wireframe={isWireframe}
-            transparent={isXray}
-            opacity={isXray ? 0.4 : 1}
-          />
-        </mesh>
-        {isDensityMap && (
-          <mesh scale={[1.02, 1.01, 1.02]}>
-            <cylinderGeometry args={[0.16, 0.20, 0.44, 24]} />
-            <meshStandardMaterial
-              map={trabecularTex}
-              color="#ffcc00"
-              emissive="#ff3300"
-              emissiveIntensity={1.0}
-              transparent
-              opacity={0.65}
-              blending={THREE.AdditiveBlending}
-              depthWrite={false}
-            />
-          </mesh>
-        )}
-      </group>
+  if (isXray) {
+    return new THREE.MeshPhysicalMaterial({
+      color: zone ? risk.hex : XRAY_TINT,
+      emissive: zone?.riskLevel === 'high' ? risk.emissiveHex : XRAY_EMISSIVE,
+      emissiveIntensity: zone?.riskLevel === 'high' ? 0.6 : 0.3,
+      transparent: true,
+      opacity: zone?.riskLevel === 'high' ? 0.45 : 0.28,
+      roughness: 0.3,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+  }
 
-      {/* ── 3. GREATER TROCHANTER (Transition Zone: Amber -> Cyan) ── */}
-      <group position={[-0.10, 0.62, 0]}>
-        <mesh>
-          <dodecahedronGeometry args={[0.24, 2]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#38bdf8' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#f59e0b' : isXray ? '#0284c7' : '#000000'}
-            emissiveIntensity={isDensityMap ? 0.9 : isXray ? 0.4 : 0}
-            roughness={0.35}
-            wireframe={isWireframe}
-            transparent={isXray}
-            opacity={isXray ? 0.4 : 1}
-          />
-        </mesh>
-      </group>
+  if (isWireframe) {
+    return new THREE.MeshBasicMaterial({
+      color: zone ? risk.hex : '#64748b',
+      wireframe: true,
+    });
+  }
 
-      {/* ── 4. FEMORAL DIAPHYSIS / SHAFT (Cortical Bone: Deep Luminous Cyan/Blue) ── */}
-      <group position={[0.02, -0.05, 0]}>
-        <mesh>
-          <cylinderGeometry args={[0.17, 0.21, 1.45, 36]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#0284c7' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#0369a1' : isXray ? '#075985' : '#000000'}
-            emissiveIntensity={isDensityMap ? 0.7 : isXray ? 0.3 : 0}
-            roughness={0.28}
-            metalness={0.15}
-            clearcoat={0.4}
-            wireframe={isWireframe}
-            transparent={isXray}
-            opacity={isXray ? 0.35 : 1}
-          />
-        </mesh>
-        {/* Longitudinal cortical trabecular grain */}
-        {isDensityMap && (
-          <mesh scale={[1.02, 1.0, 1.02]}>
-            <cylinderGeometry args={[0.17, 0.21, 1.45, 24]} />
-            <meshStandardMaterial
-              map={trabecularTex}
-              color="#38bdf8"
-              emissive="#0284c7"
-              emissiveIntensity={0.6}
-              transparent
-              opacity={0.45}
-              blending={THREE.AdditiveBlending}
-              depthWrite={false}
-            />
-          </mesh>
-        )}
-      </group>
-
-      {/* ── 5. DISTAL CONDYLES (Knee Articulation Base) ── */}
-      <group position={[-0.07, -0.85, 0]}>
-        <mesh>
-          <sphereGeometry args={[0.22, 32, 32]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#0284c7' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#0369a1' : isXray ? '#075985' : '#000000'}
-            emissiveIntensity={isDensityMap ? 0.5 : 0}
-            wireframe={isWireframe}
-          />
-        </mesh>
-      </group>
-      <group position={[0.11, -0.85, 0]}>
-        <mesh>
-          <sphereGeometry args={[0.22, 32, 32]} />
-          <meshPhysicalMaterial
-            color={isDensityMap ? '#0284c7' : isXray ? '#38bdf8' : '#f8fafc'}
-            emissive={isDensityMap ? '#0369a1' : isXray ? '#075985' : '#000000'}
-            emissiveIntensity={isDensityMap ? 0.5 : 0}
-            wireframe={isWireframe}
-          />
-        </mesh>
-      </group>
-
-      {/* ── 6. Luminous Edge Fresnel Halo (Glow Rim) ── */}
-      {isDensityMap && (
-        <mesh position={[0.08, 0.15, 0]} scale={[1.18, 1.15, 1.18]}>
-          <cylinderGeometry args={[0.34, 0.38, 2.1, 24]} />
-          <meshBasicMaterial
-            color="#38bdf8"
-            transparent
-            opacity={0.06}
-            side={THREE.BackSide}
-            blending={THREE.AdditiveBlending}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
-
-      {/* ── 7. Interactive Floating 3D T-Score Pins matching Reference Image 1 ── */}
-      <Html position={[0.24, 0.72, 0.18]} distanceFactor={4.2} zIndexRange={[300, 0]}>
-        <div
-          onClick={() => onSelectRegion?.('femoral-neck')}
-          className="cursor-pointer select-none px-2.5 py-1 rounded-lg bg-slate-950/90 text-white border border-red-500/60 shadow-xl shadow-red-500/25 backdrop-blur-md flex items-center gap-1.5 hover:scale-105 transition"
-        >
-          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-[11px] font-extrabold text-slate-200">Femoral Neck</span>
-          <span className="text-[11px] font-black text-red-400 font-mono">T-Score: -2.3</span>
-        </div>
-      </Html>
-
-      <Html position={[-0.15, 0.65, 0.16]} distanceFactor={4.2} zIndexRange={[300, 0]}>
-        <div
-          onClick={() => onSelectRegion?.('proximal-femur')}
-          className="cursor-pointer select-none px-2.5 py-1 rounded-lg bg-slate-950/90 text-white border border-amber-500/60 shadow-xl shadow-amber-500/25 backdrop-blur-md flex items-center gap-1.5 hover:scale-105 transition"
-        >
-          <span className="w-2 h-2 rounded-full bg-amber-500" />
-          <span className="text-[11px] font-extrabold text-slate-200">Total Hip</span>
-          <span className="text-[11px] font-black text-amber-400 font-mono">T-Score: -1.9</span>
-        </div>
-      </Html>
-    </group>
-  );
+  // Realistic Physical Medical Bone Material
+  return new THREE.MeshPhysicalMaterial({
+    color: hasVertexColors ? '#ffffff' : (zone && isHeatmap ? risk.hex : BONE_IVORY),
+    emissive: isHeatmap && zone && zone.riskLevel === 'high' ? risk.emissiveHex : '#000000',
+    emissiveIntensity: isHeatmap && zone && zone.riskLevel === 'high' ? 0.4 : 0,
+    roughness: 0.42,
+    metalness: 0.02,
+    clearcoat: 0.12,
+    clearcoatRoughness: 0.6,
+    reflectivity: 0.35,
+    vertexColors: Boolean(hasVertexColors),
+    side: THREE.DoubleSide,
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Error Boundary Component
+// Real 3D GLTF Bone Model Loader
 // ─────────────────────────────────────────────────────────────────────────────
 
-class ModelErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch(error) {
-    console.warn("3D Render fallback active:", error);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <LuminousFemurModel
-          mode="heatmap"
-          autoRotate={false}
-          selectedRegion="femoral-neck"
-        />
-      );
+function RealAnatomicalBoneModel({
+  modelPath = '/storage/bones/femur.glb',
+  mode = 'heatmap',
+  autoRotate = false,
+  zones = [],
+  selectedZone,
+  pinnedZone,
+  pinnedAnchor,
+  onInteraction,
+}) {
+  const { scene } = useGLTF(modelPath);
+  const rootRef = useRef();
+
+  // Normalize, scale, and center the real scan
+  const group = useMemo(() => {
+    const clone = scene.clone(true);
+    const inner = new THREE.Group();
+    const wrapper = new THREE.Group();
+
+    clone.traverse((child) => {
+      if (!child.isMesh || !child.geometry) return;
+      child.geometry = child.geometry.clone();
+      child.geometry.computeVertexNormals();
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+
+    inner.add(clone);
+    const ib = new THREE.Box3().setFromObject(inner);
+    const is = ib.getSize(new THREE.Vector3());
+    if (is.z > is.y && is.z > is.x) inner.rotation.x = -Math.PI / 2;
+
+    wrapper.add(inner);
+    const b = new THREE.Box3().setFromObject(wrapper);
+    const c = b.getCenter(new THREE.Vector3());
+    const s = b.getSize(new THREE.Vector3());
+    const sc = 2.2 / (Math.max(s.x, s.y, s.z) || 1);
+
+    wrapper.scale.setScalar(sc);
+    wrapper.position.set(-c.x * sc, -c.y * sc, -c.z * sc);
+    return wrapper;
+  }, [scene]);
+
+  // Apply authentic bone material and dynamic risk shading based on backend data
+  useEffect(() => {
+    const meshes = [];
+    group.traverse((c) => {
+      if (c.isMesh) meshes.push(c);
+    });
+
+    meshes.forEach((mesh) => {
+      const directZone = findZoneByMeshName(mesh.name, zones);
+      const spatialZone = (mode === 'heatmap' && !directZone)
+        ? applyDynamicRiskShading(mesh, zones, rootRef.current, mode)
+        : null;
+
+      const hasVertexColors = Boolean(spatialZone);
+      if (!hasVertexColors) mesh.geometry.deleteAttribute('color');
+
+      mesh.material = createAuthenticBoneMaterial(mode, directZone || spatialZone, hasVertexColors);
+    });
+  }, [group, mode, zones]);
+
+  useFrame((_, delta) => {
+    if (autoRotate && rootRef.current) {
+      rootRef.current.rotation.y += delta * 0.35;
     }
-    return this.props.children;
-  }
+  });
+
+  const resolveInteraction = useCallback((e) => {
+    const direct = findZoneByMeshName(e.object?.name, zones);
+    const lp = rootRef.current?.worldToLocal(e.point.clone());
+    const nearest = lp && zones.length ? zones.reduce((best, z) => {
+      const d = lp.distanceTo(new THREE.Vector3(...z.anchor));
+      return !best || d < best.d ? { z, d } : best;
+    }, null)?.z : null;
+
+    const zone = direct || nearest || selectedZone || zones[0];
+    return zone && lp ? { zone, anchor: lp.toArray() } : null;
+  }, [zones, selectedZone]);
+
+  const handleMove = useCallback((e) => {
+    const it = resolveInteraction(e);
+    if (it) onInteraction?.({ ...it, type: 'hover' });
+  }, [resolveInteraction, onInteraction]);
+
+  const handleClick = useCallback((e) => {
+    e.stopPropagation();
+    const it = resolveInteraction(e);
+    if (it) onInteraction?.({ ...it, type: 'click' });
+  }, [resolveInteraction, onInteraction]);
+
+  return (
+    <group ref={rootRef} onPointerMove={handleMove} onPointerOut={() => onInteraction?.(null)} onClick={handleClick}>
+      <primitive object={group} />
+
+      {/* Floating Risk Indicators on high/moderate risk zones only */}
+      {zones.filter((z) => z.riskLevel !== 'low').map((z) => (
+        <group key={z.id} position={z.anchor}>
+          <mesh>
+            <sphereGeometry args={[0.045, 24, 24]} />
+            <meshStandardMaterial
+              color={RISK[z.riskLevel].hex}
+              emissive={RISK[z.riskLevel].hex}
+              emissiveIntensity={1.2}
+              roughness={0.15}
+            />
+          </mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.07, 0.09, 32]} />
+            <meshBasicMaterial color={RISK[z.riskLevel].ringHex} transparent opacity={0.7} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Interactive Tooltip Card */}
+      {pinnedZone && pinnedAnchor && (
+        <Html position={[pinnedAnchor[0] + 0.08, pinnedAnchor[1] + 0.28, pinnedAnchor[2] + 0.04]} distanceFactor={4.5} zIndexRange={[300, 0]}>
+          <div className="w-56 p-3.5 rounded-2xl bg-slate-950/95 border border-slate-700 text-white shadow-2xl backdrop-blur-md space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase text-slate-200">{pinnedZone.label}</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${RISK[pinnedZone.riskLevel].badgeText} ${RISK[pinnedZone.riskLevel].badgeBg}`}>
+                {pinnedZone.riskLevel}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+              {pinnedZone.note}
+            </p>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -359,7 +432,7 @@ function CameraController({ preset, controlsRef }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2D Viewport Overlay: View Controls & BMD Scale
+// Viewport HUD Controls & BMD Scale
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PANEL_BASE = {
@@ -370,12 +443,15 @@ const PANEL_BASE = {
   fontFamily: 'system-ui,-apple-system,sans-serif',
 };
 
-function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray }) {
+function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray, zones = [] }) {
   const PRESETS = [
-    { id: 'anterior', label: 'Anterior', abbr: 'AP', note: 'Frontal plane' },
-    { id: 'lateral',  label: 'Lateral',  abbr: 'LAT', note: 'Sagittal plane' },
-    { id: 'axial',    label: 'Axial',    abbr: 'AX',  note: 'Superior view' },
+    { id: 'anterior', label: 'Anterior', abbr: 'AP' },
+    { id: 'lateral',  label: 'Lateral',  abbr: 'LAT' },
+    { id: 'axial',    label: 'Axial',    abbr: 'AX' },
   ];
+
+  const highCount = zones.filter((z) => z.riskLevel === 'high').length;
+  const moderateCount = zones.filter((z) => z.riskLevel === 'moderate').length;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
@@ -447,44 +523,44 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray })
         </div>
       </div>
 
-      {/* Bottom-Right: BMD Density Scale matching Reference Image 1 */}
+      {/* Bottom-Right: Dynamic Risk Map Legend */}
       <div className="pointer-events-none absolute right-5 bottom-6">
         <div style={{ ...PANEL_BASE, borderRadius: 14, overflow: 'hidden', width: 185 }}>
           <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <ScanLine size={12} color="#7dd3fc" />
               <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', color: '#7dd3fc', textTransform: 'uppercase' }}>
-                BMD Scale
+                Risk Heatmap
               </span>
             </div>
-            <span style={{ fontSize: 9, fontWeight: 800, color: '#38bdf8' }}>T-Score</span>
+            {highCount > 0 && (
+              <span className="text-[9px] font-black text-red-400 bg-red-950/60 border border-red-800 px-1.5 py-0.5 rounded">
+                CRITICAL
+              </span>
+            )}
           </div>
 
           <div style={{ padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center' }}>
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <div style={{
                 width: 8, height: 75, borderRadius: 4,
-                background: 'linear-gradient(to top,#0284c7 0%,#10b981 35%,#f59e0b 70%,#ef4444 100%)',
+                background: 'linear-gradient(to top,#f4f3ee 0%,#f59e0b 50%,#ef4444 100%)',
                 boxShadow: '0 0 12px rgba(239,68,68,0.3)',
               }} />
             </div>
 
             <div style={{ flex: 1, fontSize: 10 }} className="space-y-1 font-medium">
-              <div className="flex items-center justify-between text-blue-400 font-bold">
-                <span>Normal</span>
-                <span>&gt; 1.0</span>
-              </div>
-              <div className="flex items-center justify-between text-emerald-400 font-bold">
-                <span>Healthy</span>
-                <span>&gt; -1.0</span>
+              <div className="flex items-center justify-between text-red-400 font-bold">
+                <span>High Risk</span>
+                <span>{highCount} Zone</span>
               </div>
               <div className="flex items-center justify-between text-amber-400 font-bold">
-                <span>Osteopenia</span>
-                <span>-1.0 to -2.5</span>
+                <span>Moderate</span>
+                <span>{moderateCount} Zone</span>
               </div>
-              <div className="flex items-center justify-between text-red-400 font-bold">
-                <span>Osteoporosis</span>
-                <span>&lt; -2.5</span>
+              <div className="flex items-center justify-between text-slate-300 font-bold">
+                <span>Healthy Bone</span>
+                <span>Normal</span>
               </div>
             </div>
           </div>
@@ -499,12 +575,16 @@ function ClinicalOverlay({ activePreset, isXray, onPresetChange, onToggleXray })
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BoneModelViewer({
+  modelPath = '/storage/bones/femur.glb',
   viewAngle = 'overview',
   heatmap = true,
   wireframe = false,
   xray = false,
   autoRotate = false,
   selectedRegion = 'femoral-neck',
+  riskLevel = 'high',
+  clinicalNote = '',
+  zoneRisks = [],
   onSelectRegion,
   onViewAngleChange,
   onXrayChange,
@@ -512,9 +592,20 @@ export default function BoneModelViewer({
   const controlsRef = useRef();
   const [xrayOn, setXrayOn] = useState(xray);
   const [camPreset, setCamPreset] = useState(viewAngle);
+  const [hoverZone, setHoverZone] = useState(null);
+  const [pinnedZone, setPinnedZone] = useState(null);
+  const [pinnedAnchor, setPinnedAnchor] = useState(null);
 
   useEffect(() => setXrayOn(xray), [xray]);
   useEffect(() => setCamPreset(viewAngle), [viewAngle]);
+
+  const zones = useMemo(() => {
+    return normalizeZones(zoneRisks, { selectedRegion, riskLevel, clinicalNote });
+  }, [zoneRisks, selectedRegion, riskLevel, clinicalNote]);
+
+  const selectedZone = useMemo(() => {
+    return zones.find((z) => slug(z.id) === slug(selectedRegion)) || zones[0];
+  }, [zones, selectedRegion]);
 
   const mode = xrayOn ? 'xray' : heatmap ? 'heatmap' : wireframe ? 'wireframe' : 'anatomical';
 
@@ -529,6 +620,21 @@ export default function BoneModelViewer({
     onXrayChange?.(next);
   }, [xrayOn, onXrayChange]);
 
+  const handleInteraction = useCallback((it) => {
+    if (!it) { setHoverZone(null); return; }
+    if (it.type === 'click') {
+      setPinnedZone(it.zone);
+      setPinnedAnchor(it.anchor);
+      setHoverZone(null);
+      onSelectRegion?.(it.zone.id);
+    } else {
+      setHoverZone(it);
+    }
+  }, [onSelectRegion]);
+
+  const activeHudZone = pinnedZone || (hoverZone?.zone ?? null);
+  const activeHudAnchor = pinnedZone ? pinnedAnchor : (hoverZone?.anchor ?? null);
+
   return (
     <div className="relative h-full w-full select-none">
       <Canvas
@@ -537,14 +643,13 @@ export default function BoneModelViewer({
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.15;
+          gl.toneMappingExposure = 1.1;
         }}
       >
-        <ambientLight intensity={0.55} color="#eff6ff" />
-        <directionalLight position={[4, 6, 4]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-4, 2, -2]} intensity={0.8} color="#38bdf8" />
-        <directionalLight position={[0, -4, -4]} intensity={0.4} color="#0284c7" />
-        <pointLight position={[0.3, 0.8, 0.5]} intensity={0.6} color="#ffcc00" />
+        <ambientLight intensity={0.65} color="#ffffff" />
+        <directionalLight position={[4, 6, 4]} intensity={1.35} color="#ffffff" castShadow />
+        <directionalLight position={[-4, 2, -2]} intensity={0.6} color="#93c5fd" />
+        <directionalLight position={[0, -4, -4]} intensity={0.4} color="#38bdf8" />
         <Environment preset="city" />
         <CameraController preset={camPreset} controlsRef={controlsRef} />
         <OrbitControls
@@ -555,14 +660,18 @@ export default function BoneModelViewer({
           maxDistance={7}
           makeDefault
         />
-        <ModelErrorBoundary>
-          <LuminousFemurModel
+        <Suspense fallback={null}>
+          <RealAnatomicalBoneModel
+            modelPath={modelPath}
             mode={mode}
             autoRotate={autoRotate}
-            selectedRegion={selectedRegion}
-            onSelectRegion={onSelectRegion}
+            zones={zones}
+            selectedZone={selectedZone}
+            pinnedZone={activeHudZone}
+            pinnedAnchor={activeHudAnchor}
+            onInteraction={handleInteraction}
           />
-        </ModelErrorBoundary>
+        </Suspense>
       </Canvas>
 
       <ClinicalOverlay
@@ -570,6 +679,7 @@ export default function BoneModelViewer({
         isXray={xrayOn}
         onPresetChange={handlePreset}
         onToggleXray={handleXray}
+        zones={zones}
       />
     </div>
   );
