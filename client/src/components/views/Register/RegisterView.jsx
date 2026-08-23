@@ -215,57 +215,59 @@ export default function RegisterView() {
             </section>
 
             {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer">
-              <div className="relative mt-0.5 flex-shrink-0">
-                <input
-                  type="checkbox"
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                    agreed
-                      ? 'bg-clinical-blue border-clinical-blue'
-                      : 'bg-white border-slate-400'
-                  }`}
-                >
-                  {agreed && (
-                    <svg
-                      className="w-2.5 h-2.5 text-white"
-                      fill="none"
-                      viewBox="0 0 10 8"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M1 4l2.5 2.5L9 1"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mt-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <div className="relative mt-0.5 flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                      agreed
+                        ? 'bg-clinical-blue border-clinical-blue'
+                        : 'bg-white border-slate-300'
+                    }`}
+                  >
+                    {agreed && (
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="none"
+                        viewBox="0 0 10 8"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M1 4l2.5 2.5L9 1"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <span className="text-sm text-slate-600 leading-relaxed">
-                I agree to the{' '}
-                <button
-                  type="button"
-                  className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
-                >
-                  Terms of Service
-                </button>{' '}
-                and{' '}
-                <button
-                  type="button"
-                  className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
-                >
-                  Privacy Policy
-                </button>
-                , and confirm I am a licensed medical professional.
-              </span>
-            </label>
+                <span className="text-sm text-slate-600 leading-relaxed">
+                  I agree to the{' '}
+                  <button
+                    type="button"
+                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
+                  >
+                    Terms of Service
+                  </button>{' '}
+                  and{' '}
+                  <button
+                    type="button"
+                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
+                  >
+                    Privacy Policy
+                  </button>
+                  , and confirm I am a licensed medical professional.
+                </span>
+              </label>
+            </div>
 
             {errorMessage ? (
               <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -297,7 +299,7 @@ export default function RegisterView() {
               onClick={() => navigate('/login')}
               className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
             >
-              Sign In
+              Login
             </button>
           </p>
         </div>
