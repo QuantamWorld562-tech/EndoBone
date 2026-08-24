@@ -4,7 +4,7 @@ import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WorkflowStepper from './WorkflowStepper';
-import { NewCaseModal, CaseLoadingOverlay } from '../common';
+import { NewCaseModal, CaseLoadingOverlay, SettingsModal, SupportModal } from '../common';
 import { usePatientContext } from '../../context/PatientDataContext';
 
 export default function MainLayout() {
@@ -90,6 +90,8 @@ export default function MainLayout() {
       </div>
 
       <NewCaseModal />
+      <SettingsModal />
+      <SupportModal />
 
       {isCaseLoading && caseLoadingInfo && (
         <CaseLoadingOverlay

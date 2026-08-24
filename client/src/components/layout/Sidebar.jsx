@@ -31,7 +31,12 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
-  const { activePatientId, setIsNewCaseModalOpen } = usePatientContext();
+  const {
+    activePatientId,
+    setIsNewCaseModalOpen,
+    setIsSettingsModalOpen,
+    setIsSupportModalOpen,
+  } = usePatientContext();
   const patientId = params.patientId || activePatientId || null;
   const currentDoctor = readStoredDoctorProfile();
   const isAdmin = currentDoctor?.role === 'admin';
@@ -208,17 +213,17 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
         <div className="p-3 sm:p-4 border-t border-slate-100 sticky bottom-0 bg-white space-y-2.5">
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => { navigate('/dashboard'); onCloseMobile?.(); }}
-              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Settings"
+              onClick={() => { setIsSettingsModalOpen(true); onCloseMobile?.(); }}
+              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
+              title="Open Preferences & Security Settings"
             >
               <Settings size={15} />
               <span>Settings</span>
             </button>
             <button
-              onClick={() => { navigate('/dashboard'); onCloseMobile?.(); }}
-              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
-              title="Support"
+              onClick={() => { setIsSupportModalOpen(true); onCloseMobile?.(); }}
+              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
+              title="Open Clinical Reference & Support"
             >
               <HelpCircle size={15} />
               <span>Support</span>
