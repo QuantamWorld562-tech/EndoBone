@@ -162,35 +162,6 @@ export default function LoginView() {
             </svg>
             <span>Continue with Gmail / Google</span>
           </button>
-
-          {/* 1-Click Demo Accounts Quick Login */}
-          <div className="pt-2">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center mb-2">
-              Quick Demo Access
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@endobone.ai');
-                  setPassword('Admin@2026!');
-                }}
-                className="py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <span>🛡️</span> Admin Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('doctor@endobone.ai');
-                  setPassword('Doctor@2026!');
-                }}
-                className="py-1.5 px-2.5 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <span>🩺</span> Doctor Demo
-              </button>
-            </div>
-          </div>
         </form>
 
         {/* Register link */}
