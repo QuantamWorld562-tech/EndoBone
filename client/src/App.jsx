@@ -62,6 +62,10 @@ export default function App() {
             <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
             <Route path="/patients/:patientId/planning" element={<Planning3DView />} />
             <Route path="/patients/:patientId/summary" element={<PreSurgicalSummaryView />} />
+            <Route path="/metabolic" element={<MetabolicContextView />} />
+            <Route path="/assessment" element={<AIAssessmentView />} />
+            <Route path="/planning" element={<Planning3DView />} />
+            <Route path="/summary" element={<PreSurgicalSummaryView />} />
             <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
             <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
           </Route>

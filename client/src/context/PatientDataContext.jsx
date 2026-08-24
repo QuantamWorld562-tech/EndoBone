@@ -279,6 +279,7 @@ export function PatientDataProvider({ children }) {
   // round-trips when navigating back to a previously visited patient.
   useEffect(() => {
     let isMounted = true;
+    if (!activePatientId) return;
     const existing = allBiomarkers[activePatientId];
     const hasData = existing && Object.keys(existing).length > 0;
     if (hasData) return; // already loaded — skip
@@ -477,13 +478,15 @@ export function PatientDataProvider({ children }) {
 
   // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
-    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || {};
+    if (!activePatientId) return null;
+    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || null;
   }, [allBiomarkers, activePatientId]);
 
   // W-3: Stable primitive key derived from biomarker VALUES (not the object reference).
   // This prevents computeDynamicAssessment from re-running when allBiomarkers is
   // updated for a different patient or when the reference changes without values changing.
   const biomarkerValueKey = useMemo(() => {
+    if (!activeBiomarkers) return '';
     const b = activeBiomarkers;
     return [
       b?.pth?.value,
@@ -586,11 +589,13 @@ export function PatientDataProvider({ children }) {
   // Keyed on biomarkerValueKey (a stable string) instead of the activeBiomarkers
   // object reference — avoids rerunning the 150-line engine on reference-only changes.
   const dynamicAssessment = useMemo(() => {
+    if (!activePatientId || !activeBiomarkers) return null;
     return computeDynamicAssessment(activePatientId, activeBiomarkers);
-  }, [activePatientId, biomarkerValueKey]); // biomarkerValueKey is the stable proxy for activeBiomarkers values
+  }, [activePatientId, biomarkerValueKey, activeBiomarkers]);
 
   // Dynamic regional analysis metrics adjusted by metabolic risk
   const dynamicRegionalData = useMemo(() => {
+    if (!activePatientId || !dynamicAssessment) return null;
     const baseRegions = regionalAnalysisDB[activePatientId] || {};
     const region = baseRegions[selectedRegion] || baseRegions['proximal-femur'] || {};
     const risk = dynamicAssessment.overallQualityRisk;
@@ -640,7 +645,7 @@ export function PatientDataProvider({ children }) {
   }, [persistedAssessment]);
 
   const aiZoneRisks = useMemo(() => {
-    if (!persistedAssessment?.aiResults) return null;
+    if (!persistedAssessment?.aiResults || !activePatientId) return null;
     const ai = persistedAssessment.aiResults;
     const baseRegions = regionalAnalysisDB[activePatientId] || {};
     const targetReg = backendToUiRegion[ai.target_region] || ai.target_region || 'proximal-femur';
@@ -662,9 +667,17 @@ export function PatientDataProvider({ children }) {
     });
   }, [persistedAssessment, activePatientId]);
 
+  // Reset entire active workspace (clears patient, assessment, models)
+  const resetWorkspace = useCallback(() => {
+    setActivePatientId(null);
+    setPersistedAssessment(null);
+    setApiError(null);
+  }, []);
+
   const value = {
     activePatientId,
     setActivePatientId,
+    resetWorkspace,
     patients: patientList,
     patientList,
     isLoadingPatients,
@@ -677,13 +690,14 @@ export function PatientDataProvider({ children }) {
     updateBiomarker,
     selectedRegion,
     setSelectedRegion,
-    roiNotes: roiNotes[activePatientId] || {},
+    roiNotes: activePatientId ? (roiNotes[activePatientId] || {}) : {},
     updateRoiNote,
     assessment: dynamicAssessment,
     regionalData: dynamicRegionalData,
     regionalAnalysisDB,
     surgicalPlansDB,
     persistedAssessment,
+    setPersistedAssessment,
     isAnalyzing,
     apiError,
     setApiError,

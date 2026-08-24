@@ -1,5 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { STEP_LABELS } from '../../utils/constants';
+import { usePatientContext } from '../../context/PatientDataContext';
 
 const TAB_BREADCRUMB_MAP = {
   dashboard: 'Dashboard',
@@ -13,7 +14,8 @@ export default function WorkflowStepper({ onSelectStep }) {
   const location = useLocation();
   const navigate = useNavigate();
   const params = useParams();
-  const patientId = params.patientId || 'PEB-8842-A';
+  const { activePatientId } = usePatientContext();
+  const patientId = params.patientId || activePatientId || null;
 
   const getActiveTab = () => {
     const p = location.pathname;
@@ -49,11 +51,18 @@ export default function WorkflowStepper({ onSelectStep }) {
           </button>
           <span className="text-slate-300 shrink-0">/</span>
           <span className="font-black text-slate-900 truncate">{currentLabel}</span>
-          {params.patientId && (
+          {patientId ? (
             <>
               <span className="text-slate-300 shrink-0">/</span>
               <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-lg text-[10px] sm:text-xs shrink-0">
-                {params.patientId}
+                {patientId}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-slate-300 shrink-0">/</span>
+              <span className="font-medium text-slate-400 bg-slate-100 px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-lg text-[10px] sm:text-xs shrink-0">
+                No Active Case
               </span>
             </>
           )}

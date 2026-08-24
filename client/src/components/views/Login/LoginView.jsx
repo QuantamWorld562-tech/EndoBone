@@ -45,7 +45,7 @@ export default function LoginView() {
           {/* Email */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Email Address
+              Email Address (Gmail / Medical Email)
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -55,7 +55,7 @@ export default function LoginView() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="clinician@hospital.edu"
+                placeholder="doctor@gmail.com"
                 required
                 className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-clinical-blue focus:border-transparent transition-all"
               />

@@ -7,11 +7,17 @@ export default function EndocrineTrendChart({
 }) {
   const [activeHoverIdx, setActiveHoverIdx] = useState(null);
 
+  const parseVal = (val, fallback) => {
+    if (val === '' || val === null || val === undefined) return fallback;
+    const n = typeof val === 'number' ? val : parseFloat(val);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
   // Extract current biomarker values with safe fallbacks
-  const currentPth = Number(biomarkers.pth?.value ?? 72);
-  const currentVitD = Number(biomarkers.vitaminD?.value ?? 28);
-  const currentCtx = Number(biomarkers.ctx?.value ?? 380);
-  const currentAlp = Number(biomarkers.alp?.value ?? 112);
+  const currentPth = parseVal(biomarkers?.pth?.value, 72);
+  const currentVitD = parseVal(biomarkers?.vitaminD?.value, 28);
+  const currentCtx = parseVal(biomarkers?.ctx?.value, 380);
+  const currentAlp = parseVal(biomarkers?.alp?.value, 112);
 
   // Generate 6-point clinical trend trajectory leading up to current pre-op lab
   const timelineData = useMemo(() => {
