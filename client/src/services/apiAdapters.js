@@ -49,10 +49,14 @@ export function toUiAssessment(assessment) {
     ? 52
     : 24;
 
+  // Normalise contributing_factors — backend sends [{ factor, explanation }]
+  const rawFactors = aiResults?.contributing_factors ?? assessment.contributing_factors ?? null;
+  const contributingFactors = Array.isArray(rawFactors) ? rawFactors : null;
+
   return {
     ...assessment,
     id: assessment._id || assessment.id,
-    aiResults,
+    aiResults: aiResults ? { ...aiResults, contributing_factors: contributingFactors } : null,
     riskLevel,
     overallQualityRisk: derivedNumericRisk,
     selectedRegion: backendToUiRegion[aiResults?.target_region] || assessment.selected_roi,

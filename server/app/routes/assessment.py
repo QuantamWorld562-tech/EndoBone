@@ -149,11 +149,14 @@ async def analyze_patient_biomarkers(req: AnalyzeRequest):
         patientId=req.patientId,
         overallQualityRisk=risk_score,
         riskLevel=risk_level,
-        aiResults=AiResults(**record["aiResults"]),
+        aiResults=AiResults(**ai_results_data),
         selected_roi=None,
         planning_notes=None,
         createdAt=now,
     )
+
+
+@router.put("/assessments/{assessment_id}/notes", response_model=AnalyzeResponse)
 async def update_assessment_notes(assessment_id: str, req: UpdateNotesRequest):
     """Update planning notes and selected ROI for an existing assessment."""
     record = None

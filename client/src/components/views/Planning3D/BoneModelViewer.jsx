@@ -36,32 +36,58 @@ const CAM = {
 
 const REGION_ALIASES = {
   'femoral-neck': 'femoral-neck', femoral_neck: 'femoral-neck', 'proximal-femur': 'femoral-neck',
-  'greater-trochanter': 'greater-trochanter', greater_trochanter: 'greater-trochanter',
-  shaft: 'shaft', diaphysis: 'shaft',
+  'femoral-head': 'femoral-head', femoral_head: 'femoral-head', caput: 'femoral-head', head: 'femoral-head',
+  'greater-trochanter': 'greater-trochanter', greater_trochanter: 'greater-trochanter', trochanter: 'greater-trochanter',
+  'lesser-trochanter': 'lesser-trochanter', lesser_trochanter: 'lesser-trochanter',
+  'intertrochanteric': 'intertrochanteric', intertrochanteric_line: 'intertrochanteric',
+  shaft: 'shaft', diaphysis: 'shaft', femoral_shaft: 'shaft',
+  'distal-condyles': 'distal-condyles', condyles: 'distal-condyles', metaphysis: 'distal-condyles',
   'vertebral-body': 'vertebral-body', vertebral_body: 'vertebral-body',
   acetabulum: 'acetabulum',
 };
 
 const MESH_TOKENS = {
-  'femoral-neck':       ['femoral_neck', 'neck', 'collum', 'head', 'caput'],
-  'greater-trochanter': ['trochanter', 'greater_trochanter'],
+  'femoral-neck':       ['femoral_neck', 'neck', 'collum'],
+  'femoral-head':       ['femoral_head', 'head', 'caput'],
+  'greater-trochanter': ['greater_trochanter', 'trochanter_major', 'trochanter'],
+  'lesser-trochanter':  ['lesser_trochanter', 'trochanter_minor', 'lesser'],
+  'intertrochanteric':  ['intertrochanteric', 'crista'],
   shaft:                ['shaft', 'diaphysis', 'corpus'],
+  'distal-condyles':    ['condyle', 'distal', 'metaphysis', 'epicondyle'],
   'vertebral-body':     ['vertebral', 'lumbar'],
   acetabulum:           ['acetabulum', 'acetabular'],
 };
 
 const ANCHORS = {
-  'femoral-neck':       [0.26, 0.74, 0.12],
-  'greater-trochanter': [-0.18, 0.54, 0.08],
+  'femoral-head':       [0.32, 0.88, 0.12],
+  'femoral-neck':       [0.22, 0.70, 0.10],
+  'greater-trochanter': [-0.24, 0.62, 0.06],
+  'intertrochanteric':  [-0.06, 0.48, 0.14],
+  'lesser-trochanter':  [0.14, 0.36, -0.04],
   shaft:                [0.02, -0.05, 0.06],
+  'distal-condyles':    [0.02, -0.78, 0.08],
   'vertebral-body':     [0.00, 0.05, 0.22],
   acetabulum:           [-0.18, -0.58, 0.18],
 };
 
+const ANATOMICAL_OFFSETS = {
+  'femoral-head':       { side: 'right', offset: [95, -28],  subLabel: 'Caput Femoris' },
+  'femoral-neck':       { side: 'right', offset: [105, 0],   subLabel: 'Collum Femoris' },
+  'greater-trochanter': { side: 'left',  offset: [-100, -24], subLabel: 'Trochanter Major' },
+  'intertrochanteric':  { side: 'left',  offset: [-100, 8],   subLabel: 'Crista Intertrochanterica' },
+  'lesser-trochanter':  { side: 'right', offset: [95, 24],   subLabel: 'Trochanter Minor' },
+  shaft:                { side: 'right', offset: [95, 0],    subLabel: 'Diaphysis / Corpus' },
+  'distal-condyles':    { side: 'left',  offset: [-95, 12],  subLabel: 'Condylus Medialis/Lateralis' },
+};
+
 const RADII = {
+  'femoral-head': 0.40,
   'femoral-neck': 0.55,
   'greater-trochanter': 0.48,
+  'intertrochanteric': 0.45,
+  'lesser-trochanter': 0.42,
   shaft: 0.55,
+  'distal-condyles': 0.48,
   'vertebral-body': 0.42,
   acetabulum: 0.32,
 };
@@ -91,9 +117,13 @@ function normalizeZones(raw, fallback) {
   }
   if (!src.length) {
     src = [
-      { id: 'femoral-neck', riskLevel: 'high', note: 'Critical osteopenic resorption with mechanical stress concentration at femoral neck. Fracture risk elevated.' },
-      { id: 'greater-trochanter', riskLevel: 'moderate', note: 'Moderate bone thinning at trochanteric insertion. Bone turnover markers elevated.' },
-      { id: 'shaft', riskLevel: 'low', note: 'Bone density and structural thickness within normal biomechanical tolerance.' },
+      { id: 'femoral-neck', riskLevel: 'high', tScore: '-2.3', vBMD: '112.4', note: 'Critical mechanical stress and osteopenic trabecular resorption. High shear fracture risk during THA implant seating.' },
+      { id: 'femoral-head', riskLevel: 'moderate', tScore: '-2.1', vBMD: '134.2', note: 'Articular subchondral trabeculae with focal micro-damage and thinning under load.' },
+      { id: 'greater-trochanter', riskLevel: 'moderate', tScore: '-1.9', vBMD: '198.6', note: 'Abductor insertion site. Cortical rarefaction creates avulsion risk during hip dislocation.' },
+      { id: 'intertrochanteric', riskLevel: 'moderate', tScore: '-1.8', vBMD: '210.0', note: 'Metaphyseal transition zone susceptible to comminution under broaching insertion torque.' },
+      { id: 'lesser-trochanter', riskLevel: 'moderate', tScore: '-1.7', vBMD: '220.5', note: 'Psoas muscle insertion. Calcar preservation crucial for primary stem stability.' },
+      { id: 'shaft', riskLevel: 'low', tScore: '-0.5', vBMD: '845.1', note: 'Dense circumferential cortical bone (3.8mm). Structurally optimal zone for distal stem press-fit anchorage.' },
+      { id: 'distal-condyles', riskLevel: 'low', tScore: '-0.8', vBMD: '650.0', note: 'Distal load-bearing condylar base with preserved cancellous architecture.' },
     ];
   }
   return src.map((z, i) => {
@@ -101,15 +131,19 @@ function normalizeZones(raw, fallback) {
     const canId = canonical(rawId);
     const sa = z.anchor || z.position || z.coordinates;
     const tokens = [...(z.meshTokens || []), ...(MESH_TOKENS[canId] || [])].map(t => String(t).toLowerCase());
+    const layout = ANATOMICAL_OFFSETS[canId] || { side: i % 2 === 0 ? 'right' : 'left', offset: [i % 2 === 0 ? 95 : -95, 0], subLabel: 'Anatomy' };
     return {
       id: rawId, canonicalId: canId,
       label: z.label || z.location || z.name || humanize(rawId),
+      subLabel: z.subLabel || layout.subLabel || humanize(canId),
       riskLevel: normalizeRisk(z.riskLevel ?? z.risk_level ?? fallback.riskLevel),
       note: z.note || z.clinicalNote || z.observation || fallback.clinicalNote || 'Clinical evaluation zone.',
-      tScore: z.tScore || z.t_score || (rawId === 'femoral-neck' ? '-2.3' : rawId === 'greater-trochanter' ? '-1.9' : '-0.5'),
-      vBMD: z.vBMD || (rawId === 'femoral-neck' ? '112.4' : rawId === 'greater-trochanter' ? '198.6' : '845.1'),
+      tScore: z.tScore || z.t_score || (canId === 'femoral-neck' ? '-2.3' : canId === 'greater-trochanter' ? '-1.9' : '-0.5'),
+      vBMD: z.vBMD || (canId === 'femoral-neck' ? '112.4' : canId === 'greater-trochanter' ? '198.6' : '845.1'),
       anchor: Array.isArray(sa) && sa.length === 3 ? sa.map(Number) : (ANCHORS[canId] || [0.2, 0.6, 0.14]),
       radius: Number(z.radius) || RADII[canId] || 0.48,
+      side: z.side || layout.side,
+      offset: z.offset || layout.offset,
       meshTokens: [...new Set(tokens)],
     };
   });
@@ -309,7 +343,7 @@ function createBoneMaterial(mode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3D Anatomical Annotation Pins & Risk Zone Callouts
+// 3D Anatomical Annotation Pins & Medical Diagram Leader Lines
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, onSelectZone, onHoverZone }) {
@@ -324,91 +358,143 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
         const isMod = z.riskLevel === 'moderate';
         const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
 
+        const isLeft = z.side === 'left';
+        const [targetX, targetY] = z.offset || (isLeft ? [-100, -10] : [100, -10]);
+        const midX = isLeft ? -30 : 30;
+
         return (
           <group key={z.id} position={z.anchor}>
-            <Html distanceFactor={4.8} center zIndexRange={[100, 0]}>
-              <div
-                className="group relative cursor-pointer select-none transition-transform hover:scale-105"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectZone?.(z.id);
-                }}
-                onMouseEnter={() => onHoverZone?.(z)}
-                onMouseLeave={() => onHoverZone?.(null)}
-              >
-                {/* 3D Pin Marker */}
+            <Html distanceFactor={4.5} zIndexRange={[100, 0]}>
+              <div className="relative pointer-events-none select-none">
+                {/* 1. Target Pin Anchor on Bone Surface */}
                 <div
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shadow-2xl backdrop-blur-md transition-all duration-300 pointer-events-auto"
-                  style={{
-                    background: isSelected || isHovered ? 'rgba(3,7,18,0.96)' : 'rgba(15,23,42,0.88)',
-                    border: `1.5px solid ${pinColor}`,
-                    boxShadow: isSelected || isHovered ? `0 0 16px ${pinColor}99` : `0 0 8px ${pinColor}44`,
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectZone?.(z.id);
                   }}
+                  onMouseEnter={() => onHoverZone?.(z)}
+                  onMouseLeave={() => onHoverZone?.(null)}
                 >
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: pinColor }}
-                  />
-                  <span className="text-[11px] font-black text-white whitespace-nowrap">
-                    {z.label}
-                  </span>
-                  <span
-                    className="text-[9px] font-black px-1.5 py-0.5 rounded"
+                  <div
+                    className="w-3.5 h-3.5 rounded-full flex items-center justify-center transition-transform hover:scale-125"
                     style={{
-                      background: `${pinColor}25`,
-                      color: pinColor,
+                      background: 'rgba(3, 7, 18, 0.9)',
+                      border: `1.5px solid ${pinColor}`,
+                      boxShadow: `0 0 10px ${pinColor}`,
                     }}
                   >
-                    {isHigh ? 'HIGH RISK' : isMod ? 'ELEVATED' : 'NORMAL'}
-                  </span>
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ background: pinColor }}
+                    />
+                  </div>
+                  {(isSelected || isHovered) && (
+                    <span
+                      className="w-4 h-4 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                      style={{ background: pinColor }}
+                    />
+                  )}
                 </div>
 
-                {/* Expanded Callout Card on Hover or Selection */}
-                {(isSelected || isHovered) && (
+                {/* 2. SVG Leader Connector Line */}
+                <svg
+                  className="absolute top-0 left-0 overflow-visible pointer-events-none"
+                  style={{ width: 1, height: 1 }}
+                >
+                  {/* Outer line shadow */}
+                  <path
+                    d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
+                    fill="none"
+                    stroke={pinColor}
+                    strokeWidth={isSelected || isHovered ? '2.5' : '1.5'}
+                    strokeOpacity={isSelected || isHovered ? 0.95 : 0.70}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* End node dot on label */}
+                  <circle
+                    cx={targetX}
+                    cy={targetY}
+                    r={2.5}
+                    fill={pinColor}
+                  />
+                </svg>
+
+                {/* 3. Label Badge & Callout Box */}
+                <div
+                  className="absolute pointer-events-auto cursor-pointer transition-all duration-200"
+                  style={{
+                    left: `${targetX}px`,
+                    top: `${targetY}px`,
+                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(6px, -50%)',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectZone?.(z.id);
+                  }}
+                  onMouseEnter={() => onHoverZone?.(z)}
+                  onMouseLeave={() => onHoverZone?.(null)}
+                >
                   <div
-                    className="absolute left-1/2 -translate-x-1/2 bottom-9 w-68 p-3.5 rounded-2xl shadow-2xl backdrop-blur-xl animate-fade-in text-left pointer-events-auto z-50"
+                    className={`rounded-xl px-2.5 py-1.5 shadow-2xl backdrop-blur-md transition-all ${
+                      isSelected || isHovered ? 'scale-105' : 'hover:scale-102'
+                    }`}
                     style={{
-                      background: 'rgba(3, 7, 18, 0.96)',
-                      border: `1.5px solid ${pinColor}`,
-                      boxShadow: `0 12px 36px -4px rgba(0,0,0,0.9), 0 0 24px ${pinColor}44`,
+                      background: isSelected || isHovered ? 'rgba(3, 7, 18, 0.96)' : 'rgba(15, 23, 42, 0.88)',
+                      border: `1px solid ${pinColor}aa`,
+                      boxShadow: isSelected || isHovered ? `0 0 20px ${pinColor}66` : '0 4px 12px rgba(0,0,0,0.5)',
+                      minWidth: 135,
                     }}
                   >
-                    {/* Header */}
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ background: pinColor }} />
-                        <span className="text-xs font-black text-white">{z.label}</span>
-                      </div>
-                      <span className="text-[10px] font-black font-mono" style={{ color: pinColor }}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-black text-white whitespace-nowrap tracking-tight">
+                        {z.label}
+                      </span>
+                      <span
+                        className="text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 uppercase"
+                        style={{
+                          background: `${pinColor}25`,
+                          color: pinColor,
+                          border: `1px solid ${pinColor}44`,
+                        }}
+                      >
+                        {isHigh ? 'High Risk' : isMod ? 'Elevated' : 'Normal'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 mt-0.5 text-[9px] text-slate-400">
+                      <span className="font-semibold truncate max-w-[85px]">{z.subLabel || 'Anatomy'}</span>
+                      <span className="font-mono font-bold" style={{ color: pinColor }}>
                         T: {z.tScore}
                       </span>
                     </div>
 
-                    {/* Why It's a Risk Zone */}
-                    <div className="space-y-1 mb-2.5">
-                      <div className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-                        Why It&apos;s a Risk Zone:
-                      </div>
-                      <p className="text-[11px] text-slate-200 font-medium leading-relaxed">
-                        {z.note}
-                      </p>
-                    </div>
-
-                    {/* Biomechanical Metrics Grid */}
-                    <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-white/10 text-[10px]">
-                      <div className="bg-white/5 rounded-lg p-1.5 text-center">
-                        <div className="text-slate-400 font-bold">Trabecular vBMD</div>
-                        <div className="text-white font-black">{z.vBMD} mg/cm³</div>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-1.5 text-center">
-                        <div className="text-slate-400 font-bold">Fracture Index</div>
-                        <div className="font-black" style={{ color: pinColor }}>
-                          {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
+                    {/* Detailed "Why it's a Risk Zone" when hovered or selected */}
+                    {(isSelected || isHovered) && (
+                      <div className="mt-2 pt-2 border-t border-white/10 text-left animate-fade-in w-60">
+                        <div className="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                          Why It&apos;s a Risk Zone:
+                        </div>
+                        <p className="text-[10px] text-slate-200 leading-relaxed font-medium mb-2">
+                          {z.note}
+                        </p>
+                        <div className="grid grid-cols-2 gap-1 text-[9px] bg-white/5 p-1.5 rounded-lg border border-white/5">
+                          <div>
+                            <span className="text-slate-400 block text-[8px]">vBMD</span>
+                            <span className="font-bold text-white">{z.vBMD} mg/cm³</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[8px]">Fracture Risk</span>
+                            <span className="font-bold" style={{ color: pinColor }}>
+                              {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </Html>
           </group>
