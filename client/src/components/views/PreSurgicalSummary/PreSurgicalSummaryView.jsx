@@ -46,6 +46,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
     setIsNotesDirty(false);
   }, [persistedAssessment?.id, assessment?.planning_notes]);
 
+  // W-10: Cancel the debounce timer on unmount so a pending auto-save never
+  // fires after the component is gone (prevents stale state update warnings).
+  useEffect(() => {
+    return () => {
+      if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
+    };
+  }, []);
+
   const showToast = useCallback((text, type = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage({ text: '', type: 'success' }), 3500);
