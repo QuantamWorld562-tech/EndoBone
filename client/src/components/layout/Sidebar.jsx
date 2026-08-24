@@ -118,14 +118,7 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
           })}
         </nav>
 
-        <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3 border-t border-slate-100 sticky bottom-0 bg-white">
-          <button
-            onClick={handleCreateNewCase}
-            className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-blue-600 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Plus size={16} />
-            New Case Analysis
-          </button>
+        <div className="p-3 sm:p-4 border-t border-slate-100 sticky bottom-0 bg-white">
           <div className="grid grid-cols-2 gap-2">
             <button
               className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl transition flex items-center justify-center cursor-pointer"

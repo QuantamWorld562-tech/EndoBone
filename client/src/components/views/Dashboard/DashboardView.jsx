@@ -13,12 +13,14 @@ import {
   AlertCircle,
   X,
   Search,
+  Plus,
+  Sparkles,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId } = usePatientContext();
+  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen } = usePatientContext();
 
   const handleSelectPatient = (id) => {
     setActivePatientId(id);
@@ -110,11 +112,18 @@ export default function DashboardView({ onSelectPatient }) {
             Overview of active patient cases, endocrine profiles, and AI assessments.
           </p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+          <button
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition shadow-lg shadow-blue-600/20 cursor-pointer"
+          >
+            <Plus size={16} />
+            <span>New Case Analysis</span>
+          </button>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 shadow-sm cursor-pointer"
+            className="px-3 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 shadow-sm cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
