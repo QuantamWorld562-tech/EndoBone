@@ -742,8 +742,26 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
 }
 
 function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, onSelectZone, onHoverZone }) {
-  if (!showAnnotations) return null;
+  // When annotations are turned OFF, show the interactive attached popup on hover over any 3D model zone
+  if (!showAnnotations) {
+    if (!hoveredZoneId) return null;
+    const targetZone = zones.find(z => z.id === hoveredZoneId);
+    if (!targetZone) return null;
+    return (
+      <group>
+        <AnnotationPinItem
+          key={targetZone.id}
+          z={targetZone}
+          isSelected={activeZoneId === targetZone.id}
+          isHovered={true}
+          onSelectZone={onSelectZone}
+          onHoverZone={onHoverZone}
+        />
+      </group>
+    );
+  }
 
+  // When annotations are ON, show all pins & badges
   return (
     <group>
       {zones.map((z) => (
