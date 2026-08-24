@@ -290,8 +290,10 @@ export function PatientDataProvider({ children }) {
     return () => { isMounted = false; };
   }, []);
 
-  // Modal open state for "New Case Analysis"
+  // Modal open states
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
@@ -712,6 +714,10 @@ export function PatientDataProvider({ children }) {
     deleteCase,
     isNewCaseModalOpen,
     setIsNewCaseModalOpen,
+    isSettingsModalOpen,
+    setIsSettingsModalOpen,
+    isSupportModalOpen,
+    setIsSupportModalOpen,
     biomarkers: activeBiomarkers,
     allBiomarkers,
     updateBiomarker,
