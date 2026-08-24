@@ -166,8 +166,8 @@ export default function PreSurgicalSummaryView({ patientId }) {
     setIsNotesDirty(false);
     if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
     resetWorkspace();
-    navigate('/summary');
-    showToast('Pre-surgical summary and active workspace reset.', 'warning');
+    navigate('/dashboard');
+    showToast('Workspace reset successfully. Redirected to Dashboard.', 'warning');
   };
 
   const handleRestoreCase = () => {
