@@ -4,13 +4,20 @@ import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WorkflowStepper from './WorkflowStepper';
-import { NewCaseModal } from '../common';
+import { NewCaseModal, CaseLoadingOverlay } from '../common';
 import { usePatientContext } from '../../context/PatientDataContext';
 
 export default function MainLayout() {
   const location = useLocation();
   const params = useParams();
-  const { apiError, clearApiError, setActivePatientId, activePatientId } = usePatientContext();
+  const {
+    apiError,
+    clearApiError,
+    setActivePatientId,
+    activePatientId,
+    isCaseLoading,
+    caseLoadingInfo,
+  } = usePatientContext();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -83,6 +90,14 @@ export default function MainLayout() {
       </div>
 
       <NewCaseModal />
+
+      {isCaseLoading && caseLoadingInfo && (
+        <CaseLoadingOverlay
+          patientId={caseLoadingInfo.id}
+          patientName={caseLoadingInfo.name}
+          procedure={caseLoadingInfo.procedure}
+        />
+      )}
     </div>
   );
 }

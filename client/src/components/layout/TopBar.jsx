@@ -9,7 +9,14 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
   const location = useLocation();
   const params = useParams();
   const searchRef = useRef(null);
-  const { patients = [], setActivePatientId, activePatientId, isLoadingPatients, resetWorkspace } = usePatientContext();
+  const {
+    patients = [],
+    setActivePatientId,
+    selectPatientCase,
+    activePatientId,
+    isLoadingPatients,
+    resetWorkspace,
+  } = usePatientContext();
   const currentPatientId = params.patientId || activePatientId || null;
   const doctorProfile = readStoredDoctorProfile();
 
@@ -61,7 +68,7 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
       setSearchTerm('');
       return;
     }
-    setActivePatientId(newPatientId);
+    selectPatientCase(newPatientId);
     if (onSelectPatient) {
       onSelectPatient(newPatientId);
     }

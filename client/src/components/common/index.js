@@ -6,5 +6,6 @@ export {
   AssessmentSkeleton,
   MetabolicAnalyzeSkeleton,
   Planning3DSkeleton,
+  PreSurgicalSummarySkeleton,
   CaseLoadingOverlay,
 } from './LoadingSkeleton';

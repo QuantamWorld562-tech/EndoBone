@@ -216,3 +216,54 @@ export function Planning3DSkeleton() {
   );
 }
 
+export function PreSurgicalSummarySkeleton() {
+  return (
+    <div className="space-y-6 animate-fade-in pb-12">
+      {/* Header Skeleton */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <SkeletonBlock className="h-8 w-72 max-w-full" />
+            <SkeletonBlock className="h-4 w-96 max-w-full" />
+          </div>
+          <div className="flex gap-2">
+            <SkeletonBlock className="h-10 w-28 rounded-xl" />
+            <SkeletonBlock className="h-10 w-36 rounded-xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
+          <SkeletonBlock className="h-14 w-full rounded-xl" />
+          <SkeletonBlock className="h-14 w-full rounded-xl" />
+          <SkeletonBlock className="h-14 w-full rounded-xl" />
+          <SkeletonBlock className="h-14 w-full rounded-xl" />
+        </div>
+      </div>
+
+      {/* Main Content Grid Skeleton */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <SkeletonBlock className="h-6 w-48" />
+            <SkeletonBlock className="h-20 w-full rounded-2xl" />
+            <SkeletonBlock className="h-28 w-full rounded-2xl" />
+          </div>
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <SkeletonBlock className="h-6 w-40" />
+            <div className="grid grid-cols-2 gap-3">
+              <SkeletonBlock className="h-24 w-full rounded-xl" />
+              <SkeletonBlock className="h-24 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <SkeletonBlock className="h-6 w-44" />
+            <SkeletonBlock className="h-40 w-full rounded-2xl" />
+            <SkeletonBlock className="h-10 w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

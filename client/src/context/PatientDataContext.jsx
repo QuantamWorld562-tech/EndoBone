@@ -236,6 +236,8 @@ export function computeDynamicAssessment(patientId, biomarkers) {
 export function PatientDataProvider({ children }) {
   // Global state across patient views (null by default until selected or created)
   const [activePatientId, setActivePatientId] = useState(null);
+  const [isCaseLoading, setIsCaseLoading] = useState(false);
+  const [caseLoadingInfo, setCaseLoadingInfo] = useState(null);
   // W-8: Start with empty list — Dashboard shows skeleton until real data arrives.
   // This prevents the flash of 3 mock patients before the backend responds.
   const [patientList, setPatientList] = useState([]);
@@ -245,6 +247,26 @@ export function PatientDataProvider({ children }) {
   const [apiError, setApiError] = useState(null);
 
   const clearApiError = useCallback(() => setApiError(null), []);
+
+  const selectPatientCase = useCallback((patientId, targetProcedure = null) => {
+    if (!patientId || patientId === 'none') {
+      setActivePatientId(null);
+      setPersistedAssessment(null);
+      setIsCaseLoading(false);
+      return;
+    }
+    const found = patientList.find((p) => p.id === patientId);
+    setCaseLoadingInfo({
+      id: patientId,
+      name: found?.name || `Patient ${patientId}`,
+      procedure: targetProcedure || found?.procedure || 'Orthopedic Pre-Surgical Case',
+    });
+    setIsCaseLoading(true);
+    setActivePatientId(patientId);
+    setTimeout(() => {
+      setIsCaseLoading(false);
+    }, 450);
+  }, [patientList]);
 
   // Fetch live patient list from backend on mount
   useEffect(() => {
@@ -679,6 +701,9 @@ export function PatientDataProvider({ children }) {
   const value = {
     activePatientId,
     setActivePatientId,
+    selectPatientCase,
+    isCaseLoading,
+    caseLoadingInfo,
     resetWorkspace,
     patients: patientList,
     patientList,
