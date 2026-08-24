@@ -48,6 +48,44 @@ export default function EndocrineTrendChart({
   const padding = { top: 15, right: 15, bottom: 25, left: 35 };
   const plotW = width - padding.left - padding.right;
   const plotH = height - padding.top - padding.bottom;
+  const baselineY = padding.top + plotH;
+
+  /**
+   * Smooth Cubic Spline (Catmull-Rom / Hermite interpolation)
+   * Generates organic, continuous silky smooth curves through every data point
+   */
+  const makeSmoothSplinePath = (pts, tension = 0.28) => {
+    if (!pts || pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x},${pts[0].y}`;
+    if (pts.length === 2) return `M ${pts[0].x},${pts[0].y} L ${pts[1].x},${pts[1].y}`;
+
+    let path = `M ${pts[0].x.toFixed(2)},${pts[0].y.toFixed(2)}`;
+
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = i > 0 ? pts[i - 1] : pts[0];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = i < pts.length - 2 ? pts[i + 2] : p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) * tension;
+      const cp1y = p1.y + (p2.y - p0.y) * tension;
+
+      const cp2x = p2.x - (p3.x - p1.x) * tension;
+      const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+      path += ` C ${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+    }
+
+    return path;
+  };
+
+  const makeSmoothAreaPath = (pts, baseY, tension = 0.28) => {
+    if (!pts || pts.length === 0) return '';
+    const linePath = makeSmoothSplinePath(pts, tension);
+    const lastPt = pts[pts.length - 1];
+    const firstPt = pts[0];
+    return `${linePath} L ${lastPt.x.toFixed(2)},${baseY.toFixed(2)} L ${firstPt.x.toFixed(2)},${baseY.toFixed(2)} Z`;
+  };
 
   // Helper to calculate SVG points for Chart 1 (Turnover Markers: CTX-I & ALP)
   const chart1Points = useMemo(() => {
@@ -58,20 +96,16 @@ export default function EndocrineTrendChart({
     const ctxPoints = timelineData.map((d, i) => ({ x: getX(i), y: getY(d.ctx), val: d.ctx }));
     const alpPoints = timelineData.map((d, i) => ({ x: getX(i), y: getY(d.alp), val: d.alp }));
 
-    const makePath = (pts) => pts.reduce((acc, p, i, a) => {
-      if (i === 0) return `M ${p.x},${p.y}`;
-      const cp1x = a[i - 1].x + (p.x - a[i - 1].x) / 2;
-      return `${acc} C ${cp1x},${a[i - 1].y} ${cp1x},${p.y} ${p.x},${p.y}`;
-    }, '');
-
     return {
-      ctxPath: makePath(ctxPoints),
-      alpPath: makePath(alpPoints),
+      ctxPath: makeSmoothSplinePath(ctxPoints),
+      ctxArea: makeSmoothAreaPath(ctxPoints, baselineY),
+      alpPath: makeSmoothSplinePath(alpPoints),
+      alpArea: makeSmoothAreaPath(alpPoints, baselineY),
       ctxPoints,
       alpPoints,
       maxVal,
     };
-  }, [timelineData, plotW, plotH, padding.left, padding.top]);
+  }, [timelineData, plotW, plotH, padding.left, padding.top, baselineY]);
 
   // Helper to calculate SVG points for Chart 2 (Hormonal Axis: PTH vs Vitamin D)
   const chart2Points = useMemo(() => {
@@ -84,22 +118,15 @@ export default function EndocrineTrendChart({
     const pthPoints = timelineData.map((d, i) => ({ x: getX(i), y: getYPth(d.pth), val: d.pth }));
     const vitDPoints = timelineData.map((d, i) => ({ x: getX(i), y: getYVitD(d.vitD), val: d.vitD }));
 
-    const makePath = (pts) => pts.reduce((acc, p, i, a) => {
-      if (i === 0) return `M ${p.x},${p.y}`;
-      const cp1x = a[i - 1].x + (p.x - a[i - 1].x) / 2;
-      return `${acc} C ${cp1x},${a[i - 1].y} ${cp1x},${p.y} ${p.x},${p.y}`;
-    }, '');
-
-    const pthArea = `${makePath(pthPoints)} L ${padding.left + plotW},${padding.top + plotH} L ${padding.left},${padding.top + plotH} Z`;
-
     return {
-      pthPath: makePath(pthPoints),
-      pthArea,
-      vitDPath: makePath(vitDPoints),
+      pthPath: makeSmoothSplinePath(pthPoints),
+      pthArea: makeSmoothAreaPath(pthPoints, baselineY),
+      vitDPath: makeSmoothSplinePath(vitDPoints),
+      vitDArea: makeSmoothAreaPath(vitDPoints, baselineY),
       pthPoints,
       vitDPoints,
     };
-  }, [timelineData, plotW, plotH, padding.left, padding.top]);
+  }, [timelineData, plotW, plotH, padding.left, padding.top, baselineY]);
 
   const activePoint = activeHoverIdx !== null ? timelineData[activeHoverIdx] : timelineData[timelineData.length - 1];
 
@@ -138,9 +165,13 @@ export default function EndocrineTrendChart({
         <div className="relative w-full overflow-hidden">
           <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-hidden select-none block">
             <defs>
-              <linearGradient id="cyanGlow" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+              <linearGradient id="alpGlowGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.22" />
                 <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+              </linearGradient>
+              <linearGradient id="ctxGlowGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
               </linearGradient>
             </defs>
 
@@ -149,9 +180,13 @@ export default function EndocrineTrendChart({
             <line x1={padding.left} y1={padding.top + plotH / 2} x2={padding.left + plotW} y2={padding.top + plotH / 2} stroke="#1e293b" strokeDasharray="3 3" />
             <line x1={padding.left} y1={padding.top + plotH} x2={padding.left + plotW} y2={padding.top + plotH} stroke="#334155" />
 
-            {/* Curves */}
-            <path d={chart1Points.alpPath} fill="none" stroke="#38bdf8" strokeWidth="2.5" className="drop-shadow-[0_0_6px_rgba(56,189,248,0.4)]" />
-            <path d={chart1Points.ctxPath} fill="none" stroke="#fbbf24" strokeWidth="2.5" className="drop-shadow-[0_0_6px_rgba(251,191,36,0.4)]" />
+            {/* Glowing Area Fills */}
+            <path d={chart1Points.alpArea} fill="url(#alpGlowGrad)" />
+            <path d={chart1Points.ctxArea} fill="url(#ctxGlowGrad)" />
+
+            {/* Smooth Curves */}
+            <path d={chart1Points.alpPath} fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+            <path d={chart1Points.ctxPath} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
 
             {/* Interactive Data Dots */}
             {chart1Points.alpPoints.map((pt, idx) => (
@@ -228,6 +263,10 @@ export default function EndocrineTrendChart({
                 <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25" />
                 <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
               </linearGradient>
+              <linearGradient id="vitDAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.18" />
+                <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0.0" />
+              </linearGradient>
             </defs>
 
             {/* Grid lines */}
@@ -235,12 +274,13 @@ export default function EndocrineTrendChart({
             <line x1={padding.left} y1={padding.top + plotH / 2} x2={padding.left + plotW} y2={padding.top + plotH / 2} stroke="#1e293b" strokeDasharray="3 3" />
             <line x1={padding.left} y1={padding.top + plotH} x2={padding.left + plotW} y2={padding.top + plotH} stroke="#334155" />
 
-            {/* Area Fill for PTH */}
+            {/* Area Fills */}
             <path d={chart2Points.pthArea} fill="url(#pthAreaGrad)" />
+            <path d={chart2Points.vitDArea} fill="url(#vitDAreaGrad)" />
 
-            {/* Curves */}
-            <path d={chart2Points.pthPath} fill="none" stroke="#fbbf24" strokeWidth="2.5" className="drop-shadow-[0_0_6px_rgba(251,191,36,0.4)]" />
-            <path d={chart2Points.vitDPath} fill="none" stroke="#2dd4bf" strokeWidth="2.5" className="drop-shadow-[0_0_6px_rgba(45,212,191,0.4)]" />
+            {/* Smooth Curves */}
+            <path d={chart2Points.pthPath} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+            <path d={chart2Points.vitDPath} fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]" />
 
             {/* Interactive Data Dots */}
             {chart2Points.pthPoints.map((pt, idx) => (
