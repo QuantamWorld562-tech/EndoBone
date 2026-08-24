@@ -10,10 +10,25 @@ import {
   FileCheck,
   Brain,
 } from 'lucide-react';
+import { hydrateAuthHeader } from '../../../services';
 
 export default function LandingView({ onStart }) {
   const navigate = useNavigate();
   const handleStart = onStart || (() => navigate('/dashboard'));
+
+  const handleClinicalPortal = () => {
+    const token = hydrateAuthHeader();
+    if (token) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleViewDemo = () => {
+    navigate('/patients/PEB-8842-A/planning');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
       <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur-sm sticky top-0 z-30">
@@ -28,13 +43,17 @@ export default function LandingView({ onStart }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition items-center gap-1.5">
-              Clinical Portal
+            <button
+              onClick={handleClinicalPortal}
+              className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition items-center gap-1.5 cursor-pointer border border-slate-200 shadow-sm"
+              title="Clinician Sign-In & Hospital Authentication Gateway"
+            >
+              <span>Clinical Portal</span>
               <ArrowUpRight size={14} />
             </button>
             <button
               onClick={handleStart}
-              className="group px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-2 border-2 border-dotted border-blue-200"
+              className="group px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-2 border-2 border-dotted border-blue-200 cursor-pointer"
             >
               Start Assessment
               <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -80,7 +99,10 @@ export default function LandingView({ onStart }) {
                 <span>Start Patient Assessment</span>
                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer">
+              <button
+                onClick={handleViewDemo}
+                className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer"
+              >
                 <Play size={16} className="text-blue-600 fill-blue-600" />
                 <span>View Demo</span>
               </button>
