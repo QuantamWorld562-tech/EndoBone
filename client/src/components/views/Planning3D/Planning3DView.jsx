@@ -223,7 +223,7 @@ export default function Planning3DView({ patientId }) {
           </div>
 
           {/* Viewer card */}
-          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] relative">
+          <div className="bg-slate-950  rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] relative">
             {/* Floating Top Center Exit Fullscreen Pill */}
             {isFullscreen && (
               <button
@@ -303,18 +303,6 @@ export default function Planning3DView({ patientId }) {
                   {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                   <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
                 </button>
-              </div>
-            </div>
-
-            {/* Floating Anatomical T-Score HUD Callouts (Top-Left) */}
-            <div className="pointer-events-none absolute left-4 top-14 z-20 space-y-2">
-              <div className="p-2.5 bg-slate-900/85 backdrop-blur-md border border-red-500/30 rounded-xl shadow-lg">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Femoral Neck</div>
-                <div className="text-sm font-black text-red-400">T-Score: -2.3</div>
-              </div>
-              <div className="p-2.5 bg-slate-900/85 backdrop-blur-md border border-orange-500/30 rounded-xl shadow-lg">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Total Hip</div>
-                <div className="text-sm font-black text-orange-400">T-Score: -1.9</div>
               </div>
             </div>
 
