@@ -298,9 +298,9 @@ export function PatientDataProvider({ children }) {
   // Custom Surgeon/Clinical notes per ROI: { [patientId]: { [regionKey]: string } }
   const [roiNotes, setRoiNotes] = useState({
     'PEB-8842-A': {
-      'proximal-femur': 'Thinning superior cortex (1.2mm). Recommend cement augmentation if lag screw is placed.',
-      'vertebral-body': 'L4-L5 anterior endplate intact. Standard PEEK cage sizing indicated.',
-      'acetabulum': 'Adequate bone stock for cup seating. No structural augmentation needed.',
+      'femoral-neck': 'Thinning superior cortex (1.2mm). Recommend cement augmentation if lag screw is placed.',
+      'greater-trochanter': 'Moderate bone thinning at trochanteric insertion. Bone turnover markers elevated.',
+      'shaft': 'Circumferential cortical thickness 3.8mm. Structurally optimal for press-fit stem anchorage.',
     },
   });
 
