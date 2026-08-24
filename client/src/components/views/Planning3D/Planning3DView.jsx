@@ -7,7 +7,7 @@ import {
   LineChart, Tag, Compass, Box, Plus, Sparkles, LayoutDashboard, ChevronRight, FolderOpen
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
-import { EndocrineTrendChart } from '../../common';
+import { EndocrineTrendChart, Planning3DSkeleton } from '../../common';
 import BoneModelViewer from './BoneModelViewer';
 
 const BIOMARKER_INPUTS = [
@@ -107,6 +107,7 @@ export default function Planning3DView({ patientId }) {
     regionalData, backendRiskLevel,
     patients,
     activePatientId,
+    isCaseLoading,
     setIsNewCaseModalOpen,
   } = usePatientContext();
 
@@ -167,6 +168,10 @@ export default function Planning3DView({ patientId }) {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isFullscreen]);
+
+  if (isCaseLoading) {
+    return <Planning3DSkeleton />;
+  }
 
   if (!effectivePatientId || !currentPatient) {
     return (

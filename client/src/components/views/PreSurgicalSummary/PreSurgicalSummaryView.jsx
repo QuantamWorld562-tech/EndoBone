@@ -30,6 +30,7 @@ import {
 import { useSurgicalPlan, usePatientData } from '../../../hooks';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { assessmentService } from '../../../services/assessmentService';
+import { PreSurgicalSummarySkeleton } from '../../common';
 
 export default function PreSurgicalSummaryView({ patientId }) {
   const params = useParams();
@@ -43,9 +44,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
     resetWorkspace,
     activePatientId,
     setActivePatientId,
+    isCaseLoading,
   } = usePatientContext();
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
+
+  if (isCaseLoading) {
+    return <PreSurgicalSummarySkeleton />;
+  }
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
   const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');

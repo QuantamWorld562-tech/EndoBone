@@ -30,6 +30,7 @@ export default function AIAssessmentView({ patientId }) {
     assessment,
     persistedAssessment,
     isAnalyzing,
+    isCaseLoading,
     biomarkers,
     activePatientId,
     setIsNewCaseModalOpen,
@@ -37,7 +38,7 @@ export default function AIAssessmentView({ patientId }) {
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
-  if (isAnalyzing) {
+  if (isCaseLoading || isAnalyzing) {
     return <AssessmentSkeleton />;
   }
 

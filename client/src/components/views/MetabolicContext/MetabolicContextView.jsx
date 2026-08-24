@@ -22,6 +22,7 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     updateBiomarker,
     runAssessment,
     isAnalyzing,
+    isCaseLoading,
     activePatientId,
     setIsNewCaseModalOpen,
   } = usePatientContext();
@@ -44,6 +45,10 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     await runAssessment(effectivePatientId, biomarkers);
     navigate(`/patients/${effectivePatientId}/assessment`);
   });
+
+  if (isCaseLoading || isAnalyzing) {
+    return <MetabolicAnalyzeSkeleton />;
+  }
 
   if (!effectivePatientId || !biomarkers) {
     return (
