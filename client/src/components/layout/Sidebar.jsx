@@ -95,7 +95,7 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
             onClick={() => { navigate('/'); onCloseMobile?.(); }}
             className="flex items-center gap-3 text-left group min-w-0 cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+            <div className="w-11 h-11 rounded-xl  flex items-center justify-center shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden shrink-0">
               <img src="/logo2.png" alt="EndoBone AI" className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0">
@@ -204,60 +204,33 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
           )}
         </nav>
 
-        {/* Pinned Bottom User & Status Footer */}
-        <div className="p-3 border-t border-slate-200 shrink-0 bg-slate-50/60 space-y-2">
-          {/* User Profile Card */}
-          <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-slate-800 to-indigo-900 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
-                {currentDoctor?.firstName?.[0] || 'U'}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-slate-900 truncate">
-                  {doctorName}
-                </div>
-                <div className="flex items-center gap-1">
-                  {isAdmin ? (
-                    <span className="text-[9px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.2 rounded-sm uppercase tracking-wide">
-                      Admin
-                    </span>
-                  ) : currentDoctor?.role === 'professor' ? (
-                    <span className="text-[9px] font-black text-purple-800 bg-purple-100 px-1.5 py-0.2 rounded-sm uppercase tracking-wide">
-                      Professor
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-black text-blue-800 bg-blue-100 px-1.5 py-0.2 rounded-sm uppercase tracking-wide">
-                      Clinician
-                    </span>
-                  )}
-                  <span className="text-[10px] text-slate-400 truncate">
-                    {currentDoctor?.institution ? '• ' + currentDoctor.institution : ''}
-                  </span>
-                </div>
-              </div>
-            </div>
-
+        {/* Pinned Bottom Status & Utility Footer */}
+        <div className="p-3 sm:p-4 border-t border-slate-100 sticky bottom-0 bg-white space-y-2.5">
+          <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={handleLogout}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0"
-              title="Sign Out"
+              onClick={() => { navigate('/dashboard'); onCloseMobile?.(); }}
+              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
+              title="Settings"
             >
-              <LogOut size={15} />
+              <Settings size={15} />
+              <span>Settings</span>
+            </button>
+            <button
+              onClick={() => { navigate('/dashboard'); onCloseMobile?.(); }}
+              className="p-2 sm:p-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer"
+              title="Support"
+            >
+              <HelpCircle size={15} />
+              <span>Support</span>
             </button>
           </div>
 
-          {/* Quick Utility Links */}
           <div className="flex items-center justify-between px-1 text-[11px] text-slate-400 font-semibold">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               v1.0 Online
             </span>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="hover:text-blue-600 transition cursor-pointer"
-            >
-              Support
-            </button>
+            <span className="text-slate-300">HIPAA Compliant</span>
           </div>
         </div>
       </aside>
