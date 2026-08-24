@@ -228,8 +228,8 @@ export function computeDynamicAssessment(patientId, biomarkers) {
       qualityRisk >= 65
         ? 'High metabolic risk detected. Secondary hyperparathyroidism and cortical thinning suggest augmented surgical fixation strategy.'
         : qualityRisk >= 40
-        ? 'Moderate risk profile. Pre-op metabolic replenishment recommended with standard hardware precautions.'
-        : 'Low metabolic risk. Patient is a suitable candidate for routine surgical intervention.',
+          ? 'Moderate risk profile. Pre-op metabolic replenishment recommended with standard hardware precautions.'
+          : 'Low metabolic risk. Patient is a suitable candidate for routine surgical intervention.',
   };
 }
 
@@ -274,44 +274,34 @@ export function PatientDataProvider({ children }) {
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
 
-  // Load patient biomarkers from backend/mock database when patient switches.
+  // W-5: Load patient biomarkers from backend when patient switches.
+  // Skip the fetch if we already have data for this patient to avoid unnecessary
+  // round-trips when navigating back to a previously visited patient.
   useEffect(() => {
     let isMounted = true;
     const existing = allBiomarkers[activePatientId];
-    const hasValidValues = existing && Object.values(existing).some(
-      v => v && typeof v === 'object' && v.value !== '' && v.value !== null && v.value !== undefined
-    );
-    if (hasValidValues) return; // already loaded with valid values — skip
+    const hasData = existing && Object.keys(existing).length > 0;
+    if (hasData) return; // already loaded — skip
 
     async function loadBiomarkers() {
       try {
         const b = await biomarkerService.getBiomarkers(activePatientId);
-        if (isMounted && b && Object.keys(b).length > 0) {
+        if (isMounted && b) {
           setAllBiomarkers((prev) => ({
             ...prev,
             [activePatientId]: {
-              ...(biomarkersDB[activePatientId] || {}),
               ...(prev[activePatientId] || {}),
               ...b,
             },
           }));
-          return;
         }
       } catch (err) {
         console.warn('Could not load biomarkers for patient:', activePatientId, err);
       }
-
-      // If backend call returned empty or failed, use mock clinical record
-      if (isMounted && biomarkersDB[activePatientId]) {
-        setAllBiomarkers((prev) => ({
-          ...prev,
-          [activePatientId]: JSON.parse(JSON.stringify(biomarkersDB[activePatientId])),
-        }));
-      }
     }
     loadBiomarkers();
     return () => { isMounted = false; };
-  }, [activePatientId]);
+  }, [activePatientId]); // intentionally omit allBiomarkers — would create an infinite loop
 
   // Selected Region of Interest (shared across 3D and other views)
   const [selectedRegion, setSelectedRegion] = useState('proximal-femur');
@@ -485,18 +475,9 @@ export function PatientDataProvider({ children }) {
     });
   }, [activePatientId]);
 
-  // Retrieve active patient biomarkers, ensuring non-blank fallback to seed DB
+  // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
-    const fromState = allBiomarkers[activePatientId];
-    const hasStateValues = fromState && Object.values(fromState).some(
-      v => v && typeof v === 'object' && v.value !== '' && v.value !== null && v.value !== undefined
-    );
-    if (hasStateValues) return fromState;
-
-    const fromSeed = biomarkersDB[activePatientId];
-    if (fromSeed) return fromSeed;
-
-    return fromState || biomarkersDB['PEB-8842-A'];
+    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || biomarkersDB['PEB-8842-A'];
   }, [allBiomarkers, activePatientId]);
 
   // W-3: Stable primitive key derived from biomarker VALUES (not the object reference).
@@ -519,7 +500,7 @@ export function PatientDataProvider({ children }) {
     setAllBiomarkers((prev) => {
       const patientData = { ...(prev[patientId] || biomarkersDB[patientId] || {}) };
       const currentItem = patientData[key] || {};
-      
+
       const isBlank = newValue === '' || newValue === null || newValue === undefined;
       const numVal = isBlank ? '' : (typeof newValue === 'number' ? newValue : parseFloat(newValue));
       const isValid = typeof numVal === 'number' && !Number.isNaN(numVal);
