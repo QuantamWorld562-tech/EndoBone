@@ -39,7 +39,7 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
-      <div className="print:hidden">
+      <div className="print:hidden lg:sticky lg:top-0 lg:h-screen lg:self-start z-40 shrink-0">
         <Sidebar
           isMobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
