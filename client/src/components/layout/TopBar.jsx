@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Search, Calendar, UserRound, LogOut, X, ChevronRight, Menu } from 'lucide-react';
+import { Search, Calendar, UserRound, LogOut, X, ChevronRight, Menu, RotateCcw } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 import { clearAuthSession, readStoredDoctorProfile } from '../../services';
 
@@ -204,6 +204,19 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
               </option>
             ))}
           </select>
+
+          {/* Quick Reset Case Button directly in navbar */}
+          {patient && (
+            <button
+              type="button"
+              onClick={() => handlePatientChange('none')}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 transition cursor-pointer flex items-center gap-1 shadow-sm"
+              title="Reset current case to None and navigate to Dashboard"
+            >
+              <RotateCcw size={13} />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
