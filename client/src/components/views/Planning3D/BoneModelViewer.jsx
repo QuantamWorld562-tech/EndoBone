@@ -688,11 +688,14 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
 }
 
 function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, onSelectZone, onHoverZone }) {
-  if (!showAnnotations) return null;
+  // If annotations are turned off, we still want to show the popup for the currently hovered zone
+  const zonesToRender = showAnnotations ? zones : zones.filter(z => z.id === hoveredZoneId);
+
+  if (zonesToRender.length === 0) return null;
 
   return (
     <group>
-      {zones.map((z) => (
+      {zonesToRender.map((z) => (
         <AnnotationPinItem
           key={z.id}
           z={z}
