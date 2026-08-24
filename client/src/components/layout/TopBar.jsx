@@ -9,7 +9,7 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
   const location = useLocation();
   const params = useParams();
   const searchRef = useRef(null);
-  const { patients = [], setActivePatientId, activePatientId, isLoadingPatients } = usePatientContext();
+  const { patients = [], setActivePatientId, activePatientId, isLoadingPatients, resetWorkspace } = usePatientContext();
   const currentPatientId = params.patientId || activePatientId || null;
   const doctorProfile = readStoredDoctorProfile();
 
@@ -54,6 +54,13 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
   };
 
   const handlePatientChange = (newPatientId) => {
+    if (!newPatientId || newPatientId === 'none') {
+      resetWorkspace?.();
+      navigate('/dashboard');
+      setIsSearchFocused(false);
+      setSearchTerm('');
+      return;
+    }
     setActivePatientId(newPatientId);
     if (onSelectPatient) {
       onSelectPatient(newPatientId);
@@ -190,11 +197,7 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
             disabled={isLoadingPatients && patients.length === 0}
             className="text-xs sm:text-sm border border-slate-200 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 shadow-sm cursor-pointer max-w-[120px] sm:max-w-[180px] truncate"
           >
-            {!currentPatientId && (
-              <option value="" disabled>
-                Select Case...
-              </option>
-            )}
+            <option value="">None</option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.id} - {p.name}
