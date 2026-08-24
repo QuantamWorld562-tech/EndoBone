@@ -68,13 +68,13 @@ const ANCHORS = {
 };
 
 const ANATOMICAL_OFFSETS = {
-  'femoral-head':       { side: 'right', offset: [44, -16], subLabel: 'Caput Femoris' },
-  'femoral-neck':       { side: 'right', offset: [48, 0],   subLabel: 'Collum Femoris' },
-  'greater-trochanter': { side: 'left',  offset: [-44, -12],subLabel: 'Trochanter Major' },
-  'intertrochanteric':  { side: 'left',  offset: [-44, 4],  subLabel: 'Crista Intertroch.' },
-  'lesser-trochanter':  { side: 'right', offset: [44, 12],  subLabel: 'Trochanter Minor' },
-  shaft:                { side: 'right', offset: [42, 0],   subLabel: 'Diaphysis / Corpus' },
-  'distal-condyles':    { side: 'left',  offset: [-40, 6],  subLabel: 'Condyli' },
+  'femoral-head':       { side: 'right', offset: [10, -10], subLabel: 'Caput Femoris' },
+  'femoral-neck':       { side: 'right', offset: [10, -2],  subLabel: 'Collum Femoris' },
+  'greater-trochanter': { side: 'left',  offset: [-10, -8], subLabel: 'Trochanter Major' },
+  'intertrochanteric':  { side: 'left',  offset: [-10, 4],  subLabel: 'Crista Intertroch.' },
+  'lesser-trochanter':  { side: 'right', offset: [10, 8],   subLabel: 'Trochanter Minor' },
+  shaft:                { side: 'right', offset: [10, 16],  subLabel: 'Diaphysis / Corpus' },
+  'distal-condyles':    { side: 'left',  offset: [-10, 4],  subLabel: 'Condyli' },
 };
 
 const RADII = {
@@ -348,9 +348,9 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
 
   const [layout, setLayout] = useState({
     side: z.side || 'left',
-    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -30 : 30),
+    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -10 : 10),
     targetY: z.offset ? z.offset[1] : 0,
-    midX: z.side === 'left' ? -10 : 10,
+    midX: z.side === 'left' ? -4 : 4,
   });
 
   const isHigh = z.riskLevel === 'high';
@@ -365,11 +365,11 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     const screenY = (-vec.y * size.height) / 2;
     const halfW = size.width / 2;
     const halfH = size.height / 2;
-    const badgeW = isElevated ? 120 : 85;
-    const edgeMargin = 16;
+    const badgeW = isElevated ? 95 : 60;
+    const edgeMargin = 12;
 
     const baseSide = z.side || (vec.x < 0 ? 'left' : 'right');
-    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -30 : 30);
+    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -10 : 10);
     const rawTargetY = z.offset ? z.offset[1] : 0;
 
     // 2. Boundary Collision Detection:
@@ -402,8 +402,8 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     }
 
     // Y Axis Boundary Clamping:
-    const currentTop = screenY + targetY - (isElevated ? 38 : 15);
-    const currentBottom = screenY + targetY + (isElevated ? 38 : 15);
+    const currentTop = screenY + targetY - (isElevated ? 32 : 12);
+    const currentBottom = screenY + targetY + (isElevated ? 32 : 12);
     if (currentTop < -halfH + edgeMargin) {
       targetY += (-halfH + edgeMargin) - currentTop;
     } else if (currentBottom > halfH - edgeMargin) {
@@ -451,21 +451,21 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
             onMouseLeave={() => onHoverZone?.(null)}
           >
             <div
-              className="w-2.5 h-2.5 rounded-full flex items-center justify-center transition-transform hover:scale-125"
+              className="w-2 h-2 rounded-full flex items-center justify-center transition-transform hover:scale-125"
               style={{
                 background: 'rgba(3, 7, 18, 0.95)',
-                border: `1.5px solid ${pinColor}`,
-                boxShadow: `0 0 5px ${pinColor}`,
+                border: `1.2px solid ${pinColor}`,
+                boxShadow: `0 0 4px ${pinColor}`,
               }}
             >
               <span
-                className="w-1 h-1 rounded-full"
+                className="w-0.8 h-0.8 rounded-full"
                 style={{ background: pinColor }}
               />
             </div>
             {isElevated && (
               <span
-                className="w-3 h-3 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                className="w-2.5 h-2.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
                 style={{ background: pinColor }}
               />
             )}
@@ -480,26 +480,26 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
               d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
               fill="none"
               stroke={pinColor}
-              strokeWidth={isElevated ? '1.5' : '1.0'}
-              strokeOpacity={isElevated ? 1.0 : 0.70}
+              strokeWidth={isElevated ? '1.2' : '0.8'}
+              strokeOpacity={isElevated ? 1.0 : 0.65}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <circle
               cx={targetX}
               cy={targetY}
-              r={isElevated ? 1.5 : 1.2}
+              r={isElevated ? 1.2 : 1.0}
               fill={pinColor}
             />
           </svg>
 
-          {/* 3. Scaled Responsive Label Badge */}
+          {/* 3. Scaled Responsive Label Badge (10px proximity) */}
           <div
             className="absolute pointer-events-auto cursor-pointer transition-all duration-150"
             style={{
               left: `${targetX}px`,
               top: `${targetY}px`,
-              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(3px, -50%)',
+              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(2px, -50%)',
               zIndex: isElevated ? 99999 : 10,
             }}
             onClick={(e) => {
@@ -510,29 +510,29 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
             onMouseLeave={() => onHoverZone?.(null)}
           >
             <div
-              className={`rounded-md transition-all ${
-                isElevated ? 'scale-105 ring-1 ring-blue-500/40 shadow-xl' : 'hover:scale-102 shadow-md'
+              className={`rounded transition-all ${
+                isElevated ? 'scale-105 ring-1 ring-blue-500/40 shadow-lg' : 'hover:scale-102 shadow-sm'
               }`}
               style={{
                 background: isElevated ? '#020617' : 'rgba(9, 13, 31, 0.95)',
-                border: `1px solid ${isElevated ? pinColor : pinColor + '99'}`,
+                border: `1px solid ${isElevated ? pinColor : pinColor + '88'}`,
                 boxShadow: isElevated
-                  ? `0 8px 20px rgba(0,0,0,0.95), 0 0 12px ${pinColor}88`
-                  : '0 2px 8px rgba(0,0,0,0.6)',
-                width: isElevated ? 120 : 'max-content',
-                minWidth: 80,
-                maxWidth: isElevated ? 125 : 115,
-                minHeight: 28,
-                padding: '2.5px 5px',
+                  ? `0 4px 12px rgba(0,0,0,0.95), 0 0 8px ${pinColor}88`
+                  : '0 1px 4px rgba(0,0,0,0.5)',
+                width: isElevated ? 95 : 'max-content',
+                minWidth: 55,
+                maxWidth: isElevated ? 100 : 78,
+                minHeight: 18,
+                padding: '1.5px 3.5px',
               }}
             >
               {/* Header: Full Zone Name & Status Badge */}
               <div className="flex items-center justify-between gap-1">
-                <span className="font-black text-white whitespace-nowrap text-[8px] tracking-tight truncate max-w-[62px]">
+                <span className="font-black text-white whitespace-nowrap text-[7px] tracking-tight truncate max-w-[48px]">
                   {z.label}
                 </span>
                 <span
-                  className="font-black px-1 py-0.2 rounded shrink-0 uppercase text-[6.5px]"
+                  className="font-black px-0.8 py-0.1 rounded shrink-0 uppercase text-[5.5px]"
                   style={{
                     background: `${pinColor}25`,
                     color: pinColor,
@@ -544,11 +544,11 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
               </div>
 
               {/* Sub-Header: Landmark Sub-Label & T-Score */}
-              <div className="flex items-center justify-between gap-1 mt-0.2 text-slate-400">
-                <span className="font-semibold text-[7px] whitespace-nowrap text-slate-400 truncate max-w-[50px]">
+              <div className="flex items-center justify-between gap-1 mt-0.1 text-slate-400">
+                <span className="font-semibold text-[6px] whitespace-nowrap text-slate-400 truncate max-w-[40px]">
                   {z.subLabel || 'Landmark'}
                 </span>
-                <span className="font-mono font-bold text-[7.5px] shrink-0" style={{ color: pinColor }}>
+                <span className="font-mono font-bold text-[6.5px] shrink-0" style={{ color: pinColor }}>
                   T: {z.tScore}
                 </span>
               </div>
