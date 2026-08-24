@@ -16,14 +16,14 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import { AssessmentSkeleton, RiskDonut, EndocrineTrendChart } from '../../common';
+import { AssessmentSkeleton, RiskDonut } from '../../common';
 import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function AIAssessmentView({ patientId }) {
   const params = useParams();
   const navigate = useNavigate();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-  const { assessment, persistedAssessment, isAnalyzing, biomarkers } = usePatientContext();
+  const { assessment, persistedAssessment, isAnalyzing } = usePatientContext();
 
   if (isAnalyzing || !assessment) {
     return <AssessmentSkeleton />;
@@ -166,10 +166,6 @@ export default function AIAssessmentView({ patientId }) {
               stroke={14}
               subtitle="Cortical porosity and trabecular microarchitecture assessment derived from CT analysis."
             />
-          </div>
-
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-sm min-w-0 max-w-full overflow-hidden">
-            <EndocrineTrendChart biomarkers={biomarkers} />
           </div>
         </div>
 
