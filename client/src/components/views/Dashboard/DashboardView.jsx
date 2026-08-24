@@ -94,19 +94,19 @@ export default function DashboardView({ onSelectPatient }) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 min-w-0">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Dashboard</h2>
-          <p className="text-slate-600 mt-1 text-base">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">Clinical Dashboard</h2>
+          <p className="text-slate-600 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">
             Overview of active patient cases, endocrine profiles, and AI assessments.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 shadow-sm cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -116,25 +116,25 @@ export default function DashboardView({ onSelectPatient }) {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all"
           >
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-start justify-between mb-4 sm:mb-6">
               <div>
-                <p className="text-sm font-semibold text-slate-500">{s.label}</p>
+                <p className="text-xs sm:text-sm font-semibold text-slate-500">{s.label}</p>
                 <div className="flex items-baseline gap-2 mt-1">
-                  <p className="text-4xl font-black text-slate-900 tracking-tight">{s.val}</p>
+                  <p className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{s.val}</p>
                   <span className="text-xs font-bold text-slate-400">cases</span>
                 </div>
               </div>
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-lg`}>
-                <s.icon className="text-white" size={26} strokeWidth={2.2} />
+              <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${s.grad} flex items-center justify-center shadow-lg shrink-0`}>
+                <s.icon className="text-white" size={22} strokeWidth={2.2} />
               </div>
             </div>
-            <div className={`flex items-center gap-2 p-3 rounded-xl ${s.bg} ring-1 ring-slate-100`}>
+            <div className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl ${s.bg} ring-1 ring-slate-100`}>
               <TrendingUp
                 size={14}
                 className={
@@ -145,7 +145,7 @@ export default function DashboardView({ onSelectPatient }) {
                       : 'text-blue-600'
                 }
               />
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-700 truncate">
                 {i === 0 && '2 new cases this week'}
                 {i === 1 && 'Requires review within 48h'}
                 {i === 2 && 'Prioritize metabolic stabilization'}
@@ -155,65 +155,63 @@ export default function DashboardView({ onSelectPatient }) {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between px-7 py-5 border-b border-slate-100 gap-3">
+      <div className="grid lg:grid-cols-3 gap-5 sm:gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:px-6 sm:py-5 border-b border-slate-100 gap-3">
             <div>
-              <h3 className="text-xl font-extrabold text-slate-900">Recent Cases</h3>
-              <p className="text-sm text-slate-500">Click any patient card to open their workflow, or delete completed cases.</p>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">Recent Cases</h3>
+              <p className="text-xs sm:text-sm text-slate-500">Click any patient to open their workflow.</p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="relative flex-1 sm:flex-initial">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Filter cases..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-36"
+                  className="pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-full sm:w-40"
                 />
               </div>
-              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg shrink-0">
                 {filteredPatients.length} Total
               </span>
             </div>
           </div>
           <div className="divide-y divide-slate-100">
             {filteredPatients.length === 0 ? (
-              <div className="p-10 text-center text-slate-500 text-sm">No matching patients found.</div>
+              <div className="p-8 sm:p-10 text-center text-slate-500 text-xs sm:text-sm">No matching patients found.</div>
             ) : (
               filteredPatients.map((p) => {
                 const badge = getRiskBadge(p.status);
                 return (
                   <div
                     key={p.id}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50/80 transition group"
+                    className="w-full flex items-center justify-between p-3.5 sm:p-5 hover:bg-slate-50/80 transition group gap-2"
                   >
                     <button
                       onClick={() => handleSelectPatient(p.id)}
-                      className="flex-1 flex items-center gap-4 text-left focus:outline-none"
+                      className="flex-1 flex items-center gap-2.5 sm:gap-4 text-left focus:outline-none min-w-0 cursor-pointer"
                     >
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shrink-0">
-                        <UserRound size={22} />
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shrink-0">
+                        <UserRound size={18} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-slate-900 hover:text-blue-600 transition">{p.id}</p>
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                          <p className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition">{p.id}</p>
                           <span className="text-xs text-slate-400">•</span>
-                          <p className="text-sm text-slate-700 font-semibold truncate">{p.name}</p>
+                          <p className="text-xs sm:text-sm text-slate-700 font-semibold truncate">{p.name}</p>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <p className="text-xs text-slate-500 font-medium">{p.procedure}</p>
-                          <span className="text-xs text-slate-400">•</span>
-                          <p className="text-xs text-slate-500 font-medium">
-                            {p.age} yrs • {p.gender}
-                          </p>
+                        <div className="flex items-center gap-1.5 sm:gap-3 mt-0.5 sm:mt-1 flex-wrap text-[11px] sm:text-xs text-slate-500 font-medium">
+                          <span className="truncate max-w-[120px] sm:max-w-none">{p.procedure}</span>
+                          <span>•</span>
+                          <span>{p.age} yrs • {p.gender}</span>
                           {p.referralDate && (
                             <>
-                              <span className="text-xs text-slate-400">•</span>
-                              <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-                                <Clock size={12} />
-                                {p.referralDate}
+                              <span className="hidden sm:inline">•</span>
+                              <div className="hidden sm:flex items-center gap-1">
+                                <Clock size={11} />
+                                <span>{p.referralDate}</span>
                               </div>
                             </>
                           )}
@@ -221,8 +219,8 @@ export default function DashboardView({ onSelectPatient }) {
                       </div>
                     </button>
 
-                    <div className="flex items-center gap-2 pl-3">
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-black ring-1 ${badge.cls}`}>
+                    <div className="flex items-center gap-1 sm:gap-2 pl-2 shrink-0">
+                      <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-black ring-1 ${badge.cls}`}>
                         {badge.text}
                       </span>
                       
@@ -234,17 +232,17 @@ export default function DashboardView({ onSelectPatient }) {
                           setCaseToDelete(p);
                         }}
                         title={`Delete case ${p.id}`}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition ml-1"
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handleSelectPatient(p.id)}
-                        className="p-1 text-slate-400 group-hover:text-blue-600 transition"
+                        className="p-1 text-slate-400 group-hover:text-blue-600 transition hidden xs:block cursor-pointer"
                       >
-                        <ChevronRight size={18} />
+                        <ChevronRight size={16} />
                       </button>
                     </div>
                   </div>

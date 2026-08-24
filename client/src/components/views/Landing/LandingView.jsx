@@ -43,18 +43,18 @@ export default function LandingView({ onStart }) {
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-6 py-20 lg:py-28">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 rounded-full border border-blue-200/80 shadow-sm">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-20 lg:py-28 min-w-0">
+        <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
+          <div className="space-y-6 sm:space-y-8 min-w-0">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50 rounded-full border border-blue-200/80 shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
               </span>
-              <span className="text-xs font-bold text-blue-700 tracking-wide">NEXT-GEN DECISION SUPPORT</span>
+              <span className="text-[11px] sm:text-xs font-bold text-blue-700 tracking-wide">NEXT-GEN DECISION SUPPORT</span>
             </div>
 
-            <h2 className="text-5xl lg:text-6xl font-black text-slate-900 leading-[1.05] tracking-tight">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.1] sm:leading-[1.05] tracking-tight">
               Bridging the gap between{' '}
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
@@ -65,36 +65,36 @@ export default function LandingView({ onStart }) {
               information and biochemical data.
             </h2>
 
-            <p className="text-lg text-slate-600 leading-relaxed max-w-xl">
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed max-w-xl">
               EndoBone AI integrates high-fidelity multi-modal imaging with complex biochemical profiles
               to generate patient-specific bone health assessments, enabling objective, data-driven
               clinical decisions for pre-surgical planning.
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 onClick={handleStart}
-                className="group px-7 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-xl shadow-blue-600/30 flex items-center gap-2.5 border-2 border-dashed border-blue-300/70"
+                className="group px-5 sm:px-7 py-3 sm:py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2.5 border-2 border-dashed border-blue-300/70 text-sm sm:text-base cursor-pointer"
               >
-                <Box size={20} />
-                Start Patient Assessment
-                <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                <Box size={18} />
+                <span>Start Patient Assessment</span>
+                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group px-7 py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-2.5 shadow-sm">
-                <Play size={18} className="text-blue-600 fill-blue-600" />
-                View Demo
+              <button className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer">
+                <Play size={16} className="text-blue-600 fill-blue-600" />
+                <span>View Demo</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-8 pt-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-8 pt-3 sm:pt-4 border-t border-slate-100">
               {[
                 { value: '4', label: 'Patients Analyzed' },
                 { value: '89%', label: 'Avg. AI Confidence' },
                 { value: '6', label: 'Biomarkers Profiled' },
               ].map((s, i) => (
-                <div key={i} className="space-y-1">
-                  <div className="text-2xl font-black text-slate-900">{s.value}</div>
-                  <div className="text-xs text-slate-500 font-medium">{s.label}</div>
+                <div key={i} className="space-y-0.5 sm:space-y-1">
+                  <div className="text-xl sm:text-2xl font-black text-slate-900">{s.value}</div>
+                  <div className="text-[10px] sm:text-xs text-slate-500 font-medium">{s.label}</div>
                 </div>
               ))}
             </div>

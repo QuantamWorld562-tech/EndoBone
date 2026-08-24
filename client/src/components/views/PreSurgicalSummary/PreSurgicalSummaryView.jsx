@@ -272,14 +272,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
   }, [roiNotes]);
 
   const BiomarkerTable = () => (
-    <div className="overflow-hidden rounded-xl border border-slate-200">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 min-w-0 max-w-full">
+      <table className="w-full text-xs sm:text-sm min-w-[480px]">
         <thead>
           <tr className="bg-slate-50">
-            <th className="text-left p-3.5 font-bold text-slate-600 text-xs uppercase tracking-wide">Marker</th>
-            <th className="text-left p-3.5 font-bold text-slate-600 text-xs uppercase tracking-wide">Live Value</th>
-            <th className="text-left p-3.5 font-bold text-slate-600 text-xs uppercase tracking-wide">Ref Range</th>
-            <th className="text-left p-3.5 font-bold text-slate-600 text-xs uppercase tracking-wide">Status</th>
+            <th className="text-left p-2.5 sm:p-3.5 font-bold text-slate-600 text-[11px] sm:text-xs uppercase tracking-wide">Marker</th>
+            <th className="text-left p-2.5 sm:p-3.5 font-bold text-slate-600 text-[11px] sm:text-xs uppercase tracking-wide">Live Value</th>
+            <th className="text-left p-2.5 sm:p-3.5 font-bold text-slate-600 text-[11px] sm:text-xs uppercase tracking-wide">Ref Range</th>
+            <th className="text-left p-2.5 sm:p-3.5 font-bold text-slate-600 text-[11px] sm:text-xs uppercase tracking-wide">Status</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
@@ -288,13 +288,13 @@ export default function PreSurgicalSummaryView({ patientId }) {
             const badge = getStatusBadge(b.status || 'normal');
             return (
               <tr key={item.key} className="hover:bg-slate-50/50">
-                <td className="p-3.5 font-bold text-slate-900">{item.name}</td>
-                <td className="p-3.5 font-semibold text-slate-800">
-                  {b.value ?? '—'} <span className="text-xs text-slate-500 font-medium">{b.unit}</span>
+                <td className="p-2.5 sm:p-3.5 font-bold text-slate-900">{item.name}</td>
+                <td className="p-2.5 sm:p-3.5 font-semibold text-slate-800 whitespace-nowrap">
+                  {b.value ?? '—'} <span className="text-[10px] sm:text-xs text-slate-500 font-medium">{b.unit}</span>
                 </td>
-                <td className="p-3.5 text-xs text-slate-500 font-semibold">{b.ref || 'Standard'}</td>
-                <td className="p-3.5">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black ring-1 ${badge}`}>
+                <td className="p-2.5 sm:p-3.5 text-[11px] sm:text-xs text-slate-500 font-semibold whitespace-nowrap">{b.ref || 'Standard'}</td>
+                <td className="p-2.5 sm:p-3.5">
+                  <span className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-black ring-1 ${badge} whitespace-nowrap`}>
                     {b.status === 'low' && <span>↓</span>}
                     {b.status === 'deficient' && <span>↓</span>}
                     {b.status === 'elevated' && <span>↑</span>}
@@ -317,46 +317,46 @@ export default function PreSurgicalSummaryView({ patientId }) {
   };
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-6 sm:space-y-8 relative min-w-0 max-w-full">
 
       {/* Toast Notification */}
       {toastMessage.text && (
-        <div className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-2xl border flex items-center gap-3 text-sm font-semibold transition-all ${toastColors[toastMessage.type] || toastColors.success}`}>
+        <div className={`fixed bottom-6 right-6 z-50 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl shadow-2xl border flex items-center gap-2.5 sm:gap-3 text-xs sm:text-sm font-semibold transition-all max-w-[90vw] ${toastColors[toastMessage.type] || toastColors.success}`}>
           {toastMessage.type === 'error'
-            ? <AlertTriangle size={18} className="shrink-0" />
-            : <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+            ? <AlertTriangle size={16} className="shrink-0" />
+            : <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
           }
-          <span>{toastMessage.text}</span>
+          <span className="truncate">{toastMessage.text}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 min-w-0">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Pre-Surgical Summary</h2>
-          <p className="text-slate-600 mt-1 text-base">Consolidated clinical deliverable for operative planning and risk mitigation.</p>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">Pre-Surgical Summary</h2>
+          <p className="text-slate-600 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">Consolidated clinical deliverable for operative planning and risk mitigation.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0">
           <button
             onClick={() => window.print()}
-            className="px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
           >
-            <Printer size={16} />
-            Print
+            <Printer size={15} />
+            <span className="hidden xs:inline">Print</span>
           </button>
           <button
             onClick={handleShare}
-            className="px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
           >
-            <Link2 size={16} />
-            Copy Link
+            <Link2 size={15} />
+            <span className="hidden xs:inline">Share</span>
           </button>
           <button
             onClick={handleExportPdf}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-bold hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-600/20 flex items-center gap-2 transition cursor-pointer"
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-blue-700 flex items-center gap-1.5 sm:gap-2 transition shadow-lg shadow-blue-600/20 cursor-pointer"
           >
-            <FileDown size={16} />
-            Export PDF
+            <FileDown size={15} />
+            <span>Export PDF</span>
           </button>
         </div>
       </div>

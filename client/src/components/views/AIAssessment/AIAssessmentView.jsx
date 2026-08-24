@@ -92,30 +92,30 @@ export default function AIAssessmentView({ patientId }) {
     }[p] || { ring: 'ring-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-500' });
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 min-w-0">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Explainable AI Assessment</h2>
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">Explainable AI Assessment</h2>
             {aiResults && (
-              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
-                <BrainCircuit size={14} className="text-indigo-600" />
+              <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                <BrainCircuit size={13} className="text-indigo-600" />
                 AI LLM Synced
               </span>
             )}
           </div>
-          <p className="text-slate-600 mt-1 text-base">Systemic factors impact analysis on structural bone risk.</p>
+          <p className="text-slate-600 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">Systemic factors impact analysis on structural bone risk.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200">
-            <ShieldCheck size={16} className="text-blue-600" />
-            <span className="text-sm text-slate-500 font-semibold">Confidence</span>
-            <span className="text-sm font-black text-slate-900">{Math.round(confidenceScore * 100)}%</span>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm">
+            <ShieldCheck size={15} className="text-blue-600" />
+            <span className="text-slate-500 font-semibold">Confidence</span>
+            <span className="font-black text-slate-900">{Math.round(confidenceScore * 100)}%</span>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200">
-            <span className="text-sm text-slate-500 font-semibold">DEXA T-Score</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm">
+            <span className="text-slate-500 font-semibold">DEXA</span>
             <span
-              className={`text-base font-black ${
+              className={`font-black ${
                 dexa_tscore <= -2.5
                   ? 'text-red-600'
                   : dexa_tscore <= -1
@@ -126,14 +126,18 @@ export default function AIAssessmentView({ patientId }) {
               {dexa_tscore}
             </span>
           </div>
-          <span className="text-xs text-slate-400 font-semibold">Generated {generatedDate}</span>
+          {generatedDate && (
+            <span className="text-[11px] text-slate-400 font-semibold hidden md:inline">
+              {generatedDate}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-            <div className="text-xs font-black text-slate-400 tracking-widest uppercase mb-4 flex items-center gap-2">
+      <div className="grid lg:grid-cols-5 gap-5 sm:gap-6 min-w-0">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6 min-w-0">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-sm">
+            <div className="text-xs font-black text-slate-400 tracking-widest uppercase mb-3 sm:mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-slate-300" />
               Overall Quality Risk
             </div>
@@ -142,14 +146,14 @@ export default function AIAssessmentView({ patientId }) {
               label="Metabolic + Structural"
               color="#dc2626"
               subColor="text-red-600"
-              size={200}
-              stroke={16}
+              size={180}
+              stroke={14}
               subtitle="Composite score integrating systemic metabolic stress with imaging-derived structural integrity."
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-            <div className="text-xs font-black text-slate-400 tracking-widest uppercase mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-sm">
+            <div className="text-xs font-black text-slate-400 tracking-widest uppercase mb-3 sm:mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-slate-300" />
               Structural Vulnerability
             </div>
@@ -158,13 +162,13 @@ export default function AIAssessmentView({ patientId }) {
               label="Cortical & Trabecular"
               color="#0d9488"
               subColor="text-teal-600"
-              size={200}
-              stroke={16}
+              size={180}
+              stroke={14}
               subtitle="Cortical porosity and trabecular microarchitecture assessment derived from CT analysis."
             />
           </div>
 
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-sm">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-sm min-w-0 max-w-full overflow-hidden">
             <EndocrineTrendChart biomarkers={biomarkers} />
           </div>
         </div>

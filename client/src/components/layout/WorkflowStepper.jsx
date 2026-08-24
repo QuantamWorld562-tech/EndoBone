@@ -38,21 +38,21 @@ export default function WorkflowStepper({ onSelectStep }) {
   };
 
   return (
-    <div className="px-8 pt-6 pb-2 bg-gradient-to-b from-blue-50/40 to-slate-50 border-b border-slate-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-sm">
+    <div className="px-3.5 sm:px-6 lg:px-8 pt-3 sm:pt-5 pb-2 bg-gradient-to-b from-blue-50/40 to-slate-50 border-b border-slate-200 min-w-0 max-w-full">
+      <div className="flex items-center justify-between mb-2.5 sm:mb-3.5 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm min-w-0 truncate">
           <button
             onClick={() => navigate('/')}
-            className="text-slate-400 hover:text-blue-600 font-medium transition-colors"
+            className="text-slate-400 hover:text-blue-600 font-medium transition-colors shrink-0 cursor-pointer"
           >
             Clinical Workspace
           </button>
-          <span className="text-slate-300">/</span>
-          <span className="font-black text-slate-900">{currentLabel}</span>
+          <span className="text-slate-300 shrink-0">/</span>
+          <span className="font-black text-slate-900 truncate">{currentLabel}</span>
           {params.patientId && (
             <>
-              <span className="text-slate-300">/</span>
-              <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg text-xs">
+              <span className="text-slate-300 shrink-0">/</span>
+              <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-lg text-[10px] sm:text-xs shrink-0">
                 {params.patientId}
               </span>
             </>
@@ -60,24 +60,24 @@ export default function WorkflowStepper({ onSelectStep }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin pb-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1.5 scrollbar-none select-none">
         {STEP_LABELS.map((step, i) => {
           const active = currentStep === i;
           const done = currentStep > i;
           return (
-            <div key={step.tab} className="flex items-center gap-2 flex-shrink-0">
+            <div key={step.tab} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <button
                 onClick={() => handleStepClick(step)}
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl transition-all text-sm ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition-all text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
                   active
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/20 font-bold'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-600/20 font-bold'
                     : done
                     ? 'bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-200 hover:bg-emerald-100'
                     : 'bg-white text-slate-500 hover:bg-slate-100 font-semibold ring-1 ring-slate-200'
                 }`}
               >
                 <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black ${
+                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-black shrink-0 ${
                     active
                       ? 'bg-white/20 text-white'
                       : done
@@ -87,11 +87,11 @@ export default function WorkflowStepper({ onSelectStep }) {
                 >
                   {done ? '✓' : step.short}
                 </span>
-                {step.label}
+                <span className="truncate">{step.label}</span>
               </button>
               {i < STEP_LABELS.length - 1 && (
                 <div
-                  className={`w-8 h-0.5 rounded-full flex-shrink-0 ${
+                  className={`w-4 sm:w-6 h-0.5 rounded-full flex-shrink-0 ${
                     done ? 'bg-emerald-500' : 'bg-slate-200'
                   }`}
                 />
