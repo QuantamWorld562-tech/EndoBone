@@ -11,7 +11,7 @@
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF, Html, ContactShadows } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine, Tag, Maximize2, Minimize2 } from 'lucide-react';
+import { Eye, EyeOff, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,15 +23,15 @@ const COLOR_ORANGE = new THREE.Color('#f97316');
 const COLOR_RED    = new THREE.Color('#ef4444');
 
 const CAM = {
-  overview:   { pos: [1.6, 0.8, 2.5],  tgt: [0, 0, 0] },
-  coronal:    { pos: [0, 0, 3.2],      tgt: [0, 0, 0] }, // Coronal / AP
-  anterior:   { pos: [0, 0, 3.2],      tgt: [0, 0, 0] },
-  sagittal:   { pos: [3.2, 0, 0],      tgt: [0, 0, 0] }, // Sagittal / Lateral
-  lateral:    { pos: [3.2, 0, 0],      tgt: [0, 0, 0] },
-  axial:      { pos: [0, 3.2, 0.001],  tgt: [0, 0, 0] }, // Axial / Transverse
-  pa:         { pos: [0, 0, -3.2],     tgt: [0, 0, 0] }, // Posteroanterior
-  oblique:    { pos: [2.2, 1.0, 2.2],  tgt: [0, 0, 0] }, // Oblique 45°
-  tangential: { pos: [2.8, -0.6, 1.4], tgt: [0, 0, 0] }, // Tangential Profile
+  overview:   { pos: [0.5, 0.2, 3.8],  tgt: [0, 0, 0] },
+  coronal:    { pos: [0, 0, 3.8],      tgt: [0, 0, 0] }, // Coronal / AP
+  anterior:   { pos: [0, 0, 3.8],      tgt: [0, 0, 0] },
+  sagittal:   { pos: [3.8, 0, 0],      tgt: [0, 0, 0] }, // Sagittal / Lateral
+  lateral:    { pos: [3.8, 0, 0],      tgt: [0, 0, 0] },
+  axial:      { pos: [0, 3.8, 0.001],  tgt: [0, 0, 0] }, // Axial / Transverse
+  pa:         { pos: [0, 0, -3.8],     tgt: [0, 0, 0] }, // Posteroanterior
+  oblique:    { pos: [2.6, 1.2, 2.6],  tgt: [0, 0, 0] }, // Oblique 45°
+  tangential: { pos: [3.2, -0.6, 1.6], tgt: [0, 0, 0] }, // Tangential Profile
 };
 
 const REGION_ALIASES = {
@@ -68,13 +68,13 @@ const ANCHORS = {
 };
 
 const ANATOMICAL_OFFSETS = {
-  'femoral-head':       { side: 'right', offset: [95, -28],  subLabel: 'Caput Femoris' },
-  'femoral-neck':       { side: 'right', offset: [105, 0],   subLabel: 'Collum Femoris' },
-  'greater-trochanter': { side: 'left',  offset: [-100, -24], subLabel: 'Trochanter Major' },
-  'intertrochanteric':  { side: 'left',  offset: [-100, 8],   subLabel: 'Crista Intertrochanterica' },
-  'lesser-trochanter':  { side: 'right', offset: [95, 24],   subLabel: 'Trochanter Minor' },
-  shaft:                { side: 'right', offset: [95, 0],    subLabel: 'Diaphysis / Corpus' },
-  'distal-condyles':    { side: 'left',  offset: [-95, 12],  subLabel: 'Condylus Medialis/Lateralis' },
+  'femoral-head':       { side: 'right', offset: [44, -16], subLabel: 'Caput Femoris' },
+  'femoral-neck':       { side: 'right', offset: [48, 0],   subLabel: 'Collum Femoris' },
+  'greater-trochanter': { side: 'left',  offset: [-44, -12],subLabel: 'Trochanter Major' },
+  'intertrochanteric':  { side: 'left',  offset: [-44, 4],  subLabel: 'Crista Intertroch.' },
+  'lesser-trochanter':  { side: 'right', offset: [44, 12],  subLabel: 'Trochanter Minor' },
+  shaft:                { side: 'right', offset: [42, 0],   subLabel: 'Diaphysis / Corpus' },
+  'distal-condyles':    { side: 'left',  offset: [-40, 6],  subLabel: 'Condyli' },
 };
 
 const RADII = {
@@ -355,12 +355,12 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
         const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
 
         const isLeft = z.side === 'left';
-        const [targetX, targetY] = z.offset || (isLeft ? [-100, -10] : [100, -10]);
-        const midX = isLeft ? -30 : 30;
+        const [targetX, targetY] = z.offset || (isLeft ? [-44, 0] : [44, 0]);
+        const midX = isLeft ? -16 : 16;
 
         return (
           <group key={z.id} position={z.anchor}>
-            <Html distanceFactor={4.5} zIndexRange={[100, 0]}>
+            <Html distanceFactor={7.5} zIndexRange={[40, 0]}>
               <div className="relative pointer-events-none select-none">
                 {/* 1. Target Pin Anchor on Bone Surface */}
                 <div
@@ -373,11 +373,11 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   onMouseLeave={() => onHoverZone?.(null)}
                 >
                   <div
-                    className="w-3.5 h-3.5 rounded-full flex items-center justify-center transition-transform hover:scale-125"
+                    className="w-3 h-3 rounded-full flex items-center justify-center transition-transform hover:scale-125"
                     style={{
                       background: 'rgba(3, 7, 18, 0.9)',
                       border: `1.5px solid ${pinColor}`,
-                      boxShadow: `0 0 10px ${pinColor}`,
+                      boxShadow: `0 0 8px ${pinColor}`,
                     }}
                   >
                     <span
@@ -387,7 +387,7 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   </div>
                   {(isSelected || isHovered) && (
                     <span
-                      className="w-4 h-4 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                      className="w-3.5 h-3.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
                       style={{ background: pinColor }}
                     />
                   )}
@@ -398,21 +398,19 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   className="absolute top-0 left-0 overflow-visible pointer-events-none"
                   style={{ width: 1, height: 1 }}
                 >
-                  {/* Outer line shadow */}
                   <path
                     d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
                     fill="none"
                     stroke={pinColor}
-                    strokeWidth={isSelected || isHovered ? '2.5' : '1.5'}
+                    strokeWidth={isSelected || isHovered ? '2.0' : '1.2'}
                     strokeOpacity={isSelected || isHovered ? 0.95 : 0.70}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                  {/* End node dot on label */}
                   <circle
                     cx={targetX}
                     cy={targetY}
-                    r={2.5}
+                    r={2}
                     fill={pinColor}
                   />
                 </svg>
@@ -423,7 +421,7 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   style={{
                     left: `${targetX}px`,
                     top: `${targetY}px`,
-                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(6px, -50%)',
+                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(4px, -50%)',
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -433,55 +431,61 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   onMouseLeave={() => onHoverZone?.(null)}
                 >
                   <div
-                    className={`rounded-xl px-2.5 py-1.5 shadow-2xl backdrop-blur-md transition-all ${
+                    className={`rounded-lg px-2 py-1 shadow-xl backdrop-blur-md transition-all ${
                       isSelected || isHovered ? 'scale-105' : 'hover:scale-102'
                     }`}
                     style={{
                       background: isSelected || isHovered ? 'rgba(3, 7, 18, 0.96)' : 'rgba(15, 23, 42, 0.88)',
                       border: `1px solid ${pinColor}aa`,
-                      boxShadow: isSelected || isHovered ? `0 0 20px ${pinColor}66` : '0 4px 12px rgba(0,0,0,0.5)',
-                      minWidth: 135,
+                      boxShadow: isSelected || isHovered ? `0 0 14px ${pinColor}66` : '0 2px 8px rgba(0,0,0,0.5)',
+                      minWidth: 95,
+                      maxWidth: 120,
                     }}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-black text-white whitespace-nowrap tracking-tight">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="text-[10px] font-black text-white whitespace-nowrap tracking-tight truncate">
                         {z.label}
                       </span>
                       <span
-                        className="text-[8px] font-black px-1.5 py-0.2 rounded shrink-0 uppercase"
+                        className="text-[7.5px] font-black px-1 py-0.2 rounded shrink-0 uppercase"
                         style={{
                           background: `${pinColor}25`,
                           color: pinColor,
                           border: `1px solid ${pinColor}44`,
                         }}
                       >
-                        {isHigh ? 'High Risk' : isMod ? 'Elevated' : 'Normal'}
+                        {isHigh ? 'High' : isMod ? 'Elev.' : 'Norm'}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 mt-0.5 text-[9px] text-slate-400">
-                      <span className="font-semibold truncate max-w-[85px]">{z.subLabel || 'Anatomy'}</span>
-                      <span className="font-mono font-bold" style={{ color: pinColor }}>
+                    <div className="flex items-center justify-between gap-1 mt-0.5 text-[8px] text-slate-400">
+                      <span className="font-semibold truncate max-w-[65px]">{z.subLabel || 'Anatomy'}</span>
+                      <span className="font-mono font-bold shrink-0" style={{ color: pinColor }}>
                         T: {z.tScore}
                       </span>
                     </div>
 
                     {/* Detailed "Why it's a Risk Zone" when hovered or selected */}
                     {(isSelected || isHovered) && (
-                      <div className="mt-2 pt-2 border-t border-white/10 text-left animate-fade-in w-60">
-                        <div className="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                      <div
+                        className="mt-1.5 pt-1.5 border-t border-white/10 text-left animate-fade-in w-44"
+                        style={{
+                          position: 'relative',
+                        }}
+                      >
+                        <div className="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
                           Why It&apos;s a Risk Zone:
                         </div>
-                        <p className="text-[10px] text-slate-200 leading-relaxed font-medium mb-2">
+                        <p className="text-[8.5px] text-slate-200 leading-tight font-medium mb-1.5">
                           {z.note}
                         </p>
-                        <div className="grid grid-cols-2 gap-1 text-[9px] bg-white/5 p-1.5 rounded-lg border border-white/5">
+                        <div className="grid grid-cols-2 gap-1 text-[7.5px] bg-white/5 p-1 rounded border border-white/5">
                           <div>
-                            <span className="text-slate-400 block text-[8px]">vBMD</span>
+                            <span className="text-slate-400 block text-[6.5px]">vBMD</span>
                             <span className="font-bold text-white">{z.vBMD} mg/cm³</span>
                           </div>
                           <div>
-                            <span className="text-slate-400 block text-[8px]">Fracture Risk</span>
+                            <span className="text-slate-400 block text-[6.5px]">Fracture Risk</span>
                             <span className="font-bold" style={{ color: pinColor }}>
                               {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
                             </span>
@@ -648,7 +652,7 @@ class BoneModelErrorBoundary extends Component {
 // Viewport Overlay (View Controls + Clean Risk Heatmap Legend)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const P = { background: 'rgba(3,7,18,0.90)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, fontFamily: 'system-ui' };
+const P = { background: 'rgba(3,7,18,0.92)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, fontFamily: 'system-ui' };
 
 function ViewportOverlay({
   preset,
@@ -657,116 +661,105 @@ function ViewportOverlay({
   onXray,
   showAnnotations,
   onToggleAnnotations,
-  isFullscreen,
-  onToggleFullscreen,
-  zones
 }) {
-  const highCount = zones.filter(z => z.riskLevel === 'high').length;
+  const [open, setOpen] = useState(false);
+
+  const planes = [
+    { id: 'coronal',    label: 'Coronal',    abbr: 'AP' },
+    { id: 'sagittal',   label: 'Sagittal',   abbr: 'LAT' },
+    { id: 'axial',      label: 'Axial',      abbr: 'AX' },
+    { id: 'pa',         label: 'PA View',    abbr: 'PA' },
+    { id: 'oblique',    label: 'Oblique',    abbr: 'OBL' },
+    { id: 'tangential', label: 'Tangential', abbr: 'TAN' },
+  ];
+
+  const currentPlane = planes.find(p => p.id === preset) || planes[0];
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
-      {/* Top-Right: View Controls */}
-      <div className="pointer-events-auto absolute right-4 top-4" style={{ width: 178 }}>
-        <div style={{ ...P, overflow: 'hidden' }}>
-          <div style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
+      {/* Top-Right: Sleek Collapsible Planes & View Menu */}
+      <div className="pointer-events-auto absolute right-3 top-3">
+        <div style={{ ...P }}>
+          <button
+            type="button"
+            onClick={() => setOpen(!open)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 9px', borderRadius: 10, cursor: 'pointer',
+              background: open ? 'rgba(59,130,246,0.2)' : 'transparent',
+              border: 'none', color: '#e2e8f0', fontSize: 10, fontWeight: 800,
+            }}
+          >
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 6px #38bdf8' }} />
-            <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', color: '#7dd3fc', textTransform: 'uppercase' }}>View Controls</span>
-          </div>
-          <div style={{ padding: '8px', maxHeight: 190, overflowY: 'auto' }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 4px 5px' }}>Orthogonal Planes & Projections</p>
-            {[
-              { id: 'coronal',    label: 'Coronal',    abbr: 'AP' },
-              { id: 'sagittal',   label: 'Sagittal',   abbr: 'LAT' },
-              { id: 'axial',      label: 'Axial',      abbr: 'AX' },
-              { id: 'pa',         label: 'PA View',    abbr: 'PA' },
-              { id: 'oblique',    label: 'Oblique',    abbr: 'OBL' },
-              { id: 'tangential', label: 'Tangential', abbr: 'TAN' },
-            ].map(p => (
-              <button key={p.id} type="button" onClick={() => onPreset(p.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                padding: '5px 7px', borderRadius: 7, marginBottom: 2,
-                border: preset === p.id ? '1px solid rgba(59,130,246,0.5)' : '1px solid transparent',
-                background: preset === p.id ? 'rgba(59,130,246,0.18)' : 'transparent',
-                cursor: 'pointer',
-              }}>
-                <div style={{ width: 28, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: preset === p.id ? 'rgba(59,130,246,0.32)' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  <span style={{ fontSize: 8, fontWeight: 800, color: preset === p.id ? '#93c5fd' : '#64748b' }}>{p.abbr}</span>
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: preset === p.id ? '#e2e8f0' : '#94a3b8' }}>{p.label}</span>
+            <span>Plane: {currentPlane.abbr}</span>
+            <span style={{ fontSize: 8, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+          </button>
+
+          {open && (
+            <div style={{ padding: '6px 6px 6px', borderTop: '1px solid rgba(255,255,255,0.06)', width: 145 }}>
+              <p style={{ fontSize: 8, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 4px 4px' }}>Orthogonal Presets</p>
+              {planes.map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { onPreset(p.id); setOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                    padding: '4px 6px', borderRadius: 6, marginBottom: 1,
+                    border: preset === p.id ? '1px solid rgba(59,130,246,0.5)' : '1px solid transparent',
+                    background: preset === p.id ? 'rgba(59,130,246,0.2)' : 'transparent',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 8, fontWeight: 900, color: preset === p.id ? '#93c5fd' : '#64748b', width: 22 }}>{p.abbr}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: preset === p.id ? '#ffffff' : '#94a3b8' }}>{p.label}</span>
+                </button>
+              ))}
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+              <button
+                type="button"
+                onClick={() => { onToggleAnnotations(); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, width: '100%',
+                  padding: '4px 6px', borderRadius: 6, cursor: 'pointer',
+                  background: showAnnotations ? 'rgba(59,130,246,0.18)' : 'transparent',
+                  border: 'none', color: showAnnotations ? '#93c5fd' : '#94a3b8',
+                  fontSize: 9.5, fontWeight: 700,
+                }}
+              >
+                <Tag size={10} />
+                <span>{showAnnotations ? 'Hide Badges' : 'Show Badges'}</span>
               </button>
-            ))}
-          </div>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '0 10px' }} />
-          <div style={{ padding: '6px 8px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <button type="button" onClick={onToggleAnnotations} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
-              fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
-              background: showAnnotations ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.04)',
-              border: showAnnotations ? '1px solid rgba(59,130,246,0.6)' : '1px solid rgba(255,255,255,0.08)',
-              color: showAnnotations ? '#93c5fd' : '#94a3b8',
-            }}>
-              <Tag size={12} />
-              <span>{showAnnotations ? 'Hide 3D Annotations' : 'Show 3D Annotations'}</span>
-            </button>
-            <button type="button" onClick={onXray} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
-              fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
-              background: isXray ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
-              border: isXray ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.08)',
-              color: isXray ? '#67e8f9' : '#94a3b8',
-            }}>
-              {isXray ? <EyeOff size={12} /> : <Eye size={12} />}
-              <span>{isXray ? 'Exit X-Ray' : 'X-Ray View'}</span>
-            </button>
-            {onToggleFullscreen && (
-              <button type="button" onClick={onToggleFullscreen} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
-                fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
-                background: isFullscreen ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
-                border: isFullscreen ? '1px solid rgba(99,102,241,0.6)' : '1px solid rgba(255,255,255,0.08)',
-                color: isFullscreen ? '#a5b4fc' : '#94a3b8',
-              }}>
-                {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-                <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen View'}</span>
+              <button
+                type="button"
+                onClick={() => { onXray(); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, width: '100%',
+                  padding: '4px 6px', borderRadius: 6, cursor: 'pointer',
+                  background: isXray ? 'rgba(6,182,212,0.2)' : 'transparent',
+                  border: 'none', color: isXray ? '#67e8f9' : '#94a3b8',
+                  fontSize: 9.5, fontWeight: 700,
+                }}
+              >
+                {isXray ? <EyeOff size={10} /> : <Eye size={10} />}
+                <span>{isXray ? 'Exit X-Ray' : 'X-Ray View'}</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Bottom-Right: Clean Risk Heatmap Legend */}
-      <div className="pointer-events-none absolute right-4 bottom-5">
-        <div style={{ ...P, overflow: 'hidden', width: 178 }}>
-          <div style={{ padding: '7px 11px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <ScanLine size={11} color="#7dd3fc" />
-              <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', color: '#7dd3fc', textTransform: 'uppercase' }}>Risk Heatmap</span>
-            </div>
-            {highCount > 0 && <span style={{ fontSize: 9, fontWeight: 900, color: '#f87171', background: 'rgba(127,29,29,0.4)', border: '1px solid rgba(239,68,68,0.4)', padding: '1px 5px', borderRadius: 4 }}>CRITICAL</span>}
-          </div>
-          <div style={{ padding: '9px 11px', display: 'flex', gap: 10, alignItems: 'stretch' }}>
-            <div style={{
-              width: 9, borderRadius: 4, flexShrink: 0,
-              background: 'linear-gradient(to top, #ffffff 0%, #f97316 50%, #ef4444 100%)',
-              boxShadow: '0 0 10px rgba(239,68,68,0.2)',
-            }} />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 10, fontWeight: 700 }}>
-              <div className="flex justify-between text-red-400">
-                <span>High Risk</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-              </div>
-              <div className="flex justify-between text-orange-400">
-                <span>Moderate</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-              </div>
-              <div className="flex justify-between text-slate-100">
-                <span>Normal Bone</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400" />
-              </div>
-            </div>
+      {/* Bottom-Right: Ultra-Compact Clean Risk Heatmap Legend */}
+      <div className="pointer-events-none absolute right-3 bottom-3">
+        <div style={{ ...P, overflow: 'hidden', padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 5, height: 32, borderRadius: 3, flexShrink: 0,
+            background: 'linear-gradient(to top, #ffffff 0%, #f97316 50%, #ef4444 100%)',
+          }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 8.5, fontWeight: 800 }}>
+            <span className="text-red-400 leading-none">High Risk</span>
+            <span className="text-orange-400 leading-none">Moderate</span>
+            <span className="text-slate-200 leading-none">Normal</span>
           </div>
         </div>
       </div>
