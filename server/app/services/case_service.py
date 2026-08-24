@@ -226,32 +226,39 @@ class CaseService:
         deleted = False
 
         if db_manager.is_connected and db_manager.db is not None:
-            res = await db_manager.db.cases.delete_many({"$or": [{"_id": case_id}, {"case_id": case_id}, {"case_id": target}]})
+            res = await db_manager.db.cases.delete_many(
+                {"$or": [{"_id": case_id}, {"case_id": case_id}, {"case_id": target}]}
+            )
             if res.deleted_count > 0:
                 deleted = True
-            await db_manager.db.biomarkers.delete_many({"$or": [{"case_id": case_id}, {"case_id": target}]})
-            await db_manager.db.roi.delete_many({"$or": [{"case_id": case_id}, {"case_id": target}]})
-            await db_manager.db.annotations.delete_many({"$or": [{"case_id": case_id}, {"case_id": target}]})
-            await db_manager.db.simulations.delete_many({"$or": [{"case_id": case_id}, {"case_id": target}]})
+            # Cascade — always clean up related records regardless
+            for collection in ["biomarkers", "roi", "annotations", "simulations"]:
+                await db_manager.db[collection].delete_many(
+                    {"$or": [{"case_id": case_id}, {"case_id": target}]}
+                )
+        else:
+            local_data = db_manager.get_local_data()
+            cases = local_data.get("cases", [])
+            initial_len = len(cases)
+            local_data["cases"] = [
+                c for c in cases
+                if str(c.get("case_id", "")).lower() != target
+                and str(c.get("_id", "")).lower() != target
+            ]
+            if len(local_data["cases"]) < initial_len:
+                deleted = True
 
-        local_data = db_manager.get_local_data()
-        cases = local_data.get("cases", [])
-        initial_len = len(cases)
-        local_data["cases"] = [c for c in cases if str(c.get("case_id", "")).lower() != target and str(c.get("_id", "")).lower() != target]
-        if len(local_data["cases"]) != initial_len:
-            deleted = True
+            for key in ["biomarkers", "roi", "annotations", "simulations"]:
+                local_data[key] = [
+                    x for x in local_data.get(key, [])
+                    if str(x.get("case_id", "")).lower() != target
+                ]
 
-        if "biomarkers" in local_data:
-            local_data["biomarkers"] = [b for b in local_data["biomarkers"] if str(b.get("case_id", "")).lower() != target]
-        if "roi" in local_data:
-            local_data["roi"] = [r for r in local_data["roi"] if str(r.get("case_id", "")).lower() != target]
-        if "annotations" in local_data:
-            local_data["annotations"] = [a for a in local_data["annotations"] if str(a.get("case_id", "")).lower() != target]
-        if "simulations" in local_data:
-            local_data["simulations"] = [s for s in local_data["simulations"] if str(s.get("case_id", "")).lower() != target]
+            # Only persist if something actually changed
+            if deleted:
+                db_manager.save_local_data(local_data)
 
-        db_manager.save_local_data(local_data)
-        return True
+        return deleted
 
     @staticmethod
     async def get_full_case_view(case_id: str) -> Optional[Dict[str, Any]]:
