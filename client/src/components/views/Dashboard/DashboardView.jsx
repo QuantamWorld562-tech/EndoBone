@@ -18,11 +18,8 @@ import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId } = usePatientContext();
-  const handleSelectPatient = onSelectPatient || ((id) => {
-    setActivePatientId(id);
-    navigate(`/patients/${id}/metabolic`);
-  });
+  const handleSelectPatient = onSelectPatient || ((id) => navigate(`/patients/${id}/metabolic`));
+  const { patients, deleteCase } = usePatientContext();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -226,7 +223,7 @@ export default function DashboardView({ onSelectPatient }) {
                       <span className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-black ring-1 ${badge.cls}`}>
                         {badge.text}
                       </span>
-                      
+
                       {/* Delete Case Button */}
                       <button
                         type="button"

@@ -32,13 +32,6 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
     );
   }, [patients, searchTerm]);
 
-  // Sync URL patientId with activePatientId in context
-  useEffect(() => {
-    if (params.patientId && params.patientId !== activePatientId) {
-      setActivePatientId(params.patientId);
-    }
-  }, [params.patientId, activePatientId, setActivePatientId]);
-
   // Click outside search dismiss
   useEffect(() => {
     function handleClickOutside(e) {

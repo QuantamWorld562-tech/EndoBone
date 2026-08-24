@@ -16,14 +16,14 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import { AssessmentSkeleton, RiskDonut } from '../../common';
+import { AssessmentSkeleton, RiskDonut, EndocrineTrendChart } from '../../common';
 import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function AIAssessmentView({ patientId }) {
   const params = useParams();
   const navigate = useNavigate();
   const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-  const { assessment, persistedAssessment, isAnalyzing } = usePatientContext();
+  const { assessment, persistedAssessment, isAnalyzing, biomarkers } = usePatientContext();
 
   if (isAnalyzing || !assessment) {
     return <AssessmentSkeleton />;
@@ -83,13 +83,13 @@ export default function AIAssessmentView({ patientId }) {
   };
 
   const priorityStyle = (p) =>
-    ({
-      critical: { ring: 'ring-red-200', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-600' },
-      high: { ring: 'ring-amber-200', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
-      moderate: { ring: 'ring-blue-200', bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
-      low: { ring: 'ring-teal-200', bg: 'bg-teal-50', text: 'text-teal-700', dot: 'bg-teal-500' },
-      routine: { ring: 'ring-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-500' },
-    }[p] || { ring: 'ring-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-500' });
+  ({
+    critical: { ring: 'ring-red-200', bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-600' },
+    high: { ring: 'ring-amber-200', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
+    moderate: { ring: 'ring-blue-200', bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
+    low: { ring: 'ring-teal-200', bg: 'bg-teal-50', text: 'text-teal-700', dot: 'bg-teal-500' },
+    routine: { ring: 'ring-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-500' },
+  }[p] || { ring: 'ring-slate-200', bg: 'bg-slate-50', text: 'text-slate-600', dot: 'bg-slate-500' });
 
   return (
     <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">
@@ -115,13 +115,12 @@ export default function AIAssessmentView({ patientId }) {
           <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm">
             <span className="text-slate-500 font-semibold">DEXA</span>
             <span
-              className={`font-black ${
-                dexa_tscore <= -2.5
+              className={`font-black ${dexa_tscore <= -2.5
                   ? 'text-red-600'
                   : dexa_tscore <= -1
-                  ? 'text-amber-600'
-                  : 'text-teal-600'
-              }`}
+                    ? 'text-amber-600'
+                    : 'text-teal-600'
+                }`}
             >
               {dexa_tscore}
             </span>
@@ -167,6 +166,10 @@ export default function AIAssessmentView({ patientId }) {
               subtitle="Cortical porosity and trabecular microarchitecture assessment derived from CT analysis."
             />
           </div>
+
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-sm min-w-0 max-w-full overflow-hidden">
+            <EndocrineTrendChart biomarkers={biomarkers} />
+          </div>
         </div>
 
         <div className="lg:col-span-3 space-y-6">
@@ -181,13 +184,12 @@ export default function AIAssessmentView({ patientId }) {
                   <div>
                     <h3 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
                       AI Clinical Reasoning Engine
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        aiResults.risk_level === 'high'
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${aiResults.risk_level === 'high'
                           ? 'bg-red-500/30 text-red-300 border border-red-400/40'
                           : aiResults.risk_level === 'moderate'
-                          ? 'bg-amber-500/30 text-amber-300 border border-amber-400/40'
-                          : 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40'
-                      }`}>
+                            ? 'bg-amber-500/30 text-amber-300 border border-amber-400/40'
+                            : 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40'
+                        }`}>
                         {aiResults.risk_level} Risk Level
                       </span>
                     </h3>

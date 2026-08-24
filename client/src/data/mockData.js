@@ -67,16 +67,16 @@ export const patients = [
 export const biomarkersDB = {
   'PEB-8842-A': {
     date: '2024-08-14',
-    pth: { value: 85.2, unit: 'pg/mL', ref: '15.0-65.0', status: 'elevated', trend: 'up' },
-    vitaminD: { value: 18.5, unit: 'ng/mL', ref: '30.0-100.0', status: 'deficient', trend: 'down' },
-    calcium: { value: 8.2, unit: 'mg/dL', ref: '8.6-10.3', status: 'low', trend: 'down' },
-    phosphate: { value: 3.1, unit: 'mg/dL', ref: '2.5-4.5', status: 'normal', trend: 'stable' },
-    alp: { value: 85, unit: 'U/L', ref: '44-147', status: 'normal', trend: 'stable' },
-    tsh: { value: 1.8, unit: 'mIU/L', ref: '0.4-4.0', status: 'normal', trend: 'stable' },
-    free_t4: { value: 1.1, unit: 'ng/dL', ref: '0.8-1.8', status: 'normal', trend: 'stable' },
-    ctx: { value: 450, unit: 'pg/mL', ref: '< 300', status: 'elevated', trend: 'up' },
-    p1np: { value: 52, unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
-    magnesium: { value: 1.9, unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
+    pth: { value: '', unit: 'pg/mL', ref: '15.0-65.0', status: 'normal', trend: 'stable' },
+    vitaminD: { value: '', unit: 'ng/mL', ref: '30.0-100.0', status: 'normal', trend: 'stable' },
+    calcium: { value: '', unit: 'mg/dL', ref: '8.6-10.3', status: 'normal', trend: 'stable' },
+    phosphate: { value: '', unit: 'mg/dL', ref: '2.5-4.5', status: 'normal', trend: 'stable' },
+    alp: { value: '', unit: 'U/L', ref: '44-147', status: 'normal', trend: 'stable' },
+    tsh: { value: '', unit: 'mIU/L', ref: '0.4-4.0', status: 'normal', trend: 'stable' },
+    free_t4: { value: '', unit: 'ng/dL', ref: '0.8-1.8', status: 'normal', trend: 'stable' },
+    ctx: { value: '', unit: 'pg/mL', ref: '< 300', status: 'normal', trend: 'stable' },
+    p1np: { value: '', unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
+    magnesium: { value: '', unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
   },
   'PEB-8841-B': {
     date: '2024-08-12',
@@ -103,19 +103,6 @@ export const biomarkersDB = {
     ctx: { value: 250, unit: 'pg/mL', ref: '< 300', status: 'normal', trend: 'stable' },
     p1np: { value: 45, unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
     magnesium: { value: 2.1, unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
-  },
-  'PEB-8839-D': {
-    date: '2024-08-05',
-    pth: { value: 62.0, unit: 'pg/mL', ref: '15.0-65.0', status: 'normal', trend: 'stable' },
-    vitaminD: { value: 28.5, unit: 'ng/mL', ref: '30.0-100.0', status: 'low', trend: 'down' },
-    calcium: { value: 9.0, unit: 'mg/dL', ref: '8.6-10.3', status: 'normal', trend: 'stable' },
-    phosphate: { value: 3.6, unit: 'mg/dL', ref: '2.5-4.5', status: 'normal', trend: 'stable' },
-    alp: { value: 82, unit: 'U/L', ref: '44-147', status: 'normal', trend: 'stable' },
-    tsh: { value: 1.9, unit: 'mIU/L', ref: '0.4-4.0', status: 'normal', trend: 'stable' },
-    free_t4: { value: 1.0, unit: 'ng/dL', ref: '0.8-1.8', status: 'normal', trend: 'stable' },
-    ctx: { value: 310, unit: 'pg/mL', ref: '< 300', status: 'elevated', trend: 'up' },
-    p1np: { value: 48, unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
-    magnesium: { value: 2.0, unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
   }
 };
 
@@ -475,11 +462,11 @@ export const getReferenceRange = (biomarkerKey) => {
 export const getBiomarkerStatus = (value, biomarkerKey) => {
   const range = referenceRanges[biomarkerKey];
   if (!range) return 'unknown';
-  
+
   if (biomarkerKey === 'ctx') {
     return value > range.max ? 'elevated' : 'normal';
   }
-  
+
   if (value < range.min) return 'low';
   if (value > range.max) return 'elevated';
   return 'normal';
