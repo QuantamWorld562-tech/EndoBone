@@ -11,7 +11,7 @@
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF, Html, ContactShadows } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine, Tag } from 'lucide-react';
+import { Eye, EyeOff, ScanLine, Tag, Maximize2, Minimize2 } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -654,7 +654,17 @@ class BoneModelErrorBoundary extends Component {
 
 const P = { background: 'rgba(3,7,18,0.90)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, fontFamily: 'system-ui' };
 
-function ViewportOverlay({ preset, onPreset, isXray, onXray, showAnnotations, onToggleAnnotations, zones }) {
+function ViewportOverlay({
+  preset,
+  onPreset,
+  isXray,
+  onXray,
+  showAnnotations,
+  onToggleAnnotations,
+  isFullscreen,
+  onToggleFullscreen,
+  zones
+}) {
   const highCount = zones.filter(z => z.riskLevel === 'high').length;
 
   return (
@@ -666,7 +676,7 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, showAnnotations, on
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 6px #38bdf8' }} />
             <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', color: '#7dd3fc', textTransform: 'uppercase' }}>View Controls</span>
           </div>
-          <div style={{ padding: '8px', maxHeight: 200, overflowY: 'auto' }}>
+          <div style={{ padding: '8px', maxHeight: 190, overflowY: 'auto' }}>
             <p style={{ fontSize: 9, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 4px 5px' }}>Orthogonal Planes & Projections</p>
             {[
               { id: 'coronal',    label: 'Coronal',    abbr: 'AP' },
@@ -714,6 +724,19 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, showAnnotations, on
               {isXray ? <EyeOff size={12} /> : <Eye size={12} />}
               <span>{isXray ? 'Exit X-Ray' : 'X-Ray View'}</span>
             </button>
+            {onToggleFullscreen && (
+              <button type="button" onClick={onToggleFullscreen} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
+                fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
+                background: isFullscreen ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
+                border: isFullscreen ? '1px solid rgba(99,102,241,0.6)' : '1px solid rgba(255,255,255,0.08)',
+                color: isFullscreen ? '#a5b4fc' : '#94a3b8',
+              }}>
+                {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+                <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen View'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -768,6 +791,7 @@ export default function BoneModelViewer({
   xray = false,
   showAnnotations = true,
   autoRotate = false,
+  isFullscreen = false,
   selectedRegion = 'femoral-neck',
   riskLevel = 'high',
   clinicalNote = '',
@@ -777,6 +801,7 @@ export default function BoneModelViewer({
   onViewAngleChange,
   onXrayChange,
   onToggleAnnotations,
+  onToggleFullscreen,
 }) {
   const controlsRef = useRef();
   const [xrayOn, setXrayOn] = useState(xray);
@@ -888,6 +913,8 @@ export default function BoneModelViewer({
         onXray={handleXray}
         showAnnotations={annotationsOn}
         onToggleAnnotations={handleToggleAnnotations}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={onToggleFullscreen}
         zones={zones}
       />
     </div>

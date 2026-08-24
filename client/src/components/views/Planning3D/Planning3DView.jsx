@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Maximize2, Minimize2, Play, Pause, RotateCcw, Bone, FlaskConical,
@@ -58,7 +58,7 @@ function ZoneInspectionPanel({ zone }) {
       <div className="p-4 space-y-3">
         <div>
           <h3 className="text-sm font-black text-slate-900">{zone.label}</h3>
-          <p className="text-[11px] text-slate-500 font-medium mt-0.5">Anatomical Region • BMD Analysis</p>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5">{zone.subLabel || 'Anatomical Landmark'} • BMD Analysis</p>
         </div>
 
         {/* T-Score & vBMD row */}
@@ -132,6 +132,39 @@ export default function Planning3DView({ patientId }) {
   const rs = RISK_CFG[effectiveRiskLevel] ?? RISK_CFG.high;
   const currentRoiNote = roiNotes?.[selectedRegion] ?? '';
 
+  const toggleFullscreen = useCallback(() => {
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else {
+      setIsFullscreen(false);
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isFullscreen]);
+
   return (
     <div className="space-y-4">
       {/* ── Page Header ── */}
@@ -168,7 +201,7 @@ export default function Planning3DView({ patientId }) {
       </div>
 
       <div className="grid lg:grid-cols-12 gap-5">
-        {/* ── 3D Viewport (7 Cols on desktop) ── */}
+        {/* ── 3D Viewport (7 Cols on desktop, 100% full screen when active) ── */}
         <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-7'} flex flex-col gap-3`}>
           {/* Anatomy strip / DICOM Workstation Header */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-sm">
@@ -191,6 +224,17 @@ export default function Planning3DView({ patientId }) {
 
           {/* Viewer card */}
           <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] relative">
+            {/* Floating Top Center Exit Fullscreen Pill */}
+            {isFullscreen && (
+              <button
+                onClick={toggleFullscreen}
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-indigo-950/90 backdrop-blur-md border border-indigo-500/60 rounded-full text-xs font-black text-indigo-200 shadow-2xl hover:bg-indigo-900 transition animate-fade-in pointer-events-auto cursor-pointer"
+              >
+                <Minimize2 size={13} />
+                <span>Exit Fullscreen Mode (Esc)</span>
+              </button>
+            )}
+
             {/* Toolbar */}
             <div className="px-4 py-2.5 bg-[#0a0f1e] border-b border-slate-800/80 flex items-center justify-between gap-3 z-10">
               <div className="flex items-center gap-1 p-0.5 bg-slate-900/60 rounded-xl border border-slate-800">
@@ -255,8 +299,18 @@ export default function Planning3DView({ patientId }) {
                   <RotateCcw size={14} />
                 </button>
 
-                <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition" title="Toggle Fullscreen">
-                  {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                {/* Fullscreen Button */}
+                <button
+                  onClick={toggleFullscreen}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition text-xs font-bold ${
+                    isFullscreen
+                      ? 'bg-indigo-600/30 border-indigo-500/60 text-indigo-200'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                  title={isFullscreen ? 'Exit Fullscreen View (Esc)' : 'Expand to Fullscreen 3D Workstation'}
+                >
+                  {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                  <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
                 </button>
               </div>
             </div>
@@ -283,11 +337,13 @@ export default function Planning3DView({ patientId }) {
                 xray={renderMode === 'xray'}
                 showAnnotations={showAnnotations}
                 autoRotate={autoRotate}
+                isFullscreen={isFullscreen}
                 selectedRegion={selectedRegion}
                 onSelectRegion={(id) => { setSelectedRegion(id); setSidebarTab('anatomy'); }}
                 onZoneHover={setHoveredZone}
                 onViewAngleChange={setViewAngle}
                 onToggleAnnotations={setShowAnnotations}
+                onToggleFullscreen={toggleFullscreen}
                 onXrayChange={(x) => {
                   if (x) setRenderMode('xray');
                   else if (renderMode === 'xray') setRenderMode('heatmap');
