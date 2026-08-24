@@ -231,18 +231,32 @@ export default function AIAssessmentView({ patientId }) {
               </div>
 
               {aiResults.contributing_factors?.length > 0 && (
-                <div className="pt-2 border-t border-white/10">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                    AI Identified Drivers:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {aiResults.contributing_factors.map((factor, idx) => (
-                      <span
+                <div className="pt-3 border-t border-white/10 space-y-2">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    <BrainCircuit size={12} className="text-indigo-400" />
+                    AI Identified Drivers
+                    <span className="ml-auto px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-black text-indigo-300">
+                      {aiResults.contributing_factors.length}
+                    </span>
+                  </div>
+                  <div className="grid gap-2">
+                    {aiResults.contributing_factors.map((cf, idx) => (
+                      <div
                         key={idx}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-500/20 text-indigo-200 border border-indigo-400/20"
+                        className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3 hover:bg-white/10 transition"
                       >
-                        • {factor}
-                      </span>
+                        <span className="mt-0.5 w-5 h-5 rounded-full bg-indigo-500/30 border border-indigo-400/40 flex items-center justify-center text-[10px] font-black text-indigo-300 flex-shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-indigo-200 mb-0.5">
+                            {cf.factor}
+                          </p>
+                          <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            {cf.explanation}
+                          </p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
