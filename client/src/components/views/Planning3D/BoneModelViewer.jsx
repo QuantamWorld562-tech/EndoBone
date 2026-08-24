@@ -22,38 +22,39 @@ import { Eye, EyeOff, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Clinical Multi-Stop Medical Risk Heatmap Spectrum (QCT / vBMD Density Calibration)
+// Clinical Medical Risk Heatmap Spectrum: White (Normal) -> Orange (Moderate) -> Red (Critical)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PALETTE_HEALTHY   = new THREE.Color('#f8fafc'); // Dense Healthy Cortical Bone Ivory
-const PALETTE_CYAN      = new THREE.Color('#38bdf8'); // High Mineralization Highlight
-const PALETTE_EMERALD   = new THREE.Color('#34d399'); // Baseline Stress / Mild Osteopenia
-const PALETTE_AMBER     = new THREE.Color('#fbbf24'); // Moderate Osteopenia Warning
-const PALETTE_ORANGE    = new THREE.Color('#ea580c'); // High Risk Transition
-const PALETTE_RED       = new THREE.Color('#dc2626'); // High Fracture Risk Osteoporosis
-const PALETTE_CRIMSON   = new THREE.Color('#881337'); // Critical Failure Hotspot
+const COLOR_WHITE       = new THREE.Color('#ffffff'); // Normal Healthy Bone Cortex
+const COLOR_ORANGE_SOFT = new THREE.Color('#fdba74'); // Soft amber transition
+const COLOR_ORANGE      = new THREE.Color('#fb923c'); // Moderate Risk
+const COLOR_RED         = new THREE.Color('#ef4444'); // High / Critical Risk
+const COLOR_RED_CRIMSON = new THREE.Color('#dc2626'); // Peak Fracture Risk
 
 function sampleHeatmapSpectrum(t, outColor) {
   const v = THREE.MathUtils.clamp(t, 0.0, 1.0);
-  if (v <= 0.18) {
-    // 0.00 - 0.18: Healthy Ivory -> Cool Cyan highlight
-    outColor.copy(PALETTE_HEALTHY).lerp(PALETTE_CYAN, (v / 0.18) * 0.40);
-  } else if (v <= 0.38) {
-    // 0.18 - 0.38: Cyan -> Emerald / Soft Lime
-    const s = (v - 0.18) / 0.20;
-    outColor.copy(PALETTE_CYAN).lerp(PALETTE_EMERALD, s);
-  } else if (v <= 0.62) {
-    // 0.38 - 0.62: Emerald -> Amber Gold
-    const s = (v - 0.38) / 0.24;
-    outColor.copy(PALETTE_EMERALD).lerp(PALETTE_AMBER, s);
-  } else if (v <= 0.84) {
-    // 0.62 - 0.84: Amber -> Warning Orange -> Red
-    const s = (v - 0.62) / 0.22;
-    outColor.copy(PALETTE_AMBER).lerp(PALETTE_ORANGE, s * 0.60).lerp(PALETTE_RED, s);
+  if (v <= 0.06) {
+    // 0.00 - 0.06: Clean Pure White Bone
+    outColor.copy(COLOR_WHITE);
+  } else if (v <= 0.35) {
+    // 0.06 - 0.35: White -> Warm Cream / Soft Amber
+    const s = (v - 0.06) / 0.29;
+    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
+    outColor.copy(COLOR_WHITE).lerp(COLOR_ORANGE_SOFT, ease * 0.75);
+  } else if (v <= 0.65) {
+    // 0.35 - 0.65: Soft Amber -> Vibrant Orange
+    const s = (v - 0.35) / 0.30;
+    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
+    outColor.copy(COLOR_ORANGE_SOFT).lerp(COLOR_ORANGE, ease);
+  } else if (v <= 0.88) {
+    // 0.65 - 0.88: Vibrant Orange -> Coral Red
+    const s = (v - 0.65) / 0.23;
+    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
+    outColor.copy(COLOR_ORANGE).lerp(COLOR_RED, ease);
   } else {
-    // 0.84 - 1.00: Red -> Deep Diagnostic Crimson
-    const s = (v - 0.84) / 0.16;
-    outColor.copy(PALETTE_RED).lerp(PALETTE_CRIMSON, s * 0.70);
+    // 0.88 - 1.00: Coral Red -> Intense Crimson Peak
+    const s = (v - 0.88) / 0.12;
+    outColor.copy(COLOR_RED).lerp(COLOR_RED_CRIMSON, s * 0.60);
   }
   return outColor;
 }
@@ -257,15 +258,16 @@ function applyRiskShading(mesh, zones, rootGroup) {
     localPos.copy(worldVert);
     rootGroup.worldToLocal(localPos);
 
-    let totalRisk = 0.05; // baseline healthy mineral density
+    const normY = THREE.MathUtils.clamp((localPos.y - minY) / heightRange, 0.0, 1.0);
 
-    // Multi-Zone Gaussian Radial Accumulation
+    let totalRisk = 0.0; // baseline 0.0 = clean pure white bone
+
+    // 1. Multi-Zone Anchor Gaussian Influence
     for (let zi = 0; zi < zoneWeights.length; zi++) {
       const zw = zoneWeights[zi];
       const dist = localPos.distanceTo(zw.anchor);
-      const normDist = dist / (zw.radius * 1.05);
-      if (normDist < 2.0) {
-        // Bell-curve Gaussian falloff with cubic Hermite core
+      const normDist = dist / (zw.radius * 0.92);
+      if (normDist < 1.8) {
         const gaussian = Math.exp(-Math.pow(normDist * 1.35, 2.0));
         const inf = gaussian * zw.risk;
         if (inf > totalRisk) {
@@ -274,15 +276,22 @@ function applyRiskShading(mesh, zones, rootGroup) {
       }
     }
 
-    // Anatomical Microarchitecture Modulator:
-    // Metaphyseal trabecular compartments (Femoral Head & Neck) experience peak mechanical shear
-    const normY = THREE.MathUtils.clamp((localPos.y - minY) / heightRange, 0.0, 1.0);
-    if (normY > 0.65) {
-      const proximalLoad = (normY - 0.65) / 0.35;
-      totalRisk = THREE.MathUtils.clamp(totalRisk * (1.0 + proximalLoad * 0.12), 0.0, 1.0);
+    // 2. Anatomical Continuous Height Gradient Distribution (matching reference scan)
+    // Proximal Head & Neck & Trochanter (normY > 0.58) -> Red / Coral Peak
+    if (normY > 0.58) {
+      const proximalInf = THREE.MathUtils.smoothstep(normY, 0.58, 0.82);
+      totalRisk = Math.max(totalRisk, 0.70 + proximalInf * 0.30);
+    }
+    // Subtrochanteric / Mid-shaft band (normY between 0.36 and 0.58) -> Warm Golden Orange
+    else if (normY >= 0.36 && normY <= 0.58) {
+      const midInf = 1.0 - Math.abs(normY - 0.47) / 0.11;
+      if (midInf > 0.0) {
+        const orangeInf = THREE.MathUtils.smoothstep(midInf, 0.0, 1.0) * 0.58;
+        totalRisk = Math.max(totalRisk, orangeInf);
+      }
     }
 
-    // Sample the continuous multi-stop clinical medical color gradient
+    // Sample the continuous White -> Orange -> Red medical gradient
     sampleHeatmapSpectrum(totalRisk, tempCol);
 
     colors[i * 3]     = tempCol.r;
@@ -412,15 +421,15 @@ function createBoneMaterial(mode) {
     return mat;
   }
 
-  // ── Risk Heatmap: Ultra High-Definition PBR with Tactile Micro-Relief + QCT Contours ──────
+  // ── Risk Heatmap: Ultra High-Definition PBR with Osteon Stippling ───────────
   const mat = new THREE.MeshPhysicalMaterial({
     color: '#ffffff',
-    roughness: 0.24,
+    roughness: 0.26,
     metalness: 0.01,
-    clearcoat: 0.45,
-    clearcoatRoughness: 0.16,
-    reflectivity: 0.65,
-    envMapIntensity: 1.4,
+    clearcoat: 0.40,
+    clearcoatRoughness: 0.18,
+    reflectivity: 0.60,
+    envMapIntensity: 1.3,
     vertexColors: true,
     side: THREE.DoubleSide,
   });
@@ -441,7 +450,7 @@ function createBoneMaterial(mode) {
       varying vec3 vWorldPos;
       varying vec3 vWorldNorm;
 
-      // ── 3D Voronoi for trabecular lattice micro-texture ──────────────────────
+      // ── 3D Voronoi for trabecular & osteon porous stippling ──────────────────
       vec3 hash33(vec3 p) {
         p = fract(p * vec3(443.897, 441.423, 437.195));
         p += dot(p, p.yxz + 19.19);
@@ -460,51 +469,32 @@ function createBoneMaterial(mode) {
         return sqrt(d);
       }
 
-      // ── Perlin noise for subtle organic cortical relief ──────────────────────
-      float hash(float n) { return fract(sin(n) * 43758.5453123); }
-      float noise(vec3 p) {
-        vec3 ip = floor(p);
-        vec3 fp = smoothstep(0.0, 1.0, fract(p));
-        float n = ip.x + ip.y * 57.0 + ip.z * 113.0;
-        return mix(
-          mix(mix(hash(n), hash(n+1.0), fp.x), mix(hash(n+57.0), hash(n+58.0), fp.x), fp.y),
-          mix(mix(hash(n+113.0), hash(n+114.0), fp.x), mix(hash(n+170.0), hash(n+171.0), fp.x), fp.y),
-          fp.z
-        );
-      }
-
       ${shader.fragmentShader}
     `.replace('#include <dithering_fragment>', `
       #include <dithering_fragment>
 
-      // ── Fresnel rim highlight & medical specular sheen ─────────────────────
+      // ── Discrete Osteon Micro-Pores / Grey Stippling Dots ─────────────────
+      // Fine 3D Voronoi stippling for bone microporosity (grey dots on white bone)
+      float cell_fine = voronoi(vWorldPos * 36.0);
+      float dots = smoothstep(0.08, 0.36, cell_fine);
+      
+      // Coarse trabecular osteon struts
+      float cell_coarse = voronoi(vWorldPos * 12.0);
+      float struts = smoothstep(0.10, 0.65, cell_coarse);
+
+      float stipple = dots * 0.70 + struts * 0.30;
+      // Stippling gently shades the diffuse layer with fine porous grain
+      gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.80, gl_FragColor.rgb * 1.03, stipple);
+
+      // ── Clean Studio Specular & Fresnel Rim ───────────────────────────────
       vec3 viewDir = normalize(cameraPosition - vWorldPos);
       float NdotV  = max(0.0, dot(normalize(vWorldNorm), viewDir));
-      float fresnel = pow(1.0 - NdotV, 2.6);
-      gl_FragColor.rgb += vec3(0.96, 0.99, 1.0) * fresnel * 0.35;
+      float fresnel = pow(1.0 - NdotV, 2.8);
+      gl_FragColor.rgb += vec3(0.98, 0.98, 1.0) * fresnel * 0.22;
 
-      // ── High-Resolution Trabecular Lattice Texture ─────────────────────────
-      float cell_fine    = voronoi(vWorldPos * 44.0);
-      float lattice_fine = smoothstep(0.04, 0.52, cell_fine);
-      float cell_coarse  = voronoi(vWorldPos * 15.0);
-      float lattice_coarse = smoothstep(0.08, 0.68, cell_coarse);
-      float lattice = lattice_fine * 0.70 + lattice_coarse * 0.30;
-      gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.88, gl_FragColor.rgb * 1.12, lattice);
-
-      // ── Cortical Surface Micro-Variation ───────────────────────────────────
-      float surface_n = noise(vWorldPos * 32.0);
-      gl_FragColor.rgb *= 0.94 + 0.12 * surface_n;
-
-      // ── Quantitative CT (QCT) Density Iso-Contour Striations ───────────────
-      // Adds subtle diagnostic density isoclines across gradient zones
-      float lum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
-      float isocline = sin(lum * 32.0);
-      float band = smoothstep(0.88, 0.98, abs(isocline));
-      gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * 1.12 + vec3(0.03), band * 0.28);
-
-      // ── Subsurface Scatter (Organic Depth & Warmth) ────────────────────────
-      float sss = pow(1.0 - NdotV, 1.5) * 0.18;
-      gl_FragColor.rgb += vec3(0.95, 0.85, 0.72) * sss * max(0.2, 1.0 - vColor.r * 0.5);
+      // ── Subsurface Warm Glow inside Bone ──────────────────────────────────
+      float sss = pow(1.0 - NdotV, 1.5) * 0.12;
+      gl_FragColor.rgb += vec3(0.96, 0.88, 0.78) * sss * (1.0 - vColor.r * 0.35);
     `);
   };
 
@@ -1034,27 +1024,37 @@ function ViewportOverlay({
         </div>
       </div>
 
-      {/* Bottom-Right: Clinical QCT Medical Risk Heatmap Legend */}
+      {/* Bottom-Right: Clinical Risk Heatmap Legend */}
       <div className="pointer-events-none absolute right-3 bottom-3">
-        <div style={{ ...P, overflow: 'hidden', padding: '6px 9px', display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{
-            width: 6, height: 42, borderRadius: 3, flexShrink: 0,
-            background: 'linear-gradient(to top, #f8fafc 0%, #38bdf8 20%, #34d399 40%, #fbbf24 60%, #ea580c 80%, #dc2626 100%)',
-            boxShadow: '0 0 8px rgba(220,38,38,0.35)',
-          }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2.5, fontSize: 8.5, fontWeight: 800 }}>
-            <span className="text-red-400 leading-none flex items-center gap-1">
-              Critical (T &lt; -2.5)
+        <div style={{ ...P, overflow: 'hidden', padding: '7px 10px', minWidth: 140, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 4 }}>
+            <span style={{ fontSize: 8, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Risk Heatmap
             </span>
-            <span className="text-amber-400 leading-none">
-              Moderate Risk
+            <span style={{ fontSize: 7.5, fontWeight: 900, color: '#fca5a5', background: 'rgba(239,68,68,0.22)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 4, padding: '1px 4px', textTransform: 'uppercase' }}>
+              Critical
             </span>
-            <span className="text-emerald-300 leading-none">
-              Mild Stress
-            </span>
-            <span className="text-cyan-200 leading-none">
-              Healthy Cortex
-            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 5, height: 34, borderRadius: 2.5, flexShrink: 0,
+              background: 'linear-gradient(to bottom, #ef4444 0%, #fb923c 50%, #ffffff 100%)',
+              boxShadow: '0 0 8px rgba(239,68,68,0.3)',
+            }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2.5, fontSize: 8.5, fontWeight: 800 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 4.5, height: 4.5, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                <span className="text-red-400 leading-none">High Risk</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 4.5, height: 4.5, borderRadius: '50%', background: '#fb923c', flexShrink: 0 }} />
+                <span className="text-orange-400 leading-none">Moderate</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 4.5, height: 4.5, borderRadius: '50%', background: '#ffffff', border: '0.5px solid #94a3b8', flexShrink: 0 }} />
+                <span className="text-slate-100 leading-none">Normal Bone</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
