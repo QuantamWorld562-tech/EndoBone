@@ -42,39 +42,39 @@ function ZoneInspectionPanel({ zone }) {
   const riskPct = zone.riskLevel === 'high' ? 87 : zone.riskLevel === 'moderate' ? 52 : 12;
 
   return (
-    <div className={`rounded-2xl border ${cfg.border} ${cfg.bg} overflow-hidden animate-fade-in`}>
+    <div className={`rounded-2xl border ${cfg.border} ${cfg.bg} overflow-hidden min-w-0 max-w-full shadow-sm animate-fade-in`}>
       {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between bg-white/70 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <MapPin size={13} className={cfg.accent} />
-          <span className="text-xs font-black text-slate-800 uppercase tracking-wide">Active Zone</span>
+      <div className="px-4 py-2.5 flex items-center justify-between bg-white/70 border-b border-slate-100 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <MapPin size={13} className={`${cfg.accent} shrink-0`} />
+          <span className="text-xs font-black text-slate-800 uppercase tracking-wide truncate">Active Zone</span>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${cfg.badge} flex items-center gap-1`}>
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${cfg.badge} flex items-center gap-1 shrink-0`}>
           <Icon size={9} />
           {cfg.label}
         </span>
       </div>
 
-      <div className="p-4 space-y-3">
-        <div>
-          <h3 className="text-sm font-black text-slate-900">{zone.label}</h3>
-          <p className="text-[11px] text-slate-500 font-medium mt-0.5">{zone.subLabel || 'Anatomical Landmark'} • BMD Analysis</p>
+      <div className="p-4 space-y-3 min-w-0">
+        <div className="min-w-0">
+          <h3 className="text-sm font-black text-slate-900 truncate">{zone.label}</h3>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">{zone.subLabel || 'Anatomical Landmark'} • BMD Analysis</p>
         </div>
 
         {/* T-Score & vBMD row */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white/80 rounded-xl p-3 border border-white/80 text-center">
-            <div className={`text-lg font-black font-mono leading-none ${cfg.accent}`}>{zone.tScore}</div>
+        <div className="grid grid-cols-2 gap-2 min-w-0">
+          <div className="bg-white/80 rounded-xl p-2.5 border border-white/80 text-center min-w-0">
+            <div className={`text-base font-black font-mono leading-none ${cfg.accent}`}>{zone.tScore}</div>
             <div className="text-[10px] text-slate-500 font-bold mt-0.5">T-Score</div>
           </div>
-          <div className="bg-white/80 rounded-xl p-3 border border-white/80 text-center">
-            <div className="text-lg font-black font-mono leading-none text-slate-800">{zone.vBMD}</div>
+          <div className="bg-white/80 rounded-xl p-2.5 border border-white/80 text-center min-w-0">
+            <div className="text-base font-black font-mono leading-none text-slate-800">{zone.vBMD}</div>
             <div className="text-[10px] text-slate-500 font-bold mt-0.5">vBMD mg/cm³</div>
           </div>
         </div>
 
         {/* Risk level bar */}
-        <div>
+        <div className="min-w-0">
           <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
             <span>Fracture Risk Index</span>
             <span className={cfg.accent}>{riskPct}%</span>
@@ -85,12 +85,12 @@ function ZoneInspectionPanel({ zone }) {
         </div>
 
         {/* Clinical observation */}
-        <div className="bg-white/70 rounded-xl p-3 border border-slate-100">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Info size={11} className="text-slate-400" />
+        <div className="bg-white/70 rounded-xl p-3 border border-slate-100 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Info size={11} className="text-slate-400 shrink-0" />
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-wide">Clinical Observation</span>
           </div>
-          <p className="text-[11px] text-slate-700 font-medium leading-relaxed">{zone.note}</p>
+          <p className="text-[11px] text-slate-700 font-medium leading-relaxed break-words">{zone.note}</p>
         </div>
       </div>
     </div>
@@ -369,55 +369,55 @@ export default function Planning3DView({ patientId }) {
         </div>
 
         {/* ── Right Clinical Sidebar (5 Cols on desktop) ── */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 min-w-0 max-w-full overflow-hidden flex flex-col">
           {/* Multi-Tab Switcher (Curves, Anatomy, Biomarkers) */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex shadow-sm">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex shadow-sm min-w-0 overflow-x-auto">
             <button
               onClick={() => setSidebarTab('curves')}
-              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2 px-2.5 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 sidebarTab === 'curves'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <LineChart size={13} />
-              Endocrine Graphs
+              <LineChart size={13} className="shrink-0" />
+              <span className="truncate">Endocrine Graphs</span>
             </button>
             <button
               onClick={() => setSidebarTab('anatomy')}
-              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2 px-2.5 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 sidebarTab === 'anatomy'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Bone size={13} />
-              Anatomy &amp; Notes
+              <Bone size={13} className="shrink-0" />
+              <span className="truncate">Anatomy &amp; Notes</span>
             </button>
             <button
               onClick={() => setSidebarTab('biomarkers')}
-              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2 px-2.5 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 sidebarTab === 'biomarkers'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <FlaskConical size={13} />
-              Lab Panel
+              <FlaskConical size={13} className="shrink-0" />
+              <span className="truncate">Lab Panel</span>
             </button>
           </div>
 
           {/* Tab 1: Endocrine Profile & Biomarker Curves */}
           {sidebarTab === 'curves' && (
-            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-4 shadow-xl space-y-4">
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-3.5 sm:p-4 shadow-xl space-y-3.5 min-w-0 max-w-full overflow-hidden">
               <EndocrineTrendChart biomarkers={biomarkers} patientName={currentPatient.name} />
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between min-w-0">
                 <button
                   onClick={() => setSidebarTab('anatomy')}
-                  className="w-full py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                  className="w-full py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Crosshair size={13} />
-                  Inspect 3D Anatomical Risk Zones
+                  <span>Inspect 3D Anatomical Risk Zones</span>
                 </button>
               </div>
             </div>
@@ -425,14 +425,14 @@ export default function Planning3DView({ patientId }) {
 
           {/* Tab 2: Zone Inspection & Clinical Notes */}
           {sidebarTab === 'anatomy' && (
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0 max-w-full overflow-hidden">
               <ZoneInspectionPanel zone={activeZone} />
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
-                    <FileText size={10} /> Planning Notes ({activeZone?.label})
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm min-w-0 max-w-full overflow-hidden">
+                <div className="flex items-center justify-between min-w-0">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1 truncate">
+                    <FileText size={10} className="shrink-0" /> Planning Notes ({activeZone?.label})
                   </p>
-                  <span className="text-[10px] text-slate-400">Auto-saved</span>
+                  <span className="text-[10px] text-slate-400 shrink-0">Auto-saved</span>
                 </div>
                 <textarea
                   rows={3}
@@ -448,19 +448,19 @@ export default function Planning3DView({ patientId }) {
 
           {/* Tab 3: Lab Biomarkers Panel */}
           {sidebarTab === 'biomarkers' && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm min-w-0 max-w-full overflow-hidden">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Synchronized Lab Panel</p>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 {BIOMARKER_INPUTS.map(item => {
                   const b = biomarkers?.[item.key] || {};
                   const status = b.status || 'normal';
                   return (
-                    <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-bold text-slate-700">{item.fullLabel}</span>
-                        <span className="font-black text-slate-900 font-mono">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
+                    <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-xs mb-1 min-w-0">
+                        <span className="font-bold text-slate-700 truncate">{item.fullLabel}</span>
+                        <span className="font-black text-slate-900 font-mono shrink-0">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
                       </div>
-                      <div className="flex justify-between text-[11px] text-slate-400">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
                         <span>Ref: {item.ref}</span>
                         <span className={`font-bold uppercase ${status === 'elevated' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-teal-600'}`}>{status}</span>
                       </div>
