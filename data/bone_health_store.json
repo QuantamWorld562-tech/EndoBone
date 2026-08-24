@@ -443,6 +443,342 @@
       "_id": "PEB-3834-O",
       "created_at": "2026-08-23T14:08:30.295804Z",
       "updated_at": "2026-08-23T14:08:30.295804Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.060155Z",
+      "updated_at": "2026-08-24T04:43:36.060155Z"
+    },
+    {
+      "case_id": "PEB-5855-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-5855-O",
+      "_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.073901Z",
+      "updated_at": "2026-08-24T04:43:36.073901Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.350264Z",
+      "updated_at": "2026-08-24T04:50:05.350264Z"
+    },
+    {
+      "case_id": "PEB-9317-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-9317-O",
+      "_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.365666Z",
+      "updated_at": "2026-08-24T04:50:05.365666Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.568676Z",
+      "updated_at": "2026-08-24T04:50:41.568676Z"
+    },
+    {
+      "case_id": "PEB-5415-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-5415-O",
+      "_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.585901Z",
+      "updated_at": "2026-08-24T04:50:41.585901Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.927452Z",
+      "updated_at": "2026-08-24T04:55:18.927452Z"
+    },
+    {
+      "case_id": "PEB-2978-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-2978-O",
+      "_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.946440Z",
+      "updated_at": "2026-08-24T04:55:18.946440Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.307190Z",
+      "updated_at": "2026-08-24T05:01:15.307190Z"
+    },
+    {
+      "case_id": "PEB-9248-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-9248-O",
+      "_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.327856Z",
+      "updated_at": "2026-08-24T05:01:15.327856Z"
+    },
+    {
+      "case_id": "TEST-CASE-999",
+      "model_id": "01",
+      "patient_name": "Test Patient",
+      "patient_age": 62,
+      "patient_gender": "Female",
+      "clinical_indication": "Evaluation for total hip arthroplasty",
+      "procedure": "Evaluation for total hip arthroplasty",
+      "condition": null,
+      "name": null,
+      "age": null,
+      "gender": null,
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": null,
+      "vitaminD": null,
+      "vitamin_d": null,
+      "calcium": null,
+      "phosphate": null,
+      "alp": null,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": null,
+      "id": "TEST-CASE-999",
+      "_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.967188Z",
+      "updated_at": "2026-08-24T05:05:45.967188Z"
+    },
+    {
+      "case_id": "PEB-2636-O",
+      "model_id": "01",
+      "patient_name": "Alex Mercer",
+      "patient_age": 64,
+      "patient_gender": "Other",
+      "clinical_indication": "Total Knee Arthroplasty (TKA)",
+      "procedure": "Total Knee Arthroplasty (TKA)",
+      "condition": null,
+      "name": "Alex Mercer",
+      "age": 64,
+      "gender": "Other",
+      "status": "active",
+      "initial_biomarkers": null,
+      "pth": 74.2,
+      "vitaminD": 22.0,
+      "vitamin_d": null,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 390.0,
+      "id": "PEB-2636-O",
+      "_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:45.990298Z",
+      "updated_at": "2026-08-24T05:05:45.990298Z"
     }
   ],
   "biomarkers": [
@@ -1537,6 +1873,966 @@
         ],
         "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
       }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787546616062",
+      "updated_at": "2026-08-24T04:43:36.062007Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-5855-O",
+      "_id": "bm_1787546616075",
+      "updated_at": "2026-08-24T04:43:36.075810Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787547005352",
+      "updated_at": "2026-08-24T04:50:05.352374Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-9317-O",
+      "_id": "bm_1787547005367",
+      "updated_at": "2026-08-24T04:50:05.367723Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787547041571",
+      "updated_at": "2026-08-24T04:50:41.571183Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-5415-O",
+      "_id": "bm_1787547041588",
+      "updated_at": "2026-08-24T04:50:41.588247Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787547318930",
+      "updated_at": "2026-08-24T04:55:18.930016Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-2978-O",
+      "_id": "bm_1787547318949",
+      "updated_at": "2026-08-24T04:55:18.949098Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787547675309",
+      "updated_at": "2026-08-24T05:01:15.309968Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-9248-O",
+      "_id": "bm_1787547675330",
+      "updated_at": "2026-08-24T05:01:15.330770Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 28.0,
+      "pth": 72.0,
+      "calcium": 9.4,
+      "phosphate": 3.2,
+      "alp": 112.0,
+      "case_id": "TEST-CASE-999",
+      "_id": "bm_1787547945970",
+      "updated_at": "2026-08-24T05:05:45.970322Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 28.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 72.0,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.4,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 112.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "vitamin_d": 22.0,
+      "pth": 74.2,
+      "calcium": 9.2,
+      "phosphate": 3.1,
+      "alp": 115.0,
+      "case_id": "PEB-2636-O",
+      "_id": "bm_1787547945993",
+      "updated_at": "2026-08-24T05:05:45.993559Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 22.0,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Insufficiency level. Sub-optimal mineralization substrate for newly synthesized bone osteoid."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 74.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.2,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 115.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Intestinal Mineral Bioavailability",
+            "explanation": "25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+          },
+          {
+            "factor": "Parathyroid Chief Cell Sensitivity (CaSR)",
+            "explanation": "Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+          },
+          {
+            "factor": "Skeletal Remodeling Balance (RANKL/OPG Axis)",
+            "explanation": "Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+          },
+          {
+            "factor": "Pre-Surgical Orthopedic Fixation Viability",
+            "explanation": "Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
     }
   ],
   "roi": [
@@ -2202,6 +3498,618 @@
       "case_id": "PEB-3834-O",
       "created_at": "2026-08-23T14:08:30.301889Z",
       "updated_at": "2026-08-23T14:08:30.301889Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787546616063_219",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.063574Z",
+      "updated_at": "2026-08-24T04:43:36.063574Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787546616065_199",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.065091Z",
+      "updated_at": "2026-08-24T04:43:36.065091Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787546616066_439",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.066640Z",
+      "updated_at": "2026-08-24T04:43:36.066640Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787546616077_912",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.077414Z",
+      "updated_at": "2026-08-24T04:43:36.077414Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787546616079_528",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.079025Z",
+      "updated_at": "2026-08-24T04:43:36.079025Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787546616080_556",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.080670Z",
+      "updated_at": "2026-08-24T04:43:36.080670Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547005354_197",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.354121Z",
+      "updated_at": "2026-08-24T04:50:05.354121Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547005355_198",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.355859Z",
+      "updated_at": "2026-08-24T04:50:05.355859Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547005357_477",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.357608Z",
+      "updated_at": "2026-08-24T04:50:05.357608Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547005369_746",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.369528Z",
+      "updated_at": "2026-08-24T04:50:05.369528Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547005371_912",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.371347Z",
+      "updated_at": "2026-08-24T04:50:05.371347Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547005373_645",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.373174Z",
+      "updated_at": "2026-08-24T04:50:05.373174Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547041573_666",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.573137Z",
+      "updated_at": "2026-08-24T04:50:41.573137Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547041575_404",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.575082Z",
+      "updated_at": "2026-08-24T04:50:41.575082Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547041577_641",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.577028Z",
+      "updated_at": "2026-08-24T04:50:41.577028Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547041590_128",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.590266Z",
+      "updated_at": "2026-08-24T04:50:41.590266Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547041592_400",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.592271Z",
+      "updated_at": "2026-08-24T04:50:41.592271Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547041594_956",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.594271Z",
+      "updated_at": "2026-08-24T04:50:41.594271Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547318932_574",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.932242Z",
+      "updated_at": "2026-08-24T04:55:18.932242Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547318934_831",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.934414Z",
+      "updated_at": "2026-08-24T04:55:18.934414Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547318936_293",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.936608Z",
+      "updated_at": "2026-08-24T04:55:18.936608Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547318951_123",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.951400Z",
+      "updated_at": "2026-08-24T04:55:18.951400Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547318953_799",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.953653Z",
+      "updated_at": "2026-08-24T04:55:18.953653Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547318955_256",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.955957Z",
+      "updated_at": "2026-08-24T04:55:18.955957Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547675312_766",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.312334Z",
+      "updated_at": "2026-08-24T05:01:15.312334Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547675314_191",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.314680Z",
+      "updated_at": "2026-08-24T05:01:15.314680Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547675317_945",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.317193Z",
+      "updated_at": "2026-08-24T05:01:15.317193Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547675333_976",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.333268Z",
+      "updated_at": "2026-08-24T05:01:15.333268Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547675335_409",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.335699Z",
+      "updated_at": "2026-08-24T05:01:15.335699Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547675338_477",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.338158Z",
+      "updated_at": "2026-08-24T05:01:15.338158Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547945972_634",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.972937Z",
+      "updated_at": "2026-08-24T05:05:45.972937Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547945975_255",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.975659Z",
+      "updated_at": "2026-08-24T05:05:45.975659Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547945978_922",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.978613Z",
+      "updated_at": "2026-08-24T05:05:45.978613Z"
+    },
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "high",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1787547945996_989",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:45.996247Z",
+      "updated_at": "2026-08-24T05:05:45.996247Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1787547945998_647",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:45.998943Z",
+      "updated_at": "2026-08-24T05:05:45.998943Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1787547946001_238",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:46.001739Z",
+      "updated_at": "2026-08-24T05:05:46.001739Z"
     }
   ],
   "annotations": [
@@ -2464,6 +4372,246 @@
       "case_id": "PEB-3834-O",
       "created_at": "2026-08-23T14:08:30.304924Z",
       "updated_at": "2026-08-23T14:08:30.304924Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787546616068_364",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.068178Z",
+      "updated_at": "2026-08-24T04:43:36.068178Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787546616069_195",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.069719Z",
+      "updated_at": "2026-08-24T04:43:36.069719Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787546616082_292",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.082335Z",
+      "updated_at": "2026-08-24T04:43:36.082335Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787546616084_991",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.084073Z",
+      "updated_at": "2026-08-24T04:43:36.084073Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547005359_562",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.359366Z",
+      "updated_at": "2026-08-24T04:50:05.359366Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547005361_948",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.361186Z",
+      "updated_at": "2026-08-24T04:50:05.361186Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547005375_760",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.375026Z",
+      "updated_at": "2026-08-24T04:50:05.375026Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547005376_509",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.376952Z",
+      "updated_at": "2026-08-24T04:50:05.376952Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547041578_180",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.578989Z",
+      "updated_at": "2026-08-24T04:50:41.578989Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547041581_710",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.581019Z",
+      "updated_at": "2026-08-24T04:50:41.581019Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547041596_404",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.596494Z",
+      "updated_at": "2026-08-24T04:50:41.596494Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547041598_772",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.598556Z",
+      "updated_at": "2026-08-24T04:50:41.598556Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547318938_417",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.938847Z",
+      "updated_at": "2026-08-24T04:55:18.938847Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547318941_566",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.941082Z",
+      "updated_at": "2026-08-24T04:55:18.941082Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547318958_136",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.958253Z",
+      "updated_at": "2026-08-24T04:55:18.958253Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547318960_414",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.960523Z",
+      "updated_at": "2026-08-24T04:55:18.960523Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547675319_696",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.319597Z",
+      "updated_at": "2026-08-24T05:01:15.319597Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547675321_881",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.321991Z",
+      "updated_at": "2026-08-24T05:01:15.321991Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547675340_425",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.340724Z",
+      "updated_at": "2026-08-24T05:01:15.340724Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547675343_702",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.343269Z",
+      "updated_at": "2026-08-24T05:01:15.343269Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Evaluation for total hip arthroplasty. Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547945981_757",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.981265Z",
+      "updated_at": "2026-08-24T05:05:45.981265Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 72.0 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547945983_558",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.983990Z",
+      "updated_at": "2026-08-24T05:05:45.983990Z"
+    },
+    {
+      "text": "Pre-op 3D AI planning for Total Knee Arthroplasty (TKA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1787547946004_529",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:46.004462Z",
+      "updated_at": "2026-08-24T05:05:46.004462Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 74.2 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1787547946007_383",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:46.007236Z",
+      "updated_at": "2026-08-24T05:05:46.007236Z"
     }
   ],
   "simulations": [
@@ -2635,6 +4783,162 @@
       "case_id": "PEB-3834-O",
       "created_at": "2026-08-23T14:08:30.306400Z",
       "updated_at": "2026-08-23T14:08:30.306400Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787546616071_290",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:43:36.071320Z",
+      "updated_at": "2026-08-24T04:43:36.071320Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787546616085_202",
+      "case_id": "PEB-5855-O",
+      "created_at": "2026-08-24T04:43:36.085743Z",
+      "updated_at": "2026-08-24T04:43:36.085743Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547005362_152",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:05.362993Z",
+      "updated_at": "2026-08-24T04:50:05.362993Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547005378_825",
+      "case_id": "PEB-9317-O",
+      "created_at": "2026-08-24T04:50:05.378865Z",
+      "updated_at": "2026-08-24T04:50:05.378865Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547041583_621",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:50:41.583028Z",
+      "updated_at": "2026-08-24T04:50:41.583028Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547041600_111",
+      "case_id": "PEB-5415-O",
+      "created_at": "2026-08-24T04:50:41.600604Z",
+      "updated_at": "2026-08-24T04:50:41.600604Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547318943_105",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T04:55:18.943270Z",
+      "updated_at": "2026-08-24T04:55:18.943270Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547318962_604",
+      "case_id": "PEB-2978-O",
+      "created_at": "2026-08-24T04:55:18.962806Z",
+      "updated_at": "2026-08-24T04:55:18.962806Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547675324_496",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:01:15.324458Z",
+      "updated_at": "2026-08-24T05:01:15.324458Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547675345_620",
+      "case_id": "PEB-9248-O",
+      "created_at": "2026-08-24T05:01:15.345878Z",
+      "updated_at": "2026-08-24T05:01:15.345878Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547945986_489",
+      "case_id": "TEST-CASE-999",
+      "created_at": "2026-08-24T05:05:45.986670Z",
+      "updated_at": "2026-08-24T05:05:45.986670Z"
+    },
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 38.5,
+      "risk_score": 72.0,
+      "implant_stability": "augmented_indicated",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1787547946010_288",
+      "case_id": "PEB-2636-O",
+      "created_at": "2026-08-24T05:05:46.010036Z",
+      "updated_at": "2026-08-24T05:05:46.010036Z"
     }
   ]
 }

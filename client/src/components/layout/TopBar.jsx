@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Search, Bell, Calendar, UserRound, LogOut, X, ChevronRight } from 'lucide-react';
+import { Search, Calendar, UserRound, LogOut, X, ChevronRight } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 import { clearAuthSession, readStoredDoctorProfile } from '../../services';
 

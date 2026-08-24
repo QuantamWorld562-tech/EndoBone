@@ -8,7 +8,7 @@
  * - All floating popups removed from 3D canvas; interactive inspection handled in sidebar
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import { Eye, EyeOff, ScanLine } from 'lucide-react';
@@ -399,6 +399,39 @@ function CameraController({ preset, controlsRef }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Error Boundary & Fallback Mesh for 3D Geometry
+// ─────────────────────────────────────────────────────────────────────────────
+
+class BoneModelErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    console.warn('3D Bone Model loading issue detected:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <group>
+          <mesh position={[0, 0, 0]}>
+            <cylinderGeometry args={[0.3, 0.45, 2.8, 32]} />
+            <meshStandardMaterial color="#ef4444" roughness={0.4} />
+          </mesh>
+        </group>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Viewport Overlay (View Controls + Clean Risk Heatmap Legend)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -406,7 +439,6 @@ const P = { background: 'rgba(3,7,18,0.90)', backdropFilter: 'blur(18px)', borde
 
 function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
   const highCount = zones.filter(z => z.riskLevel === 'high').length;
-  const modCount  = zones.filter(z => z.riskLevel === 'moderate').length;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
@@ -559,13 +591,15 @@ export default function BoneModelViewer({
         <CameraController preset={camPreset} controlsRef={controlsRef} />
         <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.08} minDistance={0.8} maxDistance={7} makeDefault />
         <Suspense fallback={null}>
-          <RealAnatomicalBoneModel
-            modelPath={modelPath}
-            mode={mode}
-            autoRotate={autoRotate}
-            zones={zones}
-            onZoneEvent={handleZoneEvent}
-          />
+          <BoneModelErrorBoundary>
+            <RealAnatomicalBoneModel
+              modelPath={modelPath}
+              mode={mode}
+              autoRotate={autoRotate}
+              zones={zones}
+              onZoneEvent={handleZoneEvent}
+            />
+          </BoneModelErrorBoundary>
         </Suspense>
       </Canvas>
       <ViewportOverlay

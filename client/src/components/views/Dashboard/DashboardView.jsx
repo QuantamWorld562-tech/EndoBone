@@ -7,12 +7,12 @@ import {
   ChevronRight,
   TrendingUp,
   TrendingDown,
-  ArrowUpRight,
   Clock,
   UserRound,
   Trash2,
   AlertCircle,
   X,
+  Search,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 
@@ -157,14 +157,26 @@ export default function DashboardView({ onSelectPatient }) {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="flex items-center justify-between px-7 py-5 border-b border-slate-100">
+          <div className="flex flex-wrap items-center justify-between px-7 py-5 border-b border-slate-100 gap-3">
             <div>
               <h3 className="text-xl font-extrabold text-slate-900">Recent Cases</h3>
               <p className="text-sm text-slate-500">Click any patient card to open their workflow, or delete completed cases.</p>
             </div>
-            <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
-              {filteredPatients.length} Total
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Filter cases..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 w-36"
+                />
+              </div>
+              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                {filteredPatients.length} Total
+              </span>
+            </div>
           </div>
           <div className="divide-y divide-slate-100">
             {filteredPatients.length === 0 ? (

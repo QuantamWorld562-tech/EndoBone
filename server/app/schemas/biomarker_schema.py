@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class ReferenceRange(BaseModel):
     min: float
@@ -25,6 +25,4 @@ class BiomarkerResponse(BiomarkerInput):
     case_id: str
     updated_at: Optional[str] = None
     assessment: Optional[Dict[str, Any]] = None
-
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True, extra="allow")

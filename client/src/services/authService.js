@@ -44,5 +44,10 @@ export function readStoredDoctorProfile() {
 }
 
 export function readApiError(error, fallbackMessage) {
-  return error?.response?.data?.error || fallbackMessage;
+  const data = error?.response?.data;
+  if (typeof data?.detail === 'string') return data.detail;
+  if (Array.isArray(data?.detail) && data.detail[0]?.msg) return data.detail[0].msg;
+  if (data?.error) return data.error;
+  if (data?.message) return data.message;
+  return fallbackMessage || 'An unexpected error occurred. Please try again.';
 }
