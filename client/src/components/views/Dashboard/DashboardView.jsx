@@ -17,18 +17,25 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
+import { CaseLoadingOverlay } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
   const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen } = usePatientContext();
+  const [loadingPatient, setLoadingPatient] = useState(null);
 
   const handleSelectPatient = (id) => {
+    const targetPatient = patients.find((p) => p.id === id);
+    setLoadingPatient(targetPatient || { id, name: `Patient ${id}`, procedure: 'Pre-Surgical Case' });
     setActivePatientId(id);
-    if (onSelectPatient) {
-      onSelectPatient(id);
-    } else {
-      navigate(`/patients/${id}/metabolic`);
-    }
+
+    setTimeout(() => {
+      if (onSelectPatient) {
+        onSelectPatient(id);
+      } else {
+        navigate(`/patients/${id}/metabolic`);
+      }
+    }, 550);
   };
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -366,6 +373,15 @@ export default function DashboardView({ onSelectPatient }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Case Selection Loading Overlay */}
+      {loadingPatient && (
+        <CaseLoadingOverlay
+          patientId={loadingPatient.id}
+          patientName={loadingPatient.name}
+          procedure={loadingPatient.procedure}
+        />
       )}
     </div>
   );
