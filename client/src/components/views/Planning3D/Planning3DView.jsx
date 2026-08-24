@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Maximize2, Minimize2, RotateCw, Bone, FlaskConical,
+  Maximize2, Minimize2, Play, Pause, RotateCcw, Bone, FlaskConical,
   ArrowUpRight, Brain, AlertTriangle, CheckCircle,
   MapPin, TrendingDown, FileText, Crosshair, Info,
-  LineChart, Tag
+  LineChart, Tag, Compass
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { EndocrineTrendChart } from '../../common';
@@ -170,20 +170,23 @@ export default function Planning3DView({ patientId }) {
       <div className="grid lg:grid-cols-12 gap-5">
         {/* ── 3D Viewport (7 Cols on desktop) ── */}
         <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-7'} flex flex-col gap-3`}>
-          {/* Anatomy strip */}
+          {/* Anatomy strip / DICOM Workstation Header */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 pr-3 border-r border-slate-700">
-                <Bone size={14} className="text-slate-400" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">3D MODEL</span>
+                <Bone size={14} className="text-blue-400" />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">3D WORKSTATION</span>
               </div>
-              <span className="text-xs font-bold text-slate-200">
-                Femur • {currentPatient.name} ({currentPatient.id})
+              <span className="text-xs font-bold text-slate-100">
+                Femur Mesh • {currentPatient.name} ({currentPatient.id})
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-              F, {currentPatient.age || 64} • Density Map Active
-            </span>
+            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium">
+              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300">
+                <Compass size={11} className="text-cyan-400" /> DICOM 0.4mm
+              </span>
+              <span className="hidden md:inline">F, {currentPatient.age || 64} • Density Map Active</span>
+            </div>
           </div>
 
           {/* Viewer card */}
@@ -216,7 +219,7 @@ export default function Planning3DView({ patientId }) {
                       ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
                       : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
                   }`}
-                  title="Toggle 3D Bone Annotations"
+                  title="Toggle 3D Bone Diagram Annotations"
                 >
                   <Tag size={13} />
                   <span className="hidden sm:inline">Annotations</span>
@@ -228,9 +231,30 @@ export default function Planning3DView({ patientId }) {
                   <span className="w-2 h-2 rounded-full bg-orange-500" />
                   <span>1 elevated</span>
                 </div>
-                <button onClick={() => setAutoRotate(!autoRotate)} className={`p-1.5 rounded-lg border transition ${autoRotate ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-slate-800 border-slate-700 text-slate-400'}`} title="Auto Rotate">
-                  <RotateCw size={14} />
+
+                {/* Play / Pause 3D Auto-Rotation */}
+                <button
+                  onClick={() => setAutoRotate(!autoRotate)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition text-xs font-bold ${
+                    autoRotate
+                      ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300 shadow-sm shadow-cyan-500/20'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                  title={autoRotate ? 'Pause 3D Auto-Rotation' : 'Play 3D Auto-Rotation'}
+                >
+                  {autoRotate ? <Pause size={13} className="fill-current" /> : <Play size={13} className="fill-current ml-0.5" />}
+                  <span className="hidden sm:inline">{autoRotate ? 'Pause' : 'Play'}</span>
                 </button>
+
+                {/* Reset Camera View */}
+                <button
+                  onClick={() => setViewAngle('overview')}
+                  className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition"
+                  title="Reset Camera View to AP Overview"
+                >
+                  <RotateCcw size={14} />
+                </button>
+
                 <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition" title="Toggle Fullscreen">
                   {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                 </button>

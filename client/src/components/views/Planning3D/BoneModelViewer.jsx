@@ -10,7 +10,7 @@
 
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, OrbitControls, useGLTF, Html } from '@react-three/drei';
+import { Environment, OrbitControls, useGLTF, Html, ContactShadows } from '@react-three/drei';
 import { Eye, EyeOff, ScanLine, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
@@ -859,6 +859,26 @@ export default function BoneModelViewer({
               onZoneEvent={handleZoneEvent}
             />
           </BoneModelErrorBoundary>
+          {/* Medical Grounding Contact Shadow */}
+          <ContactShadows
+            position={[0, -1.24, 0]}
+            opacity={0.65}
+            scale={3.6}
+            blur={2.0}
+            far={2.5}
+            color="#020617"
+          />
+          {/* Holographic Medical Staging Ring */}
+          <group position={[0, -1.23, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh>
+              <ringGeometry args={[0.74, 0.76, 64]} />
+              <meshBasicMaterial color="#38bdf8" opacity={0.28} transparent side={THREE.DoubleSide} />
+            </mesh>
+            <mesh>
+              <ringGeometry args={[1.08, 1.09, 64]} />
+              <meshBasicMaterial color="#0284c7" opacity={0.15} transparent side={THREE.DoubleSide} />
+            </mesh>
+          </group>
         </Suspense>
       </Canvas>
       <ViewportOverlay
