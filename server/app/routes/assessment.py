@@ -37,6 +37,7 @@ class AiResults(BaseModel):
     target_region: str = "femoral_neck"
     anatomical_observations: Optional[str] = None
     metabolic_observations: Optional[str] = None
+    contributing_factors: Optional[List[Dict[str, str]]] = None
 
 
 class AnalyzeResponse(BaseModel):
@@ -103,22 +104,31 @@ async def analyze_patient_biomarkers(req: AnalyzeRequest):
         + (" ".join(observations[:2]) if observations else "All biomarkers within normal range.")
     )
 
+    # Build contributing factors from Module 6 explainability output
+    contributing_factors = [
+        {"factor": f.factor, "explanation": f.explanation}
+        for f in engine_result.explainability
+    ]
+
     assessment_id = f"assess_{int(time.time() * 1000)}"
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    ai_results_data = {
+        "risk_level": risk_level,
+        "target_region": target_region,
+        "anatomical_observations": anatomical_obs,
+        "metabolic_observations": "; ".join(
+            r.relationship_observation for r in engine_result.detected_relationships
+        ),
+        "contributing_factors": contributing_factors,
+    }
 
     record = {
         "_id": assessment_id,
         "patientId": req.patientId,
         "overallQualityRisk": risk_score,
         "riskLevel": risk_level,
-        "aiResults": {
-            "risk_level": risk_level,
-            "target_region": target_region,
-            "anatomical_observations": anatomical_obs,
-            "metabolic_observations": "; ".join(
-                r.relationship_observation for r in engine_result.detected_relationships
-            ),
-        },
+        "aiResults": ai_results_data,
         "selected_roi": None,
         "planning_notes": None,
         "createdAt": now,
@@ -144,9 +154,6 @@ async def analyze_patient_biomarkers(req: AnalyzeRequest):
         planning_notes=None,
         createdAt=now,
     )
-
-
-@router.put("/assessments/{assessment_id}/notes", response_model=AnalyzeResponse)
 async def update_assessment_notes(assessment_id: str, req: UpdateNotesRequest):
     """Update planning notes and selected ROI for an existing assessment."""
     record = None

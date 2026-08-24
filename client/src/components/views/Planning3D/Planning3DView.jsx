@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Maximize2, Minimize2, RotateCw, Bone, FlaskConical,
   ArrowUpRight, Brain, AlertTriangle, CheckCircle,
-  MapPin, TrendingDown, FileText, Crosshair, Info
+  MapPin, TrendingDown, FileText, Crosshair, Info,
+  LineChart, Tag
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
+import { EndocrineTrendChart } from '../../common';
 import BoneModelViewer from './BoneModelViewer';
 
 const BIOMARKER_INPUTS = [
@@ -101,14 +103,20 @@ export default function Planning3DView({ patientId }) {
     selectedRegion, setSelectedRegion,
     roiNotes, updateRoiNote, persistRoiNote,
     regionalData, backendRiskLevel,
+    patients,
   } = usePatientContext();
 
   const [renderMode, setRenderMode] = useState('heatmap');
   const [viewAngle, setViewAngle] = useState('overview');
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState('anatomy');
+  const [showAnnotations, setShowAnnotations] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState('curves');
   const [hoveredZone, setHoveredZone] = useState(null);
+
+  const currentPatient = useMemo(() => {
+    return patients?.find(p => p.id === effectivePatientId) || { name: 'Sarah J. Reed', id: effectivePatientId, age: 64, gender: 'Female' };
+  }, [patients, effectivePatientId]);
 
   // Active zone = hovered or selected
   const activeZone = useMemo(() => {
@@ -126,14 +134,14 @@ export default function Planning3DView({ patientId }) {
       <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">3D Surgical Planning</h2>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">3D Surgical Planning &amp; Endocrine Analytics</h2>
             <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-black ${rs.badge}`}>
               <span className={`w-2 h-2 rounded-full ${rs.dot} animate-pulse`} />
               {effectiveRiskLevel === 'high' ? 'High Risk Active' : 'Normal Profile'}
             </div>
           </div>
           <p className="text-xs text-slate-500 font-medium">
-            <span className="text-red-600 font-bold">1 critical zone</span> · <span className="text-orange-600 font-bold">1 elevated</span> · Hover or click any zone on the 3D model to inspect
+            <span className="text-red-600 font-bold">1 critical zone</span> · <span className="text-orange-600 font-bold">1 elevated</span> · Interactive longitudinal curves synchronized with 3D bone risk shading
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -155,27 +163,29 @@ export default function Planning3DView({ patientId }) {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-4 gap-5">
-        {/* ── 3D Viewport ── */}
-        <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-3'} flex flex-col gap-3`}>
+      <div className="grid lg:grid-cols-12 gap-5">
+        {/* ── 3D Viewport (7 Cols on desktop) ── */}
+        <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-4' : 'lg:col-span-7'} flex flex-col gap-3`}>
           {/* Anatomy strip */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 px-3 py-2.5 flex items-center justify-between">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 pr-3 border-r border-slate-700">
                 <Bone size={14} className="text-slate-400" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anatomy</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">3D MODEL</span>
               </div>
-              <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-md shadow-blue-600/30">
-                <span>🦵</span><span>Femur</span>
-              </button>
+              <span className="text-xs font-bold text-slate-200">
+                Femur • {currentPatient.name} ({currentPatient.id})
+              </span>
             </div>
-            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Femoral head, neck, trochanter &amp; shaft</span>
+            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+              F, {currentPatient.age || 64} • Density Map Active
+            </span>
           </div>
 
           {/* Viewer card */}
-          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[560px]">
+          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] relative">
             {/* Toolbar */}
-            <div className="px-4 py-2.5 bg-[#0a0f1e] border-b border-slate-800/80 flex items-center justify-between gap-3">
+            <div className="px-4 py-2.5 bg-[#0a0f1e] border-b border-slate-800/80 flex items-center justify-between gap-3 z-10">
               <div className="flex items-center gap-1 p-0.5 bg-slate-900/60 rounded-xl border border-slate-800">
                 {[
                   { id: 'anatomical', label: 'Anatomical',  ac: 'bg-slate-700 text-slate-100' },
@@ -195,6 +205,19 @@ export default function Planning3DView({ patientId }) {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowAnnotations(!showAnnotations)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${
+                    showAnnotations
+                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Toggle 3D Bone Annotations"
+                >
+                  <Tag size={13} />
+                  <span className="hidden sm:inline">Annotations</span>
+                </button>
+
                 <div className="flex items-center gap-2 px-2.5 py-1 bg-slate-900 rounded-lg border border-slate-800 text-[11px] font-bold text-slate-300">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   <span>1 critical</span>
@@ -210,6 +233,18 @@ export default function Planning3DView({ patientId }) {
               </div>
             </div>
 
+            {/* Floating Anatomical T-Score HUD Callouts (Top-Left) */}
+            <div className="pointer-events-none absolute left-4 top-14 z-20 space-y-2">
+              <div className="p-2.5 bg-slate-900/85 backdrop-blur-md border border-red-500/30 rounded-xl shadow-lg">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Femoral Neck</div>
+                <div className="text-sm font-black text-red-400">T-Score: -2.3</div>
+              </div>
+              <div className="p-2.5 bg-slate-900/85 backdrop-blur-md border border-orange-500/30 rounded-xl shadow-lg">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Total Hip</div>
+                <div className="text-sm font-black text-orange-400">T-Score: -1.9</div>
+              </div>
+            </div>
+
             {/* 3D Canvas */}
             <div className="flex-1 relative">
               <BoneModelViewer
@@ -218,124 +253,139 @@ export default function Planning3DView({ patientId }) {
                 wireframe={renderMode === 'wireframe'}
                 meshMode={renderMode === 'mesh'}
                 xray={renderMode === 'xray'}
+                showAnnotations={showAnnotations}
                 autoRotate={autoRotate}
                 selectedRegion={selectedRegion}
                 onSelectRegion={(id) => { setSelectedRegion(id); setSidebarTab('anatomy'); }}
                 onZoneHover={setHoveredZone}
                 onViewAngleChange={setViewAngle}
+                onToggleAnnotations={setShowAnnotations}
                 onXrayChange={(x) => {
                   if (x) setRenderMode('xray');
                   else if (renderMode === 'xray') setRenderMode('heatmap');
                 }}
               />
             </div>
+
+            {/* Bottom Scan Analysis Footer Bar — matching reference monitor */}
+            <div className="px-4 py-2.5 bg-slate-900/95 border-t border-slate-800 text-xs font-semibold text-slate-300 flex flex-wrap items-center justify-between gap-2 z-10">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-cyan-400 tracking-wider">Scan Analysis</span>
+                <span className="text-slate-600">|</span>
+                <span className="font-bold text-slate-100">Osteopenia (T-Score: -2.3)</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-amber-400 font-bold">Hip Fracture Risk: Moderate (9.4%)</span>
+              </div>
+              <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> T-Score &gt; 1.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> T-Score &lt; -2.5</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ── Right Clinical Sidebar ── */}
-        <div className="space-y-3">
-          {/* Live Zone Inspection Panel — replaces popup */}
-          <ZoneInspectionPanel zone={activeZone} />
-
-          {/* Anatomy / Biomarkers card */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="flex border-b border-slate-100">
-              <button onClick={() => setSidebarTab('anatomy')} className={`flex-1 py-3 px-4 text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${sidebarTab === 'anatomy' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40' : 'text-slate-500 hover:text-slate-800'}`}>
-                <Bone size={13} />Anatomy
-              </button>
-              <button onClick={() => setSidebarTab('biomarkers')} className={`flex-1 py-3 px-4 text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${sidebarTab === 'biomarkers' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40' : 'text-slate-500 hover:text-slate-800'}`}>
-                <FlaskConical size={13} />Biomarkers
-              </button>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {sidebarTab === 'anatomy' ? (
-                <>
-                  {/* Zone Risk Index */}
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Zone Risk Index</p>
-                    {STATIC_ZONES.map(z => {
-                      const cfg = RISK_CFG[z.riskLevel];
-                      const isActive = selectedRegion === z.id || hoveredZone?.id === z.id;
-                      return (
-                        <button
-                          key={z.id}
-                          type="button"
-                          onClick={() => { setSelectedRegion(z.id); setSidebarTab('anatomy'); }}
-                          className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${isActive ? 'bg-slate-50 border-blue-500 ring-1 ring-blue-500/25' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
-                            <span className="text-xs font-bold text-slate-800">{z.label}</span>
-                          </div>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black border ${cfg.badge}`}>{cfg.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Structural Metrics — shows active zone data */}
-                  <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Structural Metrics</p>
-                      <span className="text-[10px] font-bold text-blue-600 flex items-center gap-1"><Crosshair size={10}/>{activeZone?.label}</span>
-                    </div>
-                    <div className="space-y-1.5 text-xs">
-                      {[
-                        { label: 'Trabecular vBMD', value: `${activeZone?.vBMD || '112.4'} mg/cm³` },
-                        { label: 'T-Score',         value: activeZone?.tScore || '-2.3' },
-                        { label: 'Cortical Thickness', value: activeZone?.riskLevel === 'high' ? '1.8 mm' : activeZone?.riskLevel === 'moderate' ? '2.6 mm' : '3.8 mm' },
-                        { label: 'Fracture Risk',   value: activeZone?.riskLevel === 'high' ? '87%' : activeZone?.riskLevel === 'moderate' ? '52%' : '12%' },
-                        { label: 'Bone Quality',    value: activeZone?.riskLevel === 'high' ? 'Osteopenic' : activeZone?.riskLevel === 'moderate' ? 'Reduced' : 'Normal' },
-                      ].map(({ label, value }) => (
-                        <div key={label} className="flex justify-between py-1 border-b border-slate-50">
-                          <span className="text-slate-500 font-medium">{label}</span>
-                          <span className="font-bold text-slate-900">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Planning Notes */}
-                  <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1"><FileText size={10}/> Planning Notes</p>
-                      <span className="text-[10px] text-slate-400">Auto-saved</span>
-                    </div>
-                    <textarea
-                      rows={3}
-                      value={currentRoiNote}
-                      onChange={(e) => updateRoiNote(selectedRegion, e.target.value)}
-                      onBlur={() => persistRoiNote(selectedRegion)}
-                      placeholder="Add region-specific notes or surgical precautions..."
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed"
-                    />
-                  </div>
-                </>
-              ) : (
-                /* Biomarkers Tab */
-                <div className="space-y-2.5">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Synchronized Lab Panel</p>
-                  {BIOMARKER_INPUTS.map(item => {
-                    const b = biomarkers?.[item.key] || {};
-                    const status = b.status || 'normal';
-                    return (
-                      <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="font-bold text-slate-700">{item.fullLabel}</span>
-                          <span className="font-black text-slate-900 font-mono">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
-                        </div>
-                        <div className="flex justify-between text-[11px] text-slate-400">
-                          <span>Ref: {item.ref}</span>
-                          <span className={`font-bold uppercase ${status === 'elevated' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-teal-600'}`}>{status}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+        {/* ── Right Clinical Sidebar (5 Cols on desktop) ── */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Multi-Tab Switcher (Curves, Anatomy, Biomarkers) */}
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex shadow-sm">
+            <button
+              onClick={() => setSidebarTab('curves')}
+              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                sidebarTab === 'curves'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LineChart size={13} />
+              Endocrine Graphs
+            </button>
+            <button
+              onClick={() => setSidebarTab('anatomy')}
+              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                sidebarTab === 'anatomy'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Bone size={13} />
+              Anatomy &amp; Notes
+            </button>
+            <button
+              onClick={() => setSidebarTab('biomarkers')}
+              className={`flex-1 py-2 px-3 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                sidebarTab === 'biomarkers'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <FlaskConical size={13} />
+              Lab Panel
+            </button>
           </div>
+
+          {/* Tab 1: Endocrine Profile & Biomarker Curves */}
+          {sidebarTab === 'curves' && (
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-4 shadow-xl space-y-4">
+              <EndocrineTrendChart biomarkers={biomarkers} patientName={currentPatient.name} />
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
+                <button
+                  onClick={() => setSidebarTab('anatomy')}
+                  className="w-full py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition"
+                >
+                  <Crosshair size={13} />
+                  Inspect 3D Anatomical Risk Zones
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Zone Inspection & Clinical Notes */}
+          {sidebarTab === 'anatomy' && (
+            <div className="space-y-4">
+              <ZoneInspectionPanel zone={activeZone} />
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                    <FileText size={10} /> Planning Notes ({activeZone?.label})
+                  </p>
+                  <span className="text-[10px] text-slate-400">Auto-saved</span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={currentRoiNote}
+                  onChange={(e) => updateRoiNote(selectedRegion, e.target.value)}
+                  onBlur={() => persistRoiNote(selectedRegion)}
+                  placeholder="Add region-specific notes or surgical precautions..."
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: Lab Biomarkers Panel */}
+          {sidebarTab === 'biomarkers' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Synchronized Lab Panel</p>
+              <div className="space-y-2">
+                {BIOMARKER_INPUTS.map(item => {
+                  const b = biomarkers?.[item.key] || {};
+                  const status = b.status || 'normal';
+                  return (
+                    <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-bold text-slate-700">{item.fullLabel}</span>
+                        <span className="font-black text-slate-900 font-mono">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-slate-400">
+                        <span>Ref: {item.ref}</span>
+                        <span className={`font-bold uppercase ${status === 'elevated' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-teal-600'}`}>{status}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

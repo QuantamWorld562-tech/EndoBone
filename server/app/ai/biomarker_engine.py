@@ -299,24 +299,115 @@ class BiomarkerRuleEngine:
                 ))
 
         # Model 6: Explainability & Contributing Factors
-        explainability: List[ExplainabilityFactor] = [
-            ExplainabilityFactor(
-                factor="Intestinal Mineral Bioavailability",
-                explanation="25(OH)D is required for enterocyte synthesis of calbindin-D9k and TRPV6 channels, governing 80-90% of dietary calcium absorption."
+        # Dynamically generated — only factors relevant to fired rules are included.
+        # Each rule maps to its own human-readable factor + explanation pair.
+        RULE_EXPLAINABILITY: Dict[str, ExplainabilityFactor] = {
+            "R1_VITD_PTH_COMPENSATORY": ExplainabilityFactor(
+                factor="Low Vitamin D",
+                explanation="Vitamin D is below the selected reference context. 25(OH)D deficiency impairs enterocyte calbindin-D9k and TRPV6 synthesis, reducing intestinal calcium absorption and driving compensatory PTH elevation."
             ),
-            ExplainabilityFactor(
-                factor="Parathyroid Chief Cell Sensitivity (CaSR)",
-                explanation="Calcium-sensing receptors on the parathyroid gland modulate hormone exocytosis within seconds of ionized calcium fluctuations."
+            "R2_VITD_CALCIUM_ABSORPTION": ExplainabilityFactor(
+                factor="Vitamin D & Calcium Co-Depletion",
+                explanation="Concurrent low Vitamin D and low Calcium signals decompensated intestinal mineral absorption. Implant osteointegration is significantly impaired when both substrates are insufficient."
             ),
-            ExplainabilityFactor(
-                factor="Skeletal Remodeling Balance (RANKL/OPG Axis)",
-                explanation="Elevated PTH shifts the osteoblast RANKL/OPG ratio, promoting osteoclastogenesis and cortical endocortical tunneling."
+            "R3_CALCIUM_PTH_FEEDBACK": ExplainabilityFactor(
+                factor="Elevated PTH",
+                explanation="PTH is above the selected reference context and is involved in calcium regulation and bone remodeling. Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption."
             ),
-            ExplainabilityFactor(
-                factor="Pre-Surgical Orthopedic Fixation Viability",
-                explanation="Metabolic bone turnover status directly dictates primary mechanical stability of cementless porous implants versus cemented fixations."
-            )
-        ]
+            "R4_CALCIUM_PTH_SUPPRESSION": ExplainabilityFactor(
+                factor="Hypercalcemia Suppressing PTH",
+                explanation="Elevated serum calcium binds the calcium-sensing receptor (CaSR), suppressing parathyroid hormone production. Bone remodeling coupling is reduced."
+            ),
+            "R5_AUTONOMOUS_PTH_PATTERN": ExplainabilityFactor(
+                factor="Primary Hyperparathyroidism Pattern",
+                explanation="Non-suppressed PTH despite hypercalcemia indicates autonomous parathyroid adenoma secretion. High subperiosteal bone resorption risk compromises surgical fixation viability."
+            ),
+            "R6_VITD_PHOS_ABSORPTION": ExplainabilityFactor(
+                factor="Low Phosphate",
+                explanation="Phosphate is below the selected reference context and is relevant to calcium and phosphate absorption. Impaired intestinal phosphate uptake paired with secondary PTH phosphaturia results in defective unmineralized osteoid matrix (osteomalacia pattern)."
+            ),
+            "R7_ALP_PTH_TURNOVER": ExplainabilityFactor(
+                factor="High Bone Turnover (ALP + PTH)",
+                explanation="Elevated ALP and PTH together indicate high-turnover metabolic bone disease. PTH-driven osteoclastic resorption coupled with vigorous osteoblastic activity accelerates trabecular thinning."
+            ),
+            "R8_HYPOPARATHYROID_PATTERN": ExplainabilityFactor(
+                factor="Blunted Parathyroid Response",
+                explanation="Hypocalcemia without compensatory PTH elevation points to post-surgical or idiopathic hypoparathyroidism. Bone remodeling is suppressed, reducing dynamic implant osseointegration capacity."
+            ),
+            "R9_PHOS_PTH_INTERACTION": ExplainabilityFactor(
+                factor="Elevated Phosphate",
+                explanation="Phosphate is above the selected reference context. Renal phosphate retention complexes calcium and directly stimulates PTH gene transcription, leading to mixed uremic bone disease and impaired mineral homeostasis."
+            ),
+            "R10_ISOLATED_ALP": ExplainabilityFactor(
+                factor="Isolated Alkaline Phosphatase Elevation",
+                explanation="ALP is elevated with preserved systemic calcium and Vitamin D homeostasis, suggesting focal bone remodeling activity or a hepatobiliary source. Warrants site-specific radiographic correlation."
+            ),
+        }
+
+        # Individual biomarker flags when no relationship rule fires for them
+        INDIVIDUAL_EXPLAINABILITY: Dict[str, ExplainabilityFactor] = {
+            "low_vitamin_d": ExplainabilityFactor(
+                factor="Low Vitamin D",
+                explanation="Vitamin D is below the selected reference context and is relevant to calcium and phosphate absorption. Sub-optimal 25(OH)D reduces intestinal mineral bioavailability and bone osteoid mineralization."
+            ),
+            "high_pth": ExplainabilityFactor(
+                factor="Elevated PTH",
+                explanation="PTH is above the selected reference context and is involved in calcium regulation and bone remodeling. Elevated parathyroid hormone output stimulates osteoclastic bone resorption."
+            ),
+            "low_calcium": ExplainabilityFactor(
+                factor="Low Calcium",
+                explanation="Serum calcium is below the reference range, reducing calcium-sensing receptor occupancy and stimulating rapid parathyroid hormone release with downstream cortical bone loss."
+            ),
+            "high_calcium": ExplainabilityFactor(
+                factor="Elevated Calcium",
+                explanation="Serum calcium is above the reference range. Hypercalcemia increases urinary excretion, suppresses PTH, and decreases bone remodeling coupling efficiency."
+            ),
+            "low_phosphate": ExplainabilityFactor(
+                factor="Low Phosphate",
+                explanation="Phosphate is below the selected reference context and is relevant to calcium and phosphate absorption. Hypophosphatemia limits hydroxyapatite crystal formation and bone matrix mineralization velocity."
+            ),
+            "high_phosphate": ExplainabilityFactor(
+                factor="Elevated Phosphate",
+                explanation="Phosphate is above the selected reference context. Hyperphosphatemia complexes serum ionized calcium and contributes to vascular calcification and stimulated PTH release."
+            ),
+            "high_alp": ExplainabilityFactor(
+                factor="Elevated Alkaline Phosphatase",
+                explanation="ALP is elevated, indicating accelerated osteoblastic bone formation or high skeletal remodeling turnover. Bone quality may be compromised even when bone quantity is preserved."
+            ),
+        }
+
+        # Build dynamic explainability list from fired rules first
+        seen_factors: set = set()
+        explainability: List[ExplainabilityFactor] = []
+        fired_rule_ids = {r.rule_id for r in relationships}
+
+        for rule_id, factor_entry in RULE_EXPLAINABILITY.items():
+            if rule_id in fired_rule_ids and factor_entry.factor not in seen_factors:
+                explainability.append(factor_entry)
+                seen_factors.add(factor_entry.factor)
+
+        # Fall back to individual biomarker flags for anomalies not covered by a relationship rule
+        if v_d is not None and v_d < 30.0 and "Low Vitamin D" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["low_vitamin_d"])
+            seen_factors.add("Low Vitamin D")
+        if pth is not None and pth > 65.0 and "Elevated PTH" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["high_pth"])
+            seen_factors.add("Elevated PTH")
+        if ca is not None and ca < 8.5 and "Low Calcium" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["low_calcium"])
+            seen_factors.add("Low Calcium")
+        if ca is not None and ca > 10.5 and "Elevated Calcium" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["high_calcium"])
+            seen_factors.add("Elevated Calcium")
+        if phos is not None and phos < 2.5 and "Low Phosphate" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["low_phosphate"])
+            seen_factors.add("Low Phosphate")
+        if phos is not None and phos > 4.5 and "Elevated Phosphate" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["high_phosphate"])
+            seen_factors.add("Elevated Phosphate")
+        if alp is not None and alp > 147.0 and "Elevated Alkaline Phosphatase" not in seen_factors:
+            explainability.append(INDIVIDUAL_EXPLAINABILITY["high_alp"])
+            seen_factors.add("Elevated Alkaline Phosphatase")
 
         return ComprehensiveAssessmentResponse(
             model_version="Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",

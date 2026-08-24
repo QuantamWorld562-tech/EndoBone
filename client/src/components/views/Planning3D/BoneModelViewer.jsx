@@ -10,8 +10,8 @@
 
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
-import { Eye, EyeOff, ScanLine } from 'lucide-react';
+import { Environment, OrbitControls, useGLTF, Html } from '@react-three/drei';
+import { Eye, EyeOff, ScanLine, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,10 +23,15 @@ const COLOR_ORANGE = new THREE.Color('#f97316');
 const COLOR_RED    = new THREE.Color('#ef4444');
 
 const CAM = {
-  overview: { pos: [1.6, 0.8, 2.5],  tgt: [0, 0, 0] },
-  anterior: { pos: [0, 0, 3.2],      tgt: [0, 0, 0] },
-  lateral:  { pos: [3.2, 0, 0],      tgt: [0, 0, 0] },
-  axial:    { pos: [0, 3.2, 0.001],  tgt: [0, 0, 0] },
+  overview:   { pos: [1.6, 0.8, 2.5],  tgt: [0, 0, 0] },
+  coronal:    { pos: [0, 0, 3.2],      tgt: [0, 0, 0] }, // Coronal / AP
+  anterior:   { pos: [0, 0, 3.2],      tgt: [0, 0, 0] },
+  sagittal:   { pos: [3.2, 0, 0],      tgt: [0, 0, 0] }, // Sagittal / Lateral
+  lateral:    { pos: [3.2, 0, 0],      tgt: [0, 0, 0] },
+  axial:      { pos: [0, 3.2, 0.001],  tgt: [0, 0, 0] }, // Axial / Transverse
+  pa:         { pos: [0, 0, -3.2],     tgt: [0, 0, 0] }, // Posteroanterior
+  oblique:    { pos: [2.2, 1.0, 2.2],  tgt: [0, 0, 0] }, // Oblique 45°
+  tangential: { pos: [2.8, -0.6, 1.4], tgt: [0, 0, 0] }, // Tangential Profile
 };
 
 const REGION_ALIASES = {
@@ -304,10 +309,129 @@ function createBoneMaterial(mode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 3D Anatomical Annotation Pins & Risk Zone Callouts
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, onSelectZone, onHoverZone }) {
+  if (!showAnnotations) return null;
+
+  return (
+    <group>
+      {zones.map((z) => {
+        const isSelected = activeZoneId === z.id;
+        const isHovered = hoveredZoneId === z.id;
+        const isHigh = z.riskLevel === 'high';
+        const isMod = z.riskLevel === 'moderate';
+        const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
+
+        return (
+          <group key={z.id} position={z.anchor}>
+            <Html distanceFactor={4.8} center zIndexRange={[100, 0]}>
+              <div
+                className="group relative cursor-pointer select-none transition-transform hover:scale-105"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectZone?.(z.id);
+                }}
+                onMouseEnter={() => onHoverZone?.(z)}
+                onMouseLeave={() => onHoverZone?.(null)}
+              >
+                {/* 3D Pin Marker */}
+                <div
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shadow-2xl backdrop-blur-md transition-all duration-300 pointer-events-auto"
+                  style={{
+                    background: isSelected || isHovered ? 'rgba(3,7,18,0.96)' : 'rgba(15,23,42,0.88)',
+                    border: `1.5px solid ${pinColor}`,
+                    boxShadow: isSelected || isHovered ? `0 0 16px ${pinColor}99` : `0 0 8px ${pinColor}44`,
+                  }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: pinColor }}
+                  />
+                  <span className="text-[11px] font-black text-white whitespace-nowrap">
+                    {z.label}
+                  </span>
+                  <span
+                    className="text-[9px] font-black px-1.5 py-0.5 rounded"
+                    style={{
+                      background: `${pinColor}25`,
+                      color: pinColor,
+                    }}
+                  >
+                    {isHigh ? 'HIGH RISK' : isMod ? 'ELEVATED' : 'NORMAL'}
+                  </span>
+                </div>
+
+                {/* Expanded Callout Card on Hover or Selection */}
+                {(isSelected || isHovered) && (
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 bottom-9 w-68 p-3.5 rounded-2xl shadow-2xl backdrop-blur-xl animate-fade-in text-left pointer-events-auto z-50"
+                    style={{
+                      background: 'rgba(3, 7, 18, 0.96)',
+                      border: `1.5px solid ${pinColor}`,
+                      boxShadow: `0 12px 36px -4px rgba(0,0,0,0.9), 0 0 24px ${pinColor}44`,
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full" style={{ background: pinColor }} />
+                        <span className="text-xs font-black text-white">{z.label}</span>
+                      </div>
+                      <span className="text-[10px] font-black font-mono" style={{ color: pinColor }}>
+                        T: {z.tScore}
+                      </span>
+                    </div>
+
+                    {/* Why It's a Risk Zone */}
+                    <div className="space-y-1 mb-2.5">
+                      <div className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+                        Why It&apos;s a Risk Zone:
+                      </div>
+                      <p className="text-[11px] text-slate-200 font-medium leading-relaxed">
+                        {z.note}
+                      </p>
+                    </div>
+
+                    {/* Biomechanical Metrics Grid */}
+                    <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-white/10 text-[10px]">
+                      <div className="bg-white/5 rounded-lg p-1.5 text-center">
+                        <div className="text-slate-400 font-bold">Trabecular vBMD</div>
+                        <div className="text-white font-black">{z.vBMD} mg/cm³</div>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-1.5 text-center">
+                        <div className="text-slate-400 font-bold">Fracture Index</div>
+                        <div className="font-black" style={{ color: pinColor }}>
+                          {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Html>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Real Anatomical Bone Model
 // ─────────────────────────────────────────────────────────────────────────────
 
-function RealAnatomicalBoneModel({ modelPath, mode, autoRotate, zones, onZoneEvent }) {
+function RealAnatomicalBoneModel({
+  modelPath,
+  mode,
+  autoRotate,
+  zones,
+  showAnnotations = true,
+  selectedRegion,
+  hoveredZone,
+  onZoneEvent
+}) {
   const { scene } = useGLTF(modelPath);
   const rootRef = useRef();
 
@@ -373,7 +497,14 @@ function RealAnatomicalBoneModel({ modelPath, mode, autoRotate, zones, onZoneEve
       onClick={e => { e.stopPropagation(); const r = getZoneAtEvent(e); if (r.zone) onZoneEvent?.({ ...r, type: 'click' }); }}
     >
       <primitive object={group} />
-      {/* 100% clean 3D Canvas — no popups or overlapping boxes on model */}
+      <AnnotationPins
+        zones={zones}
+        activeZoneId={selectedRegion}
+        hoveredZoneId={hoveredZone?.id}
+        showAnnotations={showAnnotations}
+        onSelectZone={(id) => onZoneEvent?.({ zone: zones.find(z => z.id === id), type: 'click' })}
+        onHoverZone={(zone) => onZoneEvent?.({ zone, type: zone ? 'hover' : 'out' })}
+      />
     </group>
   );
 }
@@ -437,7 +568,7 @@ class BoneModelErrorBoundary extends Component {
 
 const P = { background: 'rgba(3,7,18,0.90)', backdropFilter: 'blur(18px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, fontFamily: 'system-ui' };
 
-function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
+function ViewportOverlay({ preset, onPreset, isXray, onXray, showAnnotations, onToggleAnnotations, zones }) {
   const highCount = zones.filter(z => z.riskLevel === 'high').length;
 
   return (
@@ -449,17 +580,24 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 6px #38bdf8' }} />
             <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', color: '#7dd3fc', textTransform: 'uppercase' }}>View Controls</span>
           </div>
-          <div style={{ padding: '8px' }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 4px 5px' }}>Anatomical Plane</p>
-            {[{ id: 'anterior', label: 'Anterior', abbr: 'AP' }, { id: 'lateral', label: 'Lateral', abbr: 'LAT' }, { id: 'axial', label: 'Axial', abbr: 'AX' }].map(p => (
+          <div style={{ padding: '8px', maxHeight: 200, overflowY: 'auto' }}>
+            <p style={{ fontSize: 9, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.12em', margin: '0 4px 5px' }}>Orthogonal Planes & Projections</p>
+            {[
+              { id: 'coronal',    label: 'Coronal',    abbr: 'AP' },
+              { id: 'sagittal',   label: 'Sagittal',   abbr: 'LAT' },
+              { id: 'axial',      label: 'Axial',      abbr: 'AX' },
+              { id: 'pa',         label: 'PA View',    abbr: 'PA' },
+              { id: 'oblique',    label: 'Oblique',    abbr: 'OBL' },
+              { id: 'tangential', label: 'Tangential', abbr: 'TAN' },
+            ].map(p => (
               <button key={p.id} type="button" onClick={() => onPreset(p.id)} style={{
-                display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-                padding: '6px 8px', borderRadius: 8, marginBottom: 2,
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                padding: '5px 7px', borderRadius: 7, marginBottom: 2,
                 border: preset === p.id ? '1px solid rgba(59,130,246,0.5)' : '1px solid transparent',
                 background: preset === p.id ? 'rgba(59,130,246,0.18)' : 'transparent',
                 cursor: 'pointer',
               }}>
-                <div style={{ width: 26, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: preset === p.id ? 'rgba(59,130,246,0.32)' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ width: 28, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', background: preset === p.id ? 'rgba(59,130,246,0.32)' : 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
                   <span style={{ fontSize: 8, fontWeight: 800, color: preset === p.id ? '#93c5fd' : '#64748b' }}>{p.abbr}</span>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, color: preset === p.id ? '#e2e8f0' : '#94a3b8' }}>{p.label}</span>
@@ -467,10 +605,21 @@ function ViewportOverlay({ preset, onPreset, isXray, onXray, zones }) {
             ))}
           </div>
           <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '0 10px' }} />
-          <div style={{ padding: '6px 8px 8px' }}>
+          <div style={{ padding: '6px 8px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <button type="button" onClick={onToggleAnnotations} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
+              fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
+              background: showAnnotations ? 'rgba(59,130,246,0.25)' : 'rgba(255,255,255,0.04)',
+              border: showAnnotations ? '1px solid rgba(59,130,246,0.6)' : '1px solid rgba(255,255,255,0.08)',
+              color: showAnnotations ? '#93c5fd' : '#94a3b8',
+            }}>
+              <Tag size={12} />
+              <span>{showAnnotations ? 'Hide 3D Annotations' : 'Show 3D Annotations'}</span>
+            </button>
             <button type="button" onClick={onXray} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              width: '100%', padding: '7px 8px', borderRadius: 8, cursor: 'pointer',
+              width: '100%', padding: '6px 8px', borderRadius: 8, cursor: 'pointer',
               fontSize: 11, fontWeight: 700, transition: 'all 0.15s',
               background: isXray ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
               border: isXray ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.08)',
@@ -531,6 +680,7 @@ export default function BoneModelViewer({
   wireframe = false,
   meshMode = false,
   xray = false,
+  showAnnotations = true,
   autoRotate = false,
   selectedRegion = 'femoral-neck',
   riskLevel = 'high',
@@ -540,13 +690,17 @@ export default function BoneModelViewer({
   onZoneHover,
   onViewAngleChange,
   onXrayChange,
+  onToggleAnnotations,
 }) {
   const controlsRef = useRef();
   const [xrayOn, setXrayOn] = useState(xray);
   const [camPreset, setCamPreset] = useState(viewAngle);
+  const [annotationsOn, setAnnotationsOn] = useState(showAnnotations);
+  const [currentHoverZone, setCurrentHoverZone] = useState(null);
 
   useEffect(() => setXrayOn(xray), [xray]);
   useEffect(() => setCamPreset(viewAngle), [viewAngle]);
+  useEffect(() => setAnnotationsOn(showAnnotations), [showAnnotations]);
 
   const zones = useMemo(() =>
     normalizeZones(zoneRisks, { selectedRegion, riskLevel, clinicalNote }),
@@ -556,9 +710,19 @@ export default function BoneModelViewer({
   const mode = xrayOn ? 'xray' : meshMode ? 'mesh' : heatmap ? 'heatmap' : wireframe ? 'wireframe' : 'anatomical';
 
   const handleZoneEvent = useCallback((ev) => {
-    if (!ev || ev.type === 'out') { onZoneHover?.(null); return; }
-    if (ev.type === 'click') { onSelectRegion?.(ev.zone.id); onZoneHover?.(ev.zone); }
-    else if (ev.type === 'hover') { onZoneHover?.(ev.zone); }
+    if (!ev || ev.type === 'out') {
+      setCurrentHoverZone(null);
+      onZoneHover?.(null);
+      return;
+    }
+    if (ev.type === 'click') {
+      onSelectRegion?.(ev.zone.id);
+      setCurrentHoverZone(ev.zone);
+      onZoneHover?.(ev.zone);
+    } else if (ev.type === 'hover') {
+      setCurrentHoverZone(ev.zone);
+      onZoneHover?.(ev.zone);
+    }
   }, [onSelectRegion, onZoneHover]);
 
   const handlePreset = useCallback((p) => {
@@ -571,6 +735,12 @@ export default function BoneModelViewer({
     setXrayOn(next);
     onXrayChange?.(next);
   }, [xrayOn, onXrayChange]);
+
+  const handleToggleAnnotations = useCallback(() => {
+    const next = !annotationsOn;
+    setAnnotationsOn(next);
+    onToggleAnnotations?.(next);
+  }, [annotationsOn, onToggleAnnotations]);
 
   return (
     <div className="relative h-full w-full select-none">
@@ -597,6 +767,9 @@ export default function BoneModelViewer({
               mode={mode}
               autoRotate={autoRotate}
               zones={zones}
+              showAnnotations={annotationsOn}
+              selectedRegion={selectedRegion}
+              hoveredZone={currentHoverZone}
               onZoneEvent={handleZoneEvent}
             />
           </BoneModelErrorBoundary>
@@ -607,6 +780,8 @@ export default function BoneModelViewer({
         onPreset={handlePreset}
         isXray={xrayOn}
         onXray={handleXray}
+        showAnnotations={annotationsOn}
+        onToggleAnnotations={handleToggleAnnotations}
         zones={zones}
       />
     </div>
