@@ -36,6 +36,66 @@ class DatabaseManager:
             print(f"[DATABASE] MongoDB connection unestablished ({e}). Utilizing resilient local repository layer.")
             self.is_connected = False
 
+        # Seed demo admin account if no admin exists
+        await self._seed_demo_admin()
+
+    async def _seed_demo_admin(self):
+        """Seed a demo admin account if no admin exists in the database."""
+        import hashlib
+        import secrets as _secrets
+
+        def _hash_pw(password: str) -> str:
+            salt = _secrets.token_hex(16)
+            key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
+            return f"{salt}${key}"
+
+        demo_admin = {
+            "_id": "admin_demo_001",
+            "firstName": "Admin",
+            "lastName": "EndoBone",
+            "email": "admin@endobone.ai",
+            "password_hash": _hash_pw("Admin@2026!"),
+            "role": "admin",
+            "licenseNumber": "ADMIN-001",
+            "institution": "EndoBone AI Platform",
+            "created_at": "2026-01-01T00:00:00Z",
+        }
+
+        demo_doctor = {
+            "_id": "doc_demo_001",
+            "firstName": "Demo",
+            "lastName": "Doctor",
+            "email": "doctor@endobone.ai",
+            "password_hash": _hash_pw("Doctor@2026!"),
+            "role": "doctor",
+            "licenseNumber": "DOC-DEMO-001",
+            "institution": "EndoBone AI Demo Hospital",
+            "created_at": "2026-01-01T00:00:00Z",
+        }
+
+        if self.is_connected and self.db is not None:
+            existing_admin = await self.db.doctors.find_one({"role": "admin"})
+            if not existing_admin:
+                await self.db.doctors.insert_one(demo_admin)
+                print("[DATABASE] ✓ Seeded demo admin account: admin@endobone.ai")
+            existing_doc = await self.db.doctors.find_one({"_id": "doc_demo_001"})
+            if not existing_doc:
+                await self.db.doctors.insert_one(demo_doctor)
+                print("[DATABASE] ✓ Seeded demo doctor account: doctor@endobone.ai")
+        else:
+            local = self.get_local_data()
+            doctors = local.get("doctors", [])
+            has_admin = any(d.get("role") == "admin" for d in doctors)
+            if not has_admin:
+                doctors.append(demo_admin)
+                print("[DATABASE] ✓ Seeded demo admin account: admin@endobone.ai")
+            has_demo_doc = any(d.get("_id") == "doc_demo_001" for d in doctors)
+            if not has_demo_doc:
+                doctors.append(demo_doctor)
+                print("[DATABASE] ✓ Seeded demo doctor account: doctor@endobone.ai")
+            local["doctors"] = doctors
+            self.save_local_data(local)
+
     async def close_database_connection(self):
         if self.client:
             self.client.close()

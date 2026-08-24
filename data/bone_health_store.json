@@ -5324,5 +5324,29 @@
       "created_at": "2026-08-24T05:30:10.228394Z",
       "updated_at": "2026-08-24T05:30:10.228394Z"
     }
+  ],
+  "doctors": [
+    {
+      "_id": "admin_demo_001",
+      "firstName": "Admin",
+      "lastName": "EndoBone",
+      "email": "admin@endobone.ai",
+      "password_hash": "54649127c5e15c6b7f94ce550dfec2a5$47879bd97a47e9266f95dcdbe18a7048dc844992cd37938e432ee0689faa7409",
+      "role": "admin",
+      "licenseNumber": "ADMIN-001",
+      "institution": "EndoBone AI Platform",
+      "created_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "_id": "doc_demo_001",
+      "firstName": "Demo",
+      "lastName": "Doctor",
+      "email": "doctor@endobone.ai",
+      "password_hash": "507bfee4d1ad578d77ef1c4b616104bc$6ec27c5f62960e8791a38dbd90e47b82d9b99b68d042cf4ab30fc743eed28958",
+      "role": "doctor",
+      "licenseNumber": "DOC-DEMO-001",
+      "institution": "EndoBone AI Demo Hospital",
+      "created_at": "2026-01-01T00:00:00Z"
+    }
   ]
 }

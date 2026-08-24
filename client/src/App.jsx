@@ -12,6 +12,7 @@ const MetabolicContextView = lazy(() => import('./components/views/MetabolicCont
 const AIAssessmentView = lazy(() => import('./components/views/AIAssessment/AIAssessmentView'));
 const Planning3DView = lazy(() => import('./components/views/Planning3D/Planning3DView'));
 const PreSurgicalSummaryView = lazy(() => import('./components/views/PreSurgicalSummary/PreSurgicalSummaryView'));
+const AdminDashboardView = lazy(() => import('./components/views/Admin/AdminDashboardView'));
 
 function ProtectedRoute({ children }) {
   const token = hydrateAuthHeader();
@@ -21,6 +22,22 @@ function ProtectedRoute({ children }) {
 function PublicOnlyRoute({ children }) {
   const token = hydrateAuthHeader();
   return token ? <Navigate to="/dashboard" replace /> : children;
+}
+
+function AdminRoute({ children }) {
+  const token = hydrateAuthHeader();
+  if (!token) return <Navigate to="/login" replace />;
+  // Check if current doctor has admin role
+  const profileRaw = localStorage.getItem('endobone_doctor_profile');
+  try {
+    const profile = JSON.parse(profileRaw || '{}');
+    if (profile?.role === 'admin') {
+      return children;
+    }
+  } catch {
+    // fallback
+  }
+  return <Navigate to="/dashboard" replace />;
 }
 
 export default function App() {
@@ -66,6 +83,14 @@ export default function App() {
             <Route path="/assessment" element={<AIAssessmentView />} />
             <Route path="/planning" element={<Planning3DView />} />
             <Route path="/summary" element={<PreSurgicalSummaryView />} />
+            <Route
+              path="/admin"
+              element={(
+                <AdminRoute>
+                  <AdminDashboardView />
+                </AdminRoute>
+              )}
+            />
             <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
             <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
           </Route>

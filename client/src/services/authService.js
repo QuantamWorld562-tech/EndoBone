@@ -43,6 +43,26 @@ export function readStoredDoctorProfile() {
   }
 }
 
+export async function changePassword(payload) {
+  const response = await apiClient.put('/auth/change-password', payload);
+  return response.data;
+}
+
+export function isAdmin() {
+  const profile = readStoredDoctorProfile();
+  return profile?.role === 'admin';
+}
+
+export function isProfessor() {
+  const profile = readStoredDoctorProfile();
+  return profile?.role === 'professor';
+}
+
+export function getUserRole() {
+  const profile = readStoredDoctorProfile();
+  return profile?.role || 'doctor';
+}
+
 export function readApiError(error, fallbackMessage) {
   const data = error?.response?.data;
   if (typeof data?.detail === 'string') return data.detail;
@@ -51,3 +71,4 @@ export function readApiError(error, fallbackMessage) {
   if (data?.message) return data.message;
   return fallbackMessage || 'An unexpected error occurred. Please try again.';
 }
+

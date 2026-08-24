@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.database import db_manager
 from app.routes import (
     auth,
+    admin,
     cases,
     biomarkers,
     models,
@@ -49,6 +50,7 @@ app.add_middleware(
 # The old root-mounted /assess and /health routes are no longer needed because
 # the frontend uses /api/assessments/analyze exclusively.
 app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(admin.router, prefix=settings.API_V1_STR)
 app.include_router(cases.router, prefix=settings.API_V1_STR)
 app.include_router(biomarkers.router, prefix=settings.API_V1_STR)
 app.include_router(models.router, prefix=settings.API_V1_STR)
