@@ -18,8 +18,11 @@ import { usePatientContext } from '../../../context/PatientDataContext';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const handleSelectPatient = onSelectPatient || ((id) => navigate(`/patients/${id}/metabolic`));
-  const { patients, deleteCase } = usePatientContext();
+  const { patients, deleteCase, setActivePatientId } = usePatientContext();
+  const handleSelectPatient = onSelectPatient || ((id) => {
+    setActivePatientId(id);
+    navigate(`/patients/${id}/metabolic`);
+  });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

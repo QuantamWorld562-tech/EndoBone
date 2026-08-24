@@ -274,34 +274,44 @@ export function PatientDataProvider({ children }) {
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
 
-  // W-5: Load patient biomarkers from backend when patient switches.
-  // Skip the fetch if we already have data for this patient to avoid unnecessary
-  // round-trips when navigating back to a previously visited patient.
+  // Load patient biomarkers from backend/mock database when patient switches.
   useEffect(() => {
     let isMounted = true;
     const existing = allBiomarkers[activePatientId];
-    const hasData = existing && Object.keys(existing).length > 0;
-    if (hasData) return; // already loaded — skip
+    const hasValidValues = existing && Object.values(existing).some(
+      v => v && typeof v === 'object' && v.value !== '' && v.value !== null && v.value !== undefined
+    );
+    if (hasValidValues) return; // already loaded with valid values — skip
 
     async function loadBiomarkers() {
       try {
         const b = await biomarkerService.getBiomarkers(activePatientId);
-        if (isMounted && b) {
+        if (isMounted && b && Object.keys(b).length > 0) {
           setAllBiomarkers((prev) => ({
             ...prev,
             [activePatientId]: {
+              ...(biomarkersDB[activePatientId] || {}),
               ...(prev[activePatientId] || {}),
               ...b,
             },
           }));
+          return;
         }
       } catch (err) {
         console.warn('Could not load biomarkers for patient:', activePatientId, err);
       }
+
+      // If backend call returned empty or failed, use mock clinical record
+      if (isMounted && biomarkersDB[activePatientId]) {
+        setAllBiomarkers((prev) => ({
+          ...prev,
+          [activePatientId]: JSON.parse(JSON.stringify(biomarkersDB[activePatientId])),
+        }));
+      }
     }
     loadBiomarkers();
     return () => { isMounted = false; };
-  }, [activePatientId]); // intentionally omit allBiomarkers — would create an infinite loop
+  }, [activePatientId]);
 
   // Selected Region of Interest (shared across 3D and other views)
   const [selectedRegion, setSelectedRegion] = useState('proximal-femur');
@@ -475,9 +485,18 @@ export function PatientDataProvider({ children }) {
     });
   }, [activePatientId]);
 
-  // Retrieve active patient biomarkers
+  // Retrieve active patient biomarkers, ensuring non-blank fallback to seed DB
   const activeBiomarkers = useMemo(() => {
-    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || biomarkersDB['PEB-8842-A'];
+    const fromState = allBiomarkers[activePatientId];
+    const hasStateValues = fromState && Object.values(fromState).some(
+      v => v && typeof v === 'object' && v.value !== '' && v.value !== null && v.value !== undefined
+    );
+    if (hasStateValues) return fromState;
+
+    const fromSeed = biomarkersDB[activePatientId];
+    if (fromSeed) return fromSeed;
+
+    return fromState || biomarkersDB['PEB-8842-A'];
   }, [allBiomarkers, activePatientId]);
 
   // W-3: Stable primitive key derived from biomarker VALUES (not the object reference).
