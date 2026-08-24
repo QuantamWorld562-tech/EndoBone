@@ -26,9 +26,13 @@ const RISK_CFG = {
 };
 
 const STATIC_ZONES = [
-  { id: 'femoral-neck',       label: 'Femoral Neck',             riskLevel: 'high',     tScore: '-2.3', vBMD: '112.4', note: 'Critical mechanical stress and osteopenic resorption. High fracture risk at intertrochanteric junction.' },
-  { id: 'greater-trochanter', label: 'Greater Trochanter',       riskLevel: 'moderate', tScore: '-1.9', vBMD: '198.6', note: 'Moderate cortical thinning at trochanteric insertion. Bone turnover markers elevated.' },
-  { id: 'shaft',              label: 'Femoral Shaft',            riskLevel: 'low',      tScore: '-0.5', vBMD: '845.1', note: 'Cortical bone density and thickness within normal biomechanical tolerance.' },
+  { id: 'femoral-neck',       label: 'Femoral Neck',             subLabel: 'Collum Femoris',             riskLevel: 'high',     tScore: '-2.3', vBMD: '112.4', note: 'Critical mechanical stress and osteopenic trabecular resorption. High shear fracture risk during THA implant seating.' },
+  { id: 'femoral-head',       label: 'Femoral Head',             subLabel: 'Caput Femoris',              riskLevel: 'moderate', tScore: '-2.1', vBMD: '134.2', note: 'Articular subchondral trabeculae with focal micro-damage and thinning under weight-bearing loads.' },
+  { id: 'greater-trochanter', label: 'Greater Trochanter',       subLabel: 'Trochanter Major',           riskLevel: 'moderate', tScore: '-1.9', vBMD: '198.6', note: 'Abductor insertion site. Cortical rarefaction creates avulsion risk during hip dislocation.' },
+  { id: 'intertrochanteric',  label: 'Intertrochanteric Line',   subLabel: 'Crista Intertrochanterica',  riskLevel: 'moderate', tScore: '-1.8', vBMD: '210.0', note: 'Metaphyseal transition zone susceptible to comminution under broaching insertion torque.' },
+  { id: 'lesser-trochanter',  label: 'Lesser Trochanter',        subLabel: 'Trochanter Minor',           riskLevel: 'moderate', tScore: '-1.7', vBMD: '220.5', note: 'Psoas tendon insertion. Calcar preservation crucial for primary stem stability.' },
+  { id: 'shaft',              label: 'Femoral Shaft',            subLabel: 'Diaphysis / Corpus',         riskLevel: 'low',      tScore: '-0.5', vBMD: '845.1', note: 'Dense circumferential cortical bone (3.8mm). Structurally optimal zone for distal stem press-fit anchorage.' },
+  { id: 'distal-condyles',    label: 'Distal Metaphysis',        subLabel: 'Condylus Medialis/Lateralis', riskLevel: 'low',      tScore: '-0.8', vBMD: '650.0', note: 'Distal load-bearing condylar base with preserved cancellous architecture.' },
 ];
 
 function ZoneInspectionPanel({ zone }) {
