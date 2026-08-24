@@ -365,27 +365,64 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     const screenY = (-vec.y * size.height) / 2;
     const halfW = size.width / 2;
     const halfH = size.height / 2;
-    const badgeW = isElevated ? 175 : 125;
+    const badgeW = isElevated ? 140 : 105;
     const edgeMargin = 16;
+
     const baseSide = z.side || (vec.x < 0 ? 'left' : 'right');
-    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -52 : 52);
+    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -50 : 50);
     const rawTargetY = z.offset ? z.offset[1] : 0;
+
+    // 2. Boundary Collision Detection:
     const wouldExceedLeft = (screenX + rawTargetX - badgeW) < (-halfW + edgeMargin);
     const wouldExceedRight = (screenX + rawTargetX + badgeW) > (halfW - edgeMargin);
+
     let effectiveSide = baseSide;
     let targetX = rawTargetX;
     let targetY = rawTargetY;
-    if (effectiveSide === 'left' && wouldExceedLeft) { effectiveSide = 'right'; targetX = Math.abs(rawTargetX); }
-    else if (effectiveSide === 'right' && wouldExceedRight) { effectiveSide = 'left'; targetX = -Math.abs(rawTargetX); }
-    if (effectiveSide === 'left') { const currentLeft = screenX + targetX - badgeW; if (currentLeft < -halfW + edgeMargin) targetX += (-halfW + edgeMargin) - currentLeft; }
-    else { const currentRight = screenX + targetX + badgeW; if (currentRight > halfW - edgeMargin) targetX -= (currentRight - (halfW - edgeMargin)); }
-    const currentTop = screenY + targetY - (isElevated ? 60 : 22);
-    const currentBottom = screenY + targetY + (isElevated ? 60 : 22);
-    if (currentTop < -halfH + edgeMargin) targetY += (-halfH + edgeMargin) - currentTop;
-    else if (currentBottom > halfH - edgeMargin) targetY -= (currentBottom - (halfH - edgeMargin));
+
+    if (effectiveSide === 'left' && wouldExceedLeft) {
+      effectiveSide = 'right';
+      targetX = Math.abs(rawTargetX);
+    } else if (effectiveSide === 'right' && wouldExceedRight) {
+      effectiveSide = 'left';
+      targetX = -Math.abs(rawTargetX);
+    }
+
+    // 3. Fine-grained Edge Clamping to prevent clipping:
+    if (effectiveSide === 'left') {
+      const currentLeft = screenX + targetX - badgeW;
+      if (currentLeft < -halfW + edgeMargin) {
+        targetX += (-halfW + edgeMargin) - currentLeft;
+      }
+    } else {
+      const currentRight = screenX + targetX + badgeW;
+      if (currentRight > halfW - edgeMargin) {
+        targetX -= (currentRight - (halfW - edgeMargin));
+      }
+    }
+
+    // Y Axis Boundary Clamping:
+    const currentTop = screenY + targetY - (isElevated ? 45 : 18);
+    const currentBottom = screenY + targetY + (isElevated ? 45 : 18);
+    if (currentTop < -halfH + edgeMargin) {
+      targetY += (-halfH + edgeMargin) - currentTop;
+    } else if (currentBottom > halfH - edgeMargin) {
+      targetY -= (currentBottom - (halfH - edgeMargin));
+    }
+
     const midX = targetX * 0.36;
-    if (effectiveSide !== layout.side || Math.abs(targetX - layout.targetX) > 0.5 || Math.abs(targetY - layout.targetY) > 0.5) {
-      setLayout({ side: effectiveSide, targetX, targetY, midX });
+
+    if (
+      effectiveSide !== layout.side ||
+      Math.abs(targetX - layout.targetX) > 0.5 ||
+      Math.abs(targetY - layout.targetY) > 0.5
+    ) {
+      setLayout({
+        side: effectiveSide,
+        targetX,
+        targetY,
+        midX,
+      });
     }
   });
 
@@ -403,38 +440,57 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
         }}
       >
         <div className="relative pointer-events-none select-none">
+          {/* 1. Target Pin Anchor on Bone Surface */}
           <div
             className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10"
-            onClick={(e) => { e.stopPropagation(); onSelectZone?.(z.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectZone?.(z.id);
+            }}
             onMouseEnter={() => onHoverZone?.(z)}
             onMouseLeave={() => onHoverZone?.(null)}
           >
             <div
-              className="w-3 h-3 rounded-full flex items-center justify-center transition-transform hover:scale-125"
+              className="w-2.5 h-2.5 rounded-full flex items-center justify-center transition-transform hover:scale-125"
               style={{
                 background: 'rgba(3, 7, 18, 0.95)',
                 border: `1.5px solid ${pinColor}`,
                 boxShadow: `0 0 6px ${pinColor}`,
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: pinColor }} />
+              <span
+                className="w-1 h-1 rounded-full"
+                style={{ background: pinColor }}
+              />
             </div>
             {isElevated && (
-              <span className="w-4 h-4 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75" style={{ background: pinColor }} />
+              <span
+                className="w-3.5 h-3.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                style={{ background: pinColor }}
+              />
             )}
           </div>
 
-          <svg className="absolute top-0 left-0 overflow-visible pointer-events-none" style={{ width: 1, height: 1 }}>
+          {/* 2. SVG Dynamic Leader Line */}
+          <svg
+            className="absolute top-0 left-0 overflow-visible pointer-events-none"
+            style={{ width: 1, height: 1 }}
+          >
             <path
               d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
               fill="none"
               stroke={pinColor}
-              strokeWidth={isElevated ? '2.0' : '1.2'}
+              strokeWidth={isElevated ? '1.8' : '1.0'}
               strokeOpacity={isElevated ? 1.0 : 0.70}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx={targetX} cy={targetY} r={isElevated ? 2.0 : 1.5} fill={pinColor} />
+            <circle
+              cx={targetX}
+              cy={targetY}
+              r={isElevated ? 1.8 : 1.3}
+              fill={pinColor}
+            />
           </svg>
 
           {/* 3. Scaled Responsive Label Badge */}
@@ -461,61 +517,55 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
                 background: isElevated ? '#020617' : 'rgba(9, 13, 31, 0.95)',
                 border: `1px solid ${isElevated ? pinColor : pinColor + '99'}`,
                 boxShadow: isElevated
-                  ? `0 14px 32px rgba(0,0,0,0.95), 0 0 16px ${pinColor}88`
-                  : '0 4px 12px rgba(0,0,0,0.6)',
-                width: isElevated ? 180 : 'max-content',
-                minWidth: 105,
-                maxWidth: isElevated ? 200 : 155,
-                padding: '4px 8px',
+                  ? `0 12px 28px rgba(0,0,0,0.95), 0 0 14px ${pinColor}88`
+                  : '0 4px 10px rgba(0,0,0,0.6)',
+                width: isElevated ? 140 : 'max-content',
+                minWidth: 98,
+                maxWidth: isElevated ? 148 : 135,
+                padding: '3px 6px',
               }}
             >
               {/* Header: Full Zone Name & Status Badge */}
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-black text-white whitespace-nowrap text-[9.5px] tracking-tight">
+              <div className="flex items-center justify-between gap-1.5">
+                <span className="font-black text-white whitespace-nowrap text-[8.5px] tracking-tight">
                   {z.label}
                 </span>
                 <span
-                  className="font-black px-1.5 py-0.2 rounded shrink-0 uppercase text-[7.5px]"
+                  className="font-black px-1 py-0.2 rounded shrink-0 uppercase text-[7px]"
                   style={{
                     background: `${pinColor}25`,
                     color: pinColor,
                     border: `0.5px solid ${pinColor}55`,
                   }}
                 >
-                  {isHigh ? 'High Risk' : isMod ? 'Elevated' : 'Normal'}
+                  {isHigh ? 'High' : isMod ? 'Elev' : 'Norm'}
                 </span>
               </div>
 
               {/* Sub-Header: Landmark Sub-Label & T-Score */}
-              <div className="flex items-center justify-between gap-2 mt-0.5 text-slate-400">
-                <span className="font-semibold text-[8px] whitespace-nowrap text-slate-400">
-                  {z.subLabel || 'Anatomical Landmark'}
+              <div className="flex items-center justify-between gap-1.5 mt-0.2 text-slate-400">
+                <span className="font-semibold text-[7.5px] whitespace-nowrap text-slate-400">
+                  {z.subLabel || 'Landmark'}
                 </span>
-                <span className="font-mono font-bold text-[8.5px] shrink-0" style={{ color: pinColor }}>
+                <span className="font-mono font-bold text-[8px] shrink-0" style={{ color: pinColor }}>
                   T: {z.tScore}
                 </span>
               </div>
 
-              {/* Full Detailed Insight on Hover / Select — renders solidly above everything */}
+              {/* Full Detailed Insight on Hover / Select — slim and compact */}
               {isElevated && (
-                <div className="mt-1.5 pt-1.5 border-t border-white/15 text-left animate-fade-in space-y-1">
-                  <div className="text-[7.5px] font-black uppercase tracking-wider text-slate-400">
+                <div className="mt-1 pt-1 border-t border-white/15 text-left animate-fade-in space-y-0.8">
+                  <div className="text-[6.8px] font-black uppercase tracking-wider text-slate-400">
                     Risk Zone Insight:
                   </div>
-                  <p className="text-[8px] text-slate-200 leading-relaxed font-medium break-words">
+                  <p className="text-[7.5px] text-slate-200 leading-tight font-medium line-clamp-2 break-words">
                     {z.note}
                   </p>
-                  <div className="grid grid-cols-2 gap-1.5 pt-1 text-[7.5px] bg-slate-900/90 p-1.5 rounded border border-slate-800">
-                    <div>
-                      <span className="text-slate-400 block text-[6.5px]">vBMD</span>
-                      <span className="font-bold text-white text-[8px]">{z.vBMD} mg/cm³</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[6.5px]">Fracture Risk</span>
-                      <span className="font-bold text-[8px]" style={{ color: pinColor }}>
-                        {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between text-[7px] bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800 mt-0.5">
+                    <span className="text-slate-400">vBMD: <b className="text-white">{z.vBMD}</b></span>
+                    <span className="font-bold" style={{ color: pinColor }}>
+                      {isHigh ? '87%' : isMod ? '52%' : '12%'} Risk
+                    </span>
                   </div>
                 </div>
               )}
