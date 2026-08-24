@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Maximize2, Minimize2, Play, Pause, RotateCcw, Bone, FlaskConical,
+  Maximize2, Minimize2, Play, Pause, Bone, FlaskConical,
   ArrowUpRight, Brain, AlertTriangle, CheckCircle,
   MapPin, TrendingDown, FileText, Crosshair, Info,
   LineChart, Tag, Compass
@@ -290,27 +290,18 @@ export default function Planning3DView({ patientId }) {
                   <span className="hidden sm:inline">{autoRotate ? 'Pause' : 'Play'}</span>
                 </button>
 
-                {/* Reset Camera View */}
-                <button
-                  onClick={() => setViewAngle('overview')}
-                  className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition"
-                  title="Reset Camera View to AP Overview"
-                >
-                  <RotateCcw size={14} />
-                </button>
-
                 {/* Fullscreen Button */}
                 <button
                   onClick={toggleFullscreen}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition text-xs font-bold ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition text-xs font-bold ${
                     isFullscreen
-                      ? 'bg-indigo-600/30 border-indigo-500/60 text-indigo-200'
+                      ? 'bg-indigo-600/30 border-indigo-500/60 text-indigo-200 shadow-sm shadow-indigo-500/20'
                       : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
                   }`}
                   title={isFullscreen ? 'Exit Fullscreen View (Esc)' : 'Expand to Fullscreen 3D Workstation'}
                 >
                   {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-                  <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
                 </button>
               </div>
             </div>
