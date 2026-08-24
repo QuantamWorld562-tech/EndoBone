@@ -223,7 +223,7 @@ export default function Planning3DView({ patientId }) {
           </div>
 
           {/* Viewer card */}
-          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] min-w-0 max-w-full relative">
+          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[50px] min-w-0  max-w-full relative">
             {/* Floating Top Center Exit Fullscreen Pill */}
             {isFullscreen && (
               <button
