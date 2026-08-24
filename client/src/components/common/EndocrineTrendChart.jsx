@@ -104,39 +104,39 @@ export default function EndocrineTrendChart({
   const activePoint = activeHoverIdx !== null ? timelineData[activeHoverIdx] : timelineData[timelineData.length - 1];
 
   return (
-    <div className={`space-y-4 text-slate-100 ${className}`}>
+    <div className={`space-y-3 text-slate-100 min-w-0 max-w-full overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400" />
-          <h4 className="text-xs font-black text-slate-200 tracking-wider uppercase">
-            Endocrine Profile & Biomarkers
+      <div className="flex items-center justify-between pb-2 border-b border-slate-800 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400 shrink-0" />
+          <h4 className="text-xs font-black text-slate-200 tracking-wider uppercase truncate">
+            Endocrine Profile &amp; Biomarkers
           </h4>
         </div>
-        <span className="text-[10px] text-slate-400 font-bold bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+        <span className="text-[10px] text-slate-400 font-bold bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700 shrink-0">
           PowerBI Analytics
         </span>
       </div>
 
       {/* Chart 1: Serum Bone Markers (Turnover: ALP vs CTX-I) */}
-      <div className="bg-slate-950/90 rounded-xl border border-slate-800/80 p-3 space-y-2 shadow-inner">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="font-bold text-slate-300">1. Serum Bone Turnover Markers</span>
-          <div className="flex items-center gap-2 text-[10px] font-bold">
-            <span className="flex items-center gap-1 text-cyan-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+      <div className="bg-slate-950/90 rounded-xl border border-slate-800/80 p-3 space-y-2 shadow-inner min-w-0 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] min-w-0">
+          <span className="font-bold text-slate-300 truncate max-w-[140px] sm:max-w-none">1. Bone Turnover Markers</span>
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold shrink-0">
+            <span className="flex items-center gap-1 text-cyan-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
               ALP ({activePoint.alp} U/L)
             </span>
-            <span className="flex items-center gap-1 text-amber-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span className="flex items-center gap-1 text-amber-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
               CTX-I ({activePoint.ctx} pg/mL)
             </span>
           </div>
         </div>
 
         {/* SVG Chart 1 */}
-        <div className="relative">
-          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible select-none">
+        <div className="relative w-full overflow-hidden">
+          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-hidden select-none block">
             <defs>
               <linearGradient id="cyanGlow" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
@@ -205,24 +205,24 @@ export default function EndocrineTrendChart({
       </div>
 
       {/* Chart 2: Hormonal Axis Profile (PTH vs Vitamin D) */}
-      <div className="bg-slate-950/90 rounded-xl border border-slate-800/80 p-3 space-y-2 shadow-inner">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="font-bold text-slate-300">2. Hormonal Profile Axis</span>
-          <div className="flex items-center gap-2 text-[10px] font-bold">
-            <span className="flex items-center gap-1 text-amber-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+      <div className="bg-slate-950/90 rounded-xl border border-slate-800/80 p-3 space-y-2 shadow-inner min-w-0 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] min-w-0">
+          <span className="font-bold text-slate-300 truncate max-w-[140px] sm:max-w-none">2. Hormonal Profile Axis</span>
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold shrink-0">
+            <span className="flex items-center gap-1 text-amber-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
               PTH ({activePoint.pth} pg/mL)
             </span>
-            <span className="flex items-center gap-1 text-teal-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+            <span className="flex items-center gap-1 text-teal-400 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
               25(OH)D ({activePoint.vitD} ng/mL)
             </span>
           </div>
         </div>
 
         {/* SVG Chart 2 */}
-        <div className="relative">
-          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible select-none">
+        <div className="relative w-full overflow-hidden">
+          <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-hidden select-none block">
             <defs>
               <linearGradient id="pthAreaGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25" />
@@ -294,7 +294,7 @@ export default function EndocrineTrendChart({
 
         <div className="flex items-center gap-1.5 pt-1 text-[10px] text-slate-400 leading-tight">
           <Info size={11} className="text-cyan-400 shrink-0" />
-          <span>Inverse Axis: High PTH ({currentPth} pg/mL) directly mirrors Vitamin D deficiency ({currentVitD} ng/mL).</span>
+          <span className="truncate">Inverse Axis: PTH ({currentPth} pg/mL) vs Vit D ({currentVitD} ng/mL).</span>
         </div>
       </div>
     </div>
