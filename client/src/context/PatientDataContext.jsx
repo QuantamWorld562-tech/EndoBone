@@ -477,7 +477,7 @@ export function PatientDataProvider({ children }) {
 
   // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
-    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || biomarkersDB['PEB-8842-A'];
+    return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || {};
   }, [allBiomarkers, activePatientId]);
 
   // W-3: Stable primitive key derived from biomarker VALUES (not the object reference).
@@ -591,7 +591,7 @@ export function PatientDataProvider({ children }) {
 
   // Dynamic regional analysis metrics adjusted by metabolic risk
   const dynamicRegionalData = useMemo(() => {
-    const baseRegions = regionalAnalysisDB[activePatientId] || regionalAnalysisDB['PEB-8842-A'] || {};
+    const baseRegions = regionalAnalysisDB[activePatientId] || {};
     const region = baseRegions[selectedRegion] || baseRegions['proximal-femur'] || {};
     const risk = dynamicAssessment.overallQualityRisk;
 
@@ -642,7 +642,7 @@ export function PatientDataProvider({ children }) {
   const aiZoneRisks = useMemo(() => {
     if (!persistedAssessment?.aiResults) return null;
     const ai = persistedAssessment.aiResults;
-    const baseRegions = regionalAnalysisDB[activePatientId] || regionalAnalysisDB['PEB-8842-A'] || {};
+    const baseRegions = regionalAnalysisDB[activePatientId] || {};
     const targetReg = backendToUiRegion[ai.target_region] || ai.target_region || 'proximal-femur';
 
     return Object.entries(baseRegions).map(([regionKey, regionData]) => {
