@@ -11,8 +11,10 @@ export default function RiskDonut({
   const circumference = 2 * Math.PI * radius;
   const progress = Math.max(0, Math.min(100, value)) / 100;
   const dashOffset = circumference * (1 - progress);
+  // W-7: Thresholds aligned with PatientDataContext engine:
+  // high = ≥65, moderate = ≥40, low = <40
   const riskLabel =
-    value >= 70 ? 'High Risk' : value >= 40 ? 'Moderate Risk' : value >= 20 ? 'Low-Moderate' : 'Low';
+    value >= 65 ? 'High Risk' : value >= 40 ? 'Moderate Risk' : 'Low Risk';
 
   return (
     <div className="flex flex-col items-center">

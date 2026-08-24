@@ -333,6 +333,10 @@ class BiomarkerRuleEngine:
                 factor="Primary Hyperparathyroidism Pattern",
                 explanation="Non-suppressed PTH despite hypercalcemia indicates autonomous parathyroid adenoma secretion. High subperiosteal bone resorption risk compromises surgical fixation viability."
             ),
+            "R5B_HYPERCALCEMIA_NORMAL_PTH": ExplainabilityFactor(
+                factor="Hypercalcemia with Normal PTH",
+                explanation="Elevated serum calcium with a non-elevated PTH suggests non-PTH-mediated hypercalcemia (e.g. FHH, PTHrP, granulomatous disease). Bone remodeling coupling is reduced; further investigation recommended before surgery."
+            ),
             "R6_VITD_PHOS_ABSORPTION": ExplainabilityFactor(
                 factor="Low Phosphate",
                 explanation="Phosphate is below the selected reference context and is relevant to calcium and phosphate absorption. Impaired intestinal phosphate uptake paired with secondary PTH phosphaturia results in defective unmineralized osteoid matrix (osteomalacia pattern)."
