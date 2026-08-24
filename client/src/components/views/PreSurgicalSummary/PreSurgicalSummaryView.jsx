@@ -433,7 +433,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">Pre-Surgical Summary</h2>
           <p className="text-slate-600 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">Consolidated clinical deliverable for operative planning and risk mitigation.</p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0 print:hidden">
           <button
             onClick={() => window.print()}
             className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
@@ -785,7 +785,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 print:hidden">
             <p className="text-xs text-slate-500 font-medium">
               {isFinalized
                 ? '🔒 Plan is finalized. All fields are locked.'

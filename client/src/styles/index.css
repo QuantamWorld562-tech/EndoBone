@@ -162,3 +162,29 @@
     display: none; /* Chrome/Safari/WebKit */
   }
 }
+
+@media print {
+  /* Force exact background colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Optimize layout for standard page */
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  /* Prevent page breaks inside cards */
+  .card,
+  .bg-white,
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
