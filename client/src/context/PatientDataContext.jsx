@@ -236,7 +236,9 @@ export function computeDynamicAssessment(patientId, biomarkers) {
 export function PatientDataProvider({ children }) {
   // Global state across patient views
   const [activePatientId, setActivePatientId] = useState('PEB-8842-A');
-  const [patientList, setPatientList] = useState(() => [...patients]);
+  // W-8: Start with empty list — Dashboard shows skeleton until real data arrives.
+  // This prevents the flash of 3 mock patients before the backend responds.
+  const [patientList, setPatientList] = useState([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [persistedAssessment, setPersistedAssessment] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -250,11 +252,14 @@ export function PatientDataProvider({ children }) {
     async function loadPatients() {
       try {
         const remotePatients = await patientService.getPatients();
-        if (isMounted && remotePatients && remotePatients.length > 0) {
-          setPatientList(remotePatients);
+        if (isMounted) {
+          // Use backend data if available, otherwise fall back to mock seed
+          setPatientList(remotePatients?.length > 0 ? remotePatients : [...patients]);
         }
       } catch (err) {
         console.warn('Could not load patients from backend:', err);
+        // Backend unreachable — show mock seed so the UI is not empty
+        if (isMounted) setPatientList([...patients]);
       } finally {
         if (isMounted) setIsLoadingPatients(false);
       }
@@ -269,9 +274,15 @@ export function PatientDataProvider({ children }) {
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
 
-  // Load patient biomarkers from backend when patient switches
+  // W-5: Load patient biomarkers from backend when patient switches.
+  // Skip the fetch if we already have data for this patient to avoid unnecessary
+  // round-trips when navigating back to a previously visited patient.
   useEffect(() => {
     let isMounted = true;
+    const existing = allBiomarkers[activePatientId];
+    const hasData = existing && Object.keys(existing).length > 0;
+    if (hasData) return; // already loaded — skip
+
     async function loadBiomarkers() {
       try {
         const b = await biomarkerService.getBiomarkers(activePatientId);
@@ -290,7 +301,7 @@ export function PatientDataProvider({ children }) {
     }
     loadBiomarkers();
     return () => { isMounted = false; };
-  }, [activePatientId]);
+  }, [activePatientId]); // intentionally omit allBiomarkers — would create an infinite loop
 
   // Selected Region of Interest (shared across 3D and other views)
   const [selectedRegion, setSelectedRegion] = useState('proximal-femur');
@@ -350,8 +361,11 @@ export function PatientDataProvider({ children }) {
       });
       setApiError(null);
     } catch (error) {
-      console.warn('Backend createPatient error or offline, fallback to local state:', error);
-      setApiError(null);
+      // W-6: Surface the error so the user knows the case is local-only.
+      // We still create it locally so the workflow isn't blocked.
+      const msg = error?.response?.data?.detail || error?.message || 'Server unavailable';
+      console.warn('Backend createPatient failed, falling back to local state:', msg);
+      setApiError(`Case saved locally only — ${msg}. Changes may not persist after a page refresh.`);
     }
 
     const patientId = backendPatient?.case_id || backendPatient?.id || generatedId;
@@ -466,6 +480,21 @@ export function PatientDataProvider({ children }) {
     return allBiomarkers[activePatientId] || biomarkersDB[activePatientId] || biomarkersDB['PEB-8842-A'];
   }, [allBiomarkers, activePatientId]);
 
+  // W-3: Stable primitive key derived from biomarker VALUES (not the object reference).
+  // This prevents computeDynamicAssessment from re-running when allBiomarkers is
+  // updated for a different patient or when the reference changes without values changing.
+  const biomarkerValueKey = useMemo(() => {
+    const b = activeBiomarkers;
+    return [
+      b?.pth?.value,
+      b?.vitaminD?.value,
+      b?.calcium?.value,
+      b?.phosphate?.value,
+      b?.alp?.value,
+      b?.ctx?.value,
+    ].join('|');
+  }, [activeBiomarkers]);
+
   // Update a specific biomarker value and re-evaluate status safely without coercing empty/NaN to 0
   const updateBiomarker = useCallback((patientId, key, newValue) => {
     setAllBiomarkers((prev) => {
@@ -553,10 +582,12 @@ export function PatientDataProvider({ children }) {
     }
   }, [persistedAssessment, updateRoiNote]);
 
-  // Compute dynamic AI assessment whenever active patient biomarkers change
+  // Compute dynamic AI assessment whenever active patient biomarker VALUES change.
+  // Keyed on biomarkerValueKey (a stable string) instead of the activeBiomarkers
+  // object reference — avoids rerunning the 150-line engine on reference-only changes.
   const dynamicAssessment = useMemo(() => {
     return computeDynamicAssessment(activePatientId, activeBiomarkers);
-  }, [activePatientId, activeBiomarkers]);
+  }, [activePatientId, biomarkerValueKey]); // biomarkerValueKey is the stable proxy for activeBiomarkers values
 
   // Dynamic regional analysis metrics adjusted by metabolic risk
   const dynamicRegionalData = useMemo(() => {

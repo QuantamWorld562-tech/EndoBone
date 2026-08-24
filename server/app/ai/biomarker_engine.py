@@ -232,7 +232,7 @@ class BiomarkerRuleEngine:
                 relationship_observation="Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption."
             ))
 
-        # R4: Calcium High + PTH Low
+        # R4: Calcium High + PTH Low → PTH suppression by hypercalcemia
         if ca is not None and pth is not None and ca > 10.5 and pth < 15.0:
             relationships.append(DetectedRelationship(
                 rule_id="R4_CALCIUM_PTH_SUPPRESSION",
@@ -241,13 +241,24 @@ class BiomarkerRuleEngine:
                 relationship_observation="Elevated serum calcium binds the calcium-sensing receptor (CaSR), suppressing parathyroid hormone production."
             ))
 
-        # R5: Calcium High + PTH Inappropriately Normal/High (Primary Hyperparathyroidism)
-        if ca is not None and pth is not None and ca > 10.5 and pth >= 15.0:
+        # R5a: Calcium High + PTH also High → True Primary Hyperparathyroidism
+        # (autonomous PTH secretion: both Ca AND PTH are elevated simultaneously)
+        if ca is not None and pth is not None and ca > 10.5 and pth > 65.0:
             relationships.append(DetectedRelationship(
                 rule_id="R5_AUTONOMOUS_PTH_PATTERN",
                 name="Incongruent Calcium and PTH Activity (Primary Hyperparathyroidism)",
                 involved_biomarkers=["Calcium", "PTH"],
                 relationship_observation="Concurrent hypercalcemia with non-suppressed PTH signifies autonomous parathyroid secretion with high subperiosteal bone resorption risk."
+            ))
+
+        # R5b: Calcium High + PTH in normal range → Hypercalcemia with inappropriately
+        # normal PTH (consider FHH, malignancy-related PTHrP, or granulomatous disease)
+        elif ca is not None and pth is not None and ca > 10.5 and 15.0 <= pth <= 65.0:
+            relationships.append(DetectedRelationship(
+                rule_id="R5B_HYPERCALCEMIA_NORMAL_PTH",
+                name="Hypercalcemia with Inappropriately Normal PTH",
+                involved_biomarkers=["Calcium", "PTH"],
+                relationship_observation="Hypercalcemia with a non-suppressed but not elevated PTH may indicate familial hypocalciuric hypercalcemia (FHH), malignancy-related PTHrP secretion, or granulomatous disease. Further workup is recommended."
             ))
 
         # R6: Vit D Low + Phosphate Low
