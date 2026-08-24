@@ -21,14 +21,18 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
-      <Sidebar
-        isMobileOpen={mobileSidebarOpen}
-        onCloseMobile={() => setMobileSidebarOpen(false)}
-      />
+      <div className="print:hidden">
+        <Sidebar
+          isMobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
-        <TopBar onToggleMobileMenu={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
-        <WorkflowStepper />
+      <div className="flex-1 flex flex-col min-w-0 w-full overflow-hidden print:overflow-visible">
+        <div className="print:hidden">
+          <TopBar onToggleMobileMenu={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
+          <WorkflowStepper />
+        </div>
 
         {apiError && (
           <div className="mx-3.5 sm:mx-6 lg:mx-8 mt-4 p-3.5 sm:p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-center justify-between gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
@@ -55,7 +59,7 @@ export default function MainLayout() {
           </div>
         )}
 
-        <main className="flex-1 p-3.5 sm:p-5 lg:p-8 min-w-0 max-w-full overflow-x-hidden">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-8 min-w-0 max-w-full overflow-x-hidden print:overflow-visible print:p-0">
           <Outlet />
         </main>
       </div>
