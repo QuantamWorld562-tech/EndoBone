@@ -57,7 +57,7 @@ export default function App() {
             )}
           >
             <Route path="/dashboard" element={<DashboardView />} />
-            <Route path="/patients/:patientId/dashboard" element={<DashboardView />} />
+            <Route path="/patients/:patientId/dashboard" element={<Navigate to="/dashboard" replace />} />
             <Route path="/patients/:patientId/metabolic" element={<MetabolicContextView />} />
             <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
             <Route path="/patients/:patientId/planning" element={<Planning3DView />} />

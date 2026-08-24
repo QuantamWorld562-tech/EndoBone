@@ -12,7 +12,7 @@ export const getPatientRoute = (patientId, tab = 'metabolic') => {
 };
 
 export const STEP_LABELS = [
-  { tab: 'dashboard', label: 'Dashboard', short: '01', path: (pid) => (pid ? `/patients/${pid}/dashboard` : '/dashboard') },
+  { tab: 'dashboard', label: 'Dashboard', short: '01', path: () => '/dashboard' },
   { tab: 'metabolic', label: 'Metabolic', short: '02', path: (pid) => (pid ? `/patients/${pid}/metabolic` : '/metabolic') },
   { tab: 'assessment', label: 'AI Assessment', short: '03', path: (pid) => (pid ? `/patients/${pid}/assessment` : '/assessment') },
   { tab: 'planning', label: '3D Planning', short: '04', path: (pid) => (pid ? `/patients/${pid}/planning` : '/planning') },
