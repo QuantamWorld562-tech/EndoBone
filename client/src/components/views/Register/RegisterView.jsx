@@ -107,7 +107,7 @@ export default function RegisterView() {
               <h3 className="text-xs font-bold text-clinical-blue uppercase tracking-widest mb-3">
                 Personal Information
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="label">First Name</label>
                   <input
@@ -140,7 +140,7 @@ export default function RegisterView() {
               <h3 className="text-xs font-bold text-clinical-blue uppercase tracking-widest mb-3">
                 Professional Credentials
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="label">Medical License Number</label>
                   <input

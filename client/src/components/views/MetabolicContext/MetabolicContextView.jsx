@@ -66,22 +66,22 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
   ).length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 min-w-0">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Endocrine Biomarker Input</h2>
-          <p className="text-slate-600 mt-1 text-base">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">Endocrine Biomarker Input</h2>
+          <p className="text-slate-600 mt-0.5 sm:mt-1 text-xs sm:text-sm lg:text-base">
             Enter recent lab results to update patient risk profile and 3D simulation.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <div
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border ${
               abnormalCount > 0 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-teal-50 border-teal-200 text-teal-700'
             }`}
           >
-            <AlertTriangle size={16} className={abnormalCount > 0 ? 'text-red-600' : 'text-teal-600'} />
+            <AlertTriangle size={15} className={abnormalCount > 0 ? 'text-red-600' : 'text-teal-600'} />
             <span className="font-bold text-xs">
               {abnormalCount} Out-of-Range {abnormalCount === 1 ? 'Biomarker' : 'Biomarkers'}
             </span>
@@ -90,15 +90,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
       </div>
 
       {/* Main Grid — matching user reference screenshot */}
-      <div className="grid lg:grid-cols-5 gap-6">
+      <div className="grid lg:grid-cols-5 gap-5 sm:gap-6 min-w-0">
         
         {/* Left Card: Bone Metabolism Panel (3 Cols) */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
-          <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-sm min-w-0">
+          <div className="flex items-center gap-2.5 pb-3 sm:pb-4 border-b border-slate-100">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
               <FlaskConical size={18} />
             </div>
-            <h3 className="text-base font-extrabold text-slate-900">Bone Metabolism Panel</h3>
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-900">Bone Metabolism Panel</h3>
           </div>
 
           <div className="space-y-4">
