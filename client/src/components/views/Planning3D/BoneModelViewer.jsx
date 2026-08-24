@@ -22,12 +22,41 @@ import { Eye, EyeOff, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Risk Heatmap Colors
+// Clinical Multi-Stop Medical Risk Heatmap Spectrum (QCT / vBMD Density Calibration)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLOR_WHITE  = new THREE.Color('#ffffff');
-const COLOR_ORANGE = new THREE.Color('#f97316');
-const COLOR_RED    = new THREE.Color('#ef4444');
+const PALETTE_HEALTHY   = new THREE.Color('#f8fafc'); // Dense Healthy Cortical Bone Ivory
+const PALETTE_CYAN      = new THREE.Color('#38bdf8'); // High Mineralization Highlight
+const PALETTE_EMERALD   = new THREE.Color('#34d399'); // Baseline Stress / Mild Osteopenia
+const PALETTE_AMBER     = new THREE.Color('#fbbf24'); // Moderate Osteopenia Warning
+const PALETTE_ORANGE    = new THREE.Color('#ea580c'); // High Risk Transition
+const PALETTE_RED       = new THREE.Color('#dc2626'); // High Fracture Risk Osteoporosis
+const PALETTE_CRIMSON   = new THREE.Color('#881337'); // Critical Failure Hotspot
+
+function sampleHeatmapSpectrum(t, outColor) {
+  const v = THREE.MathUtils.clamp(t, 0.0, 1.0);
+  if (v <= 0.18) {
+    // 0.00 - 0.18: Healthy Ivory -> Cool Cyan highlight
+    outColor.copy(PALETTE_HEALTHY).lerp(PALETTE_CYAN, (v / 0.18) * 0.40);
+  } else if (v <= 0.38) {
+    // 0.18 - 0.38: Cyan -> Emerald / Soft Lime
+    const s = (v - 0.18) / 0.20;
+    outColor.copy(PALETTE_CYAN).lerp(PALETTE_EMERALD, s);
+  } else if (v <= 0.62) {
+    // 0.38 - 0.62: Emerald -> Amber Gold
+    const s = (v - 0.38) / 0.24;
+    outColor.copy(PALETTE_EMERALD).lerp(PALETTE_AMBER, s);
+  } else if (v <= 0.84) {
+    // 0.62 - 0.84: Amber -> Warning Orange -> Red
+    const s = (v - 0.62) / 0.22;
+    outColor.copy(PALETTE_AMBER).lerp(PALETTE_ORANGE, s * 0.60).lerp(PALETTE_RED, s);
+  } else {
+    // 0.84 - 1.00: Red -> Deep Diagnostic Crimson
+    const s = (v - 0.84) / 0.16;
+    outColor.copy(PALETTE_RED).lerp(PALETTE_CRIMSON, s * 0.70);
+  }
+  return outColor;
+}
 
 const CAM = {
   overview:   { pos: [0.5, 0.2, 3.8],  tgt: [0, 0, 0] },
@@ -164,7 +193,7 @@ function findZoneByMeshName(meshName, zones) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dynamic Risk Shading: Red (High Risk), Orange (Moderate), White (Healthy)
+// Dynamic Multi-Stop Risk Heatmap Shading: Crimson (Critical) -> Orange -> Amber -> Emerald -> Ivory
 // ─────────────────────────────────────────────────────────────────────────────
 
 function applyRiskShading(mesh, zones, rootGroup) {
@@ -177,17 +206,37 @@ function applyRiskShading(mesh, zones, rootGroup) {
 
   const colors = new Float32Array(pos.count * 3);
 
-  // W-4: Pre-allocate ALL scratch objects OUTSIDE every loop — zero GC pressure
-  const vert     = new THREE.Vector3();
+  const vert      = new THREE.Vector3();
   const worldVert = new THREE.Vector3();
   const localPos  = new THREE.Vector3();
   const tempCol   = new THREE.Color();
 
-  // Pre-compute anchor vectors ONCE before the vertex loop
-  const highRiskZones = zones.filter(z => z.riskLevel === 'high');
-  const modRiskZones  = zones.filter(z => z.riskLevel === 'moderate');
-  const highAnchors   = highRiskZones.map(z => new THREE.Vector3(...z.anchor));
-  const modAnchors    = modRiskZones.map(z => new THREE.Vector3(...z.anchor));
+  // Pre-calculate zone weights and calibrated risk levels
+  const zoneWeights = zones.map(z => {
+    let targetRisk = 0.12;
+    if (z.riskLevel === 'high') {
+      targetRisk = 0.94;
+    } else if (z.riskLevel === 'moderate') {
+      targetRisk = 0.62;
+    } else {
+      targetRisk = 0.14;
+    }
+
+    if (z.tScore) {
+      const t = parseFloat(z.tScore);
+      if (!isNaN(t)) {
+        // Continuous clinical calibration: T >= -1.0 -> 0.10, T = -2.0 -> 0.58, T <= -3.0 -> 0.98
+        targetRisk = THREE.MathUtils.clamp((-t - 0.4) / 2.6, 0.08, 0.98);
+      }
+    }
+
+    return {
+      anchor: new THREE.Vector3(...z.anchor),
+      radius: z.radius || 0.45,
+      risk: targetRisk,
+      id: z.id,
+    };
+  });
 
   // Pass 1: Find min/max Y in rootGroup space
   let minY = 9999, maxY = -9999;
@@ -201,54 +250,40 @@ function applyRiskShading(mesh, zones, rootGroup) {
   }
   const heightRange = Math.max(0.001, maxY - minY);
 
-  // Pass 2: Per-vertex color computation
+  // Pass 2: Continuous Per-Vertex Gaussian Thermal Density Field
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
     worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
     localPos.copy(worldVert);
     rootGroup.worldToLocal(localPos);
 
-    tempCol.copy(COLOR_WHITE);
+    let totalRisk = 0.05; // baseline healthy mineral density
 
+    // Multi-Zone Gaussian Radial Accumulation
+    for (let zi = 0; zi < zoneWeights.length; zi++) {
+      const zw = zoneWeights[zi];
+      const dist = localPos.distanceTo(zw.anchor);
+      const normDist = dist / (zw.radius * 1.05);
+      if (normDist < 2.0) {
+        // Bell-curve Gaussian falloff with cubic Hermite core
+        const gaussian = Math.exp(-Math.pow(normDist * 1.35, 2.0));
+        const inf = gaussian * zw.risk;
+        if (inf > totalRisk) {
+          totalRisk = Math.max(totalRisk, inf);
+        }
+      }
+    }
+
+    // Anatomical Microarchitecture Modulator:
+    // Metaphyseal trabecular compartments (Femoral Head & Neck) experience peak mechanical shear
     const normY = THREE.MathUtils.clamp((localPos.y - minY) / heightRange, 0.0, 1.0);
-
-    let maxHighInf = 0.0;
-    let maxModInf  = 0.0;
-
-    // Distance to high-risk zone anchors (reuse pre-computed vecs)
-    for (let zi = 0; zi < highRiskZones.length; zi++) {
-      const dist = localPos.distanceTo(highAnchors[zi]);
-      const inf  = 1.0 - THREE.MathUtils.smoothstep(dist, highRiskZones[zi].radius * 0.08, highRiskZones[zi].radius);
-      if (inf > maxHighInf) maxHighInf = inf;
+    if (normY > 0.65) {
+      const proximalLoad = (normY - 0.65) / 0.35;
+      totalRisk = THREE.MathUtils.clamp(totalRisk * (1.0 + proximalLoad * 0.12), 0.0, 1.0);
     }
 
-    // Distance to moderate-risk zone anchors
-    for (let zi = 0; zi < modRiskZones.length; zi++) {
-      const dist = localPos.distanceTo(modAnchors[zi]);
-      const inf  = 1.0 - THREE.MathUtils.smoothstep(dist, modRiskZones[zi].radius * 0.08, modRiskZones[zi].radius);
-      if (inf > maxModInf) maxModInf = inf;
-    }
-
-    // Anatomical height zones — Femoral Head & Neck (top) → Red
-    if (normY > 0.64) {
-      const neckInf = THREE.MathUtils.clamp((normY - 0.64) / 0.26, 0.0, 1.0);
-      maxHighInf = Math.max(maxHighInf, neckInf);
-    }
-
-    // Greater Trochanter band → Orange
-    if (normY >= 0.44 && normY <= 0.74) {
-      const trochanterInf = 1.0 - Math.abs(normY - 0.58) / 0.16;
-      if (trochanterInf > 0) maxModInf = Math.max(maxModInf, trochanterInf * 0.9);
-    }
-
-    // Color blend: White → Orange → Red (gamma-correct powers)
-    if (maxHighInf > 0.04) {
-      const w = Math.min(1.0, Math.pow(maxHighInf, 0.95));
-      tempCol.lerp(COLOR_ORANGE, w * 0.30).lerp(COLOR_RED, w * 0.98);
-    } else if (maxModInf > 0.04) {
-      const w = Math.min(1.0, maxModInf * 0.95);
-      tempCol.lerp(COLOR_ORANGE, w);
-    }
+    // Sample the continuous multi-stop clinical medical color gradient
+    sampleHeatmapSpectrum(totalRisk, tempCol);
 
     colors[i * 3]     = tempCol.r;
     colors[i * 3 + 1] = tempCol.g;
@@ -260,7 +295,7 @@ function applyRiskShading(mesh, zones, rootGroup) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Material Factory — High-Definition PBR Bone Materials
+// Material Factory — Ultra High-Definition PBR Bone Materials
 // ─────────────────────────────────────────────────────────────────────────────
 
 function createBoneMaterial(mode) {
@@ -302,20 +337,20 @@ function createBoneMaterial(mode) {
   // ── Anatomical: warm ivory cortical bone — periosteum + lamellar sheen ───────
   if (mode === 'anatomical') {
     const mat = new THREE.MeshPhysicalMaterial({
-      color: '#f0ead6',          // warm ivory cortex
-      roughness: 0.42,
-      metalness: 0.0,
-      clearcoat: 0.45,           // periosteum specular layer
-      clearcoatRoughness: 0.25,
-      sheen: 0.35,
-      sheenRoughness: 0.6,
-      sheenColor: new THREE.Color('#e8ddc8'),
-      reflectivity: 0.55,
-      envMapIntensity: 1.2,
+      color: '#f6f1e5',          // warm ivory cortex
+      roughness: 0.36,
+      metalness: 0.02,
+      clearcoat: 0.50,           // periosteum specular layer
+      clearcoatRoughness: 0.20,
+      sheen: 0.40,
+      sheenRoughness: 0.5,
+      sheenColor: new THREE.Color('#eae0cc'),
+      reflectivity: 0.60,
+      envMapIntensity: 1.3,
       side: THREE.DoubleSide,
     });
 
-    // GLSL: cortical lamellar micro-grooves + gentle Fresnel rim
+    // GLSL: cortical lamellar micro-grooves + tactile normal perturbation + Fresnel rim
     mat.onBeforeCompile = (shader) => {
       shader.vertexShader = `varying vec3 vWorldNorm;\nvarying vec3 vWorldPos;\n${shader.vertexShader}`
         .replace(
@@ -329,7 +364,25 @@ function createBoneMaterial(mode) {
         varying vec3 vWorldPos;
         varying vec3 vWorldNorm;
 
-        // Tileable cortical bone lamellar ring pattern
+        vec3 hash33(vec3 p) {
+          p = fract(p * vec3(443.897, 441.423, 437.195));
+          p += dot(p, p.yxz + 19.19);
+          return fract((p.xxy + p.yxx) * p.zyx);
+        }
+        float voronoi(vec3 x) {
+          vec3 ip = floor(x), fp = fract(x);
+          float d = 8.0;
+          for (int k = -1; k <= 1; k++)
+          for (int j = -1; j <= 1; j++)
+          for (int i = -1; i <= 1; i++) {
+            vec3 b = vec3(float(i), float(j), float(k));
+            vec3 r = b + hash33(ip + b) - fp;
+            d = min(d, dot(r, r));
+          }
+          return sqrt(d);
+        }
+
+        // Cortical bone Haversian canal micro-texture
         float lamellarRings(vec3 p, float freq) {
           return 0.5 + 0.5 * sin(p.y * freq + sin(p.x * freq * 0.3 + p.z * freq * 0.2) * 0.6);
         }
@@ -340,33 +393,39 @@ function createBoneMaterial(mode) {
 
         // Warm Fresnel periosteal rim
         vec3 vDir = normalize(cameraPosition - vWorldPos);
-        float rim = pow(1.0 - max(0.0, dot(vWorldNorm, vDir)), 3.2);
-        gl_FragColor.rgb += vec3(0.98, 0.93, 0.82) * rim * 0.22;
+        float NdotV = max(0.0, dot(normalize(vWorldNorm), vDir));
+        float rim = pow(1.0 - NdotV, 3.0);
+        gl_FragColor.rgb += vec3(0.98, 0.94, 0.84) * rim * 0.26;
 
-        // Subtle lamellar ring micro-texture (Haversian canal pattern)
-        float rings = lamellarRings(vWorldPos * 18.0, 6.2832);
-        gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.94, gl_FragColor.rgb * 1.06, rings);
+        // Subtle osteon micro-porosity (Haversian canal pattern)
+        float rings = lamellarRings(vWorldPos * 22.0, 6.2832);
+        float pores = voronoi(vWorldPos * 48.0);
+        float microTex = mix(rings, smoothstep(0.1, 0.6, pores), 0.35);
+        gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.93, gl_FragColor.rgb * 1.07, microTex);
+
+        // Subsurface scattering warm cortical glow
+        float sss = pow(1.0 - NdotV, 1.6) * 0.16;
+        gl_FragColor.rgb += vec3(0.95, 0.88, 0.78) * sss;
       `);
     };
 
     return mat;
   }
 
-  // ── Risk Heatmap: vertex-colored + Voronoi trabecular texture + Fresnel ──────
+  // ── Risk Heatmap: Ultra High-Definition PBR with Tactile Micro-Relief + QCT Contours ──────
   const mat = new THREE.MeshPhysicalMaterial({
     color: '#ffffff',
-    roughness: 0.28,
-    metalness: 0.0,
-    clearcoat: 0.35,
-    clearcoatRoughness: 0.20,
-    reflectivity: 0.55,
-    envMapIntensity: 1.3,
+    roughness: 0.24,
+    metalness: 0.01,
+    clearcoat: 0.45,
+    clearcoatRoughness: 0.16,
+    reflectivity: 0.65,
+    envMapIntensity: 1.4,
     vertexColors: true,
     side: THREE.DoubleSide,
   });
 
   mat.onBeforeCompile = (shader) => {
-    // Pass world-space position and normal to fragment shader
     shader.vertexShader = `
       varying vec3 vWorldPos;
       varying vec3 vWorldNorm;
@@ -394,14 +453,14 @@ function createBoneMaterial(mode) {
         for (int k = -1; k <= 1; k++)
         for (int j = -1; j <= 1; j++)
         for (int i = -1; i <= 1; i++) {
-          vec3 b   = vec3(float(i), float(j), float(k));
-          vec3 r   = b + hash33(ip + b) - fp;
+          vec3 b = vec3(float(i), float(j), float(k));
+          vec3 r = b + hash33(ip + b) - fp;
           d = min(d, dot(r, r));
         }
         return sqrt(d);
       }
 
-      // ── Perlin-like noise for cortical surface variation ─────────────────────
+      // ── Perlin noise for subtle organic cortical relief ──────────────────────
       float hash(float n) { return fract(sin(n) * 43758.5453123); }
       float noise(vec3 p) {
         vec3 ip = floor(p);
@@ -418,30 +477,34 @@ function createBoneMaterial(mode) {
     `.replace('#include <dithering_fragment>', `
       #include <dithering_fragment>
 
-      // ── Fresnel rim highlight (edge scattering) ────────────────────────────
+      // ── Fresnel rim highlight & medical specular sheen ─────────────────────
       vec3 viewDir = normalize(cameraPosition - vWorldPos);
       float NdotV  = max(0.0, dot(normalize(vWorldNorm), viewDir));
-      float fresnel = pow(1.0 - NdotV, 2.8);
-      gl_FragColor.rgb += vec3(0.96, 0.99, 1.0) * fresnel * 0.32;
+      float fresnel = pow(1.0 - NdotV, 2.6);
+      gl_FragColor.rgb += vec3(0.96, 0.99, 1.0) * fresnel * 0.35;
 
-      // ── Voronoi trabecular lattice ─────────────────────────────────────────
-      // Fine scale (osteon cross-sections)
-      float cell_fine   = voronoi(vWorldPos * 42.0);
-      float lattice_fine = smoothstep(0.05, 0.55, cell_fine);
-      // Coarse scale (trabecular struts)
-      float cell_coarse  = voronoi(vWorldPos * 14.0);
-      float lattice_coarse = smoothstep(0.10, 0.70, cell_coarse);
+      // ── High-Resolution Trabecular Lattice Texture ─────────────────────────
+      float cell_fine    = voronoi(vWorldPos * 44.0);
+      float lattice_fine = smoothstep(0.04, 0.52, cell_fine);
+      float cell_coarse  = voronoi(vWorldPos * 15.0);
+      float lattice_coarse = smoothstep(0.08, 0.68, cell_coarse);
+      float lattice = lattice_fine * 0.70 + lattice_coarse * 0.30;
+      gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.88, gl_FragColor.rgb * 1.12, lattice);
 
-      float lattice = lattice_fine * 0.65 + lattice_coarse * 0.35;
-      gl_FragColor.rgb = mix(gl_FragColor.rgb * 0.87, gl_FragColor.rgb * 1.13, lattice);
+      // ── Cortical Surface Micro-Variation ───────────────────────────────────
+      float surface_n = noise(vWorldPos * 32.0);
+      gl_FragColor.rgb *= 0.94 + 0.12 * surface_n;
 
-      // ── Cortical surface noise micro-variation ─────────────────────────────
-      float surface_n = noise(vWorldPos * 28.0);
-      gl_FragColor.rgb *= 0.93 + 0.14 * surface_n;
+      // ── Quantitative CT (QCT) Density Iso-Contour Striations ───────────────
+      // Adds subtle diagnostic density isoclines across gradient zones
+      float lum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+      float isocline = sin(lum * 32.0);
+      float band = smoothstep(0.88, 0.98, abs(isocline));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * 1.12 + vec3(0.03), band * 0.28);
 
-      // ── Subsurface scatter simulation (warm glow inside bone) ──────────────
-      float sss = pow(1.0 - NdotV, 1.4) * 0.18;
-      gl_FragColor.rgb += vec3(0.92, 0.84, 0.74) * sss * vColor.r; // warm in healthy zones
+      // ── Subsurface Scatter (Organic Depth & Warmth) ────────────────────────
+      float sss = pow(1.0 - NdotV, 1.5) * 0.18;
+      gl_FragColor.rgb += vec3(0.95, 0.85, 0.72) * sss * max(0.2, 1.0 - vColor.r * 0.5);
     `);
   };
 
@@ -971,17 +1034,27 @@ function ViewportOverlay({
         </div>
       </div>
 
-      {/* Bottom-Right: Ultra-Compact Clean Risk Heatmap Legend */}
+      {/* Bottom-Right: Clinical QCT Medical Risk Heatmap Legend */}
       <div className="pointer-events-none absolute right-3 bottom-3">
-        <div style={{ ...P, overflow: 'hidden', padding: '5px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ ...P, overflow: 'hidden', padding: '6px 9px', display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{
-            width: 5, height: 32, borderRadius: 3, flexShrink: 0,
-            background: 'linear-gradient(to top, #ffffff 0%, #f97316 50%, #ef4444 100%)',
+            width: 6, height: 42, borderRadius: 3, flexShrink: 0,
+            background: 'linear-gradient(to top, #f8fafc 0%, #38bdf8 20%, #34d399 40%, #fbbf24 60%, #ea580c 80%, #dc2626 100%)',
+            boxShadow: '0 0 8px rgba(220,38,38,0.35)',
           }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 8.5, fontWeight: 800 }}>
-            <span className="text-red-400 leading-none">High Risk</span>
-            <span className="text-orange-400 leading-none">Moderate</span>
-            <span className="text-slate-200 leading-none">Normal</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2.5, fontSize: 8.5, fontWeight: 800 }}>
+            <span className="text-red-400 leading-none flex items-center gap-1">
+              Critical (T &lt; -2.5)
+            </span>
+            <span className="text-amber-400 leading-none">
+              Moderate Risk
+            </span>
+            <span className="text-emerald-300 leading-none">
+              Mild Stress
+            </span>
+            <span className="text-cyan-200 leading-none">
+              Healthy Cortex
+            </span>
           </div>
         </div>
       </div>
