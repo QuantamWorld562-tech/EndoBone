@@ -123,19 +123,8 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
           </button>
         </div>
 
-        {/* Action Shortcut: New Patient Case */}
-        <div className="px-3 pt-3 pb-1 shrink-0">
-          <button
-            onClick={handleCreateNewCase}
-            className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition cursor-pointer group"
-          >
-            <Plus size={15} className="group-hover:rotate-90 transition-transform duration-200" />
-            <span>New Patient Case</span>
-          </button>
-        </div>
-
         {/* Scrollable Navigation Area */}
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
           <div className="px-3 pt-1 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-400">
             Clinical Workspace
           </div>
