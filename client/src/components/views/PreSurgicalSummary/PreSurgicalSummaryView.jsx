@@ -172,11 +172,8 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   const handleRestoreCase = () => {
     setIsResetView(false);
-    setActivePatientId('PEB-8842-A');
-    navigate('/patients/PEB-8842-A/summary');
-    const notes = persistedAssessment?.planning_notes || assessment?.planning_notes || '';
-    setSurgeonNotes(notes);
-    showToast('Patient case summary restored.', 'success');
+    navigate('/dashboard');
+    showToast('Navigate to Dashboard to select or create a case.', 'success');
   };
 
   const handleAddNewCase = () => {
