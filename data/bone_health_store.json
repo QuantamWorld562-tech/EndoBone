@@ -5348,5 +5348,129 @@
       "institution": "EndoBone AI Demo Hospital",
       "created_at": "2026-01-01T00:00:00Z"
     }
+  ],
+  "assessments": [
+    {
+      "_id": "assess_1787580223564",
+      "patientId": "PEB-8842-A",
+      "overallQualityRisk": 80,
+      "riskLevel": "high",
+      "aiResults": {
+        "risk_level": "high",
+        "target_region": "femoral_neck",
+        "anatomical_observations": "Risk score 80/100. 25-Hydroxyvitamin D: Deficiency level. Reduced intestinal calcium/phosphate fractional absorption, inducing secondary parathyroid compensation. Parathyroid Hormone (PTH): Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion.",
+        "metabolic_observations": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves.; Combined low substrate and circulating calcium indicates decompensated intestinal fractional absorption, blunting implant osteointegration.; Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption.",
+        "contributing_factors": [
+          {
+            "factor": "Low Vitamin D",
+            "explanation": "Vitamin D is below the selected reference context. 25(OH)D deficiency impairs enterocyte calbindin-D9k and TRPV6 synthesis, reducing intestinal calcium absorption and driving compensatory PTH elevation."
+          },
+          {
+            "factor": "Vitamin D & Calcium Co-Depletion",
+            "explanation": "Concurrent low Vitamin D and low Calcium signals decompensated intestinal mineral absorption. Implant osteointegration is significantly impaired when both substrates are insufficient."
+          },
+          {
+            "factor": "Elevated PTH",
+            "explanation": "PTH is above the selected reference context and is involved in calcium regulation and bone remodeling. Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption."
+          },
+          {
+            "factor": "Low Calcium",
+            "explanation": "Serum calcium is below the reference range, reducing calcium-sensing receptor occupancy and stimulating rapid parathyroid hormone release with downstream cortical bone loss."
+          }
+        ]
+      },
+      "selected_roi": null,
+      "planning_notes": null,
+      "createdAt": "2026-08-24T14:03:43Z",
+      "updatedAt": "2026-08-24T14:03:43Z",
+      "engine_result": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 18.5,
+            "unit": "ng/mL",
+            "status": "below_reference_context",
+            "observation": "Deficiency level. Reduced intestinal calcium/phosphate fractional absorption, inducing secondary parathyroid compensation."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 85.2,
+            "unit": "pg/mL",
+            "status": "above_reference_context",
+            "observation": "Elevated parathyroid hormone output. Indicates secondary compensation for calcium/vitamin D deficit, or autonomous adenoma secretion."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 8.2,
+            "unit": "mg/dL",
+            "status": "below_reference_context",
+            "observation": "Hypocalcemia. Decreased calcium-sensing receptor occupancy stimulates rapid parathyroid hormone release."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.1,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 85.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [
+          {
+            "rule_id": "R1_VITD_PTH_COMPENSATORY",
+            "name": "Vitamin D & PTH Inverse Dynamic (Secondary Hyperparathyroidism)",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "PTH"
+            ],
+            "relationship_observation": "Sub-optimal 25(OH)D impairs intestinal calcium absorption, triggering a compensatory increase in PTH secretion to mobilize skeletal calcium reserves."
+          },
+          {
+            "rule_id": "R2_VITD_CALCIUM_ABSORPTION",
+            "name": "Vitamin D & Calcium Concurrent Depletion Axis",
+            "involved_biomarkers": [
+              "Vitamin D",
+              "Calcium"
+            ],
+            "relationship_observation": "Combined low substrate and circulating calcium indicates decompensated intestinal fractional absorption, blunting implant osteointegration."
+          },
+          {
+            "rule_id": "R3_CALCIUM_PTH_FEEDBACK",
+            "name": "Classic Calcium-PTH Negative Feedback Arc",
+            "involved_biomarkers": [
+              "Calcium",
+              "PTH"
+            ],
+            "relationship_observation": "Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption."
+          }
+        ],
+        "explainability": [
+          {
+            "factor": "Low Vitamin D",
+            "explanation": "Vitamin D is below the selected reference context. 25(OH)D deficiency impairs enterocyte calbindin-D9k and TRPV6 synthesis, reducing intestinal calcium absorption and driving compensatory PTH elevation."
+          },
+          {
+            "factor": "Vitamin D & Calcium Co-Depletion",
+            "explanation": "Concurrent low Vitamin D and low Calcium signals decompensated intestinal mineral absorption. Implant osteointegration is significantly impaired when both substrates are insufficient."
+          },
+          {
+            "factor": "Elevated PTH",
+            "explanation": "PTH is above the selected reference context and is involved in calcium regulation and bone remodeling. Hypocalcemia continuously drives parathyroid chief cell exocytosis, accelerating cortical endosteal resorption."
+          },
+          {
+            "factor": "Low Calcium",
+            "explanation": "Serum calcium is below the reference range, reducing calcium-sensing receptor occupancy and stimulating rapid parathyroid hormone release with downstream cortical bone loss."
+          }
+        ],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    }
   ]
 }
