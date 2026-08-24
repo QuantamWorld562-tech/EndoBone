@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Maximize2, Minimize2, RotateCw, Bone, FlaskConical,
-  ArrowUpRight, Brain, Activity, AlertTriangle, CheckCircle,
-  MapPin, TrendingDown, TrendingUp, FileText, Crosshair, Info
+  ArrowUpRight, Brain, AlertTriangle, CheckCircle,
+  MapPin, TrendingDown, FileText, Crosshair, Info
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import BoneModelViewer from './BoneModelViewer';
@@ -11,8 +11,8 @@ import BoneModelViewer from './BoneModelViewer';
 const BIOMARKER_INPUTS = [
   { key: 'pth',       fullLabel: 'Parathyroid Hormone', unit: 'pg/mL', ref: '15–65',    step: 1 },
   { key: 'vitaminD',  fullLabel: '25-OH Vitamin D',     unit: 'ng/mL', ref: '30–100',   step: 1 },
-  { key: 'calcium',   fullLabel: 'Serum Calcium',       unit: 'mg/dL', ref: '8.6–10.3', step: 0.1 },
-  { key: 'phosphate', fullLabel: 'Inorganic Phosphate', unit: 'mg/dL', ref: '2.5–4.5',  step: 0.1 },
+  { key: 'calcium',   fullLabel: 'Total Calcium',       unit: 'mg/dL', ref: '8.6–10.3', step: 0.1 },
+  { key: 'phosphate', fullLabel: 'Total Phosphate',     unit: 'mg/dL', ref: '2.5–4.5',  step: 0.1 },
   { key: 'alp',       fullLabel: 'Alkaline Phosphatase',unit: 'U/L',   ref: '44–147',   step: 1 },
   { key: 'ctx',       fullLabel: 'Bone Resorption',     unit: 'pg/mL', ref: '< 300',    step: 10 },
 ];
@@ -29,7 +29,7 @@ const STATIC_ZONES = [
   { id: 'shaft',              label: 'Femoral Shaft',            riskLevel: 'low',      tScore: '-0.5', vBMD: '845.1', note: 'Cortical bone density and thickness within normal biomechanical tolerance.' },
 ];
 
-function ZoneInspectionPanel({ zone, onClose }) {
+function ZoneInspectionPanel({ zone }) {
   if (!zone) return null;
   const cfg = RISK_CFG[zone.riskLevel] || RISK_CFG.low;
   const Icon = cfg.icon;
@@ -105,7 +105,6 @@ export default function Planning3DView({ patientId }) {
 
   const [renderMode, setRenderMode] = useState('heatmap');
   const [viewAngle, setViewAngle] = useState('overview');
-  const [xrayOn, setXrayOn] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sidebarTab, setSidebarTab] = useState('anatomy');
@@ -187,7 +186,7 @@ export default function Planning3DView({ patientId }) {
                 ].map(btn => (
                   <button
                     key={btn.id}
-                    onClick={() => { setRenderMode(btn.id); setXrayOn(btn.id === 'xray'); }}
+                    onClick={() => setRenderMode(btn.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${renderMode === btn.id ? btn.ac : 'text-slate-400 hover:text-slate-200'}`}
                   >
                     {btn.label}
@@ -225,7 +224,6 @@ export default function Planning3DView({ patientId }) {
                 onZoneHover={setHoveredZone}
                 onViewAngleChange={setViewAngle}
                 onXrayChange={(x) => {
-                  setXrayOn(x);
                   if (x) setRenderMode('xray');
                   else if (renderMode === 'xray') setRenderMode('heatmap');
                 }}

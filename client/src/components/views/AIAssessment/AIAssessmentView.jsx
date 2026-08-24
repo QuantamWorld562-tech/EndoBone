@@ -100,7 +100,7 @@ export default function AIAssessmentView({ patientId }) {
             {aiResults && (
               <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
                 <BrainCircuit size={14} className="text-indigo-600" />
-                Gemini LLM Synced
+                AI LLM Synced
               </span>
             )}
           </div>
@@ -176,7 +176,7 @@ export default function AIAssessmentView({ patientId }) {
                   </div>
                   <div>
                     <h3 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
-                      Gemini Clinical Reasoning Engine
+                      AI Clinical Reasoning Engine
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                         aiResults.risk_level === 'high'
                           ? 'bg-red-500/30 text-red-300 border border-red-400/40'

@@ -118,7 +118,10 @@ export default function NewCaseModal() {
   };
 
   const getStatus = (key, val) => {
-    const v = parseFloat(val) || 0;
+    if (val === '' || val === null || val === undefined) return null;
+    const v = parseFloat(val);
+    if (!Number.isFinite(v)) return null;
+
     switch (key) {
       case 'pth':
         return v > 65 ? 'High' : v < 15 ? 'Low' : null;
@@ -130,9 +133,18 @@ export default function NewCaseModal() {
         return v < 2.5 ? 'Low' : v > 4.5 ? 'High' : null;
       case 'alp':
         return v > 147 ? 'High' : v < 44 ? 'Low' : null;
+      case 'ctx':
+        return v > 300 ? 'High' : null;
       default:
         return null;
     }
+  };
+
+  const getFieldBorder = (key, val) => {
+    const s = getStatus(key, val);
+    if (s === 'High') return 'border-red-400 ring-1 ring-red-300';
+    if (s === 'Low') return 'border-amber-400 ring-1 ring-amber-300';
+    return 'border-slate-200';
   };
 
   const handleSubmit = async (e) => {
@@ -289,9 +301,7 @@ export default function NewCaseModal() {
                     <span title="NHANES LBXPT21 (Ref: 15.0–65.0 pg/mL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${
-                      getStatus('pth', formData.pth) === 'High' ? 'border-red-400 ring-1 ring-red-300' : 'border-slate-200'
-                    }`}>
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('pth', formData.pth)}`}>
                       <input
                         type="number"
                         step="0.1"
@@ -306,6 +316,9 @@ export default function NewCaseModal() {
                     {getStatus('pth', formData.pth) === 'High' && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
                     )}
+                    {getStatus('pth', formData.pth) === 'Low' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
+                    )}
                   </div>
                 </div>
 
@@ -316,9 +329,7 @@ export default function NewCaseModal() {
                     <span title="NHANES 2017–2018 (Ref: 30.0–100.0 ng/mL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${
-                      getStatus('vitaminD', formData.vitaminD) === 'Low' ? 'border-amber-400 ring-1 ring-amber-300' : 'border-slate-200'
-                    }`}>
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('vitaminD', formData.vitaminD)}`}>
                       <input
                         type="number"
                         step="0.1"
@@ -333,17 +344,20 @@ export default function NewCaseModal() {
                     {getStatus('vitaminD', formData.vitaminD) === 'Low' && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
                     )}
+                    {getStatus('vitaminD', formData.vitaminD) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Serum Calcium */}
+                {/* Total Calcium */}
                 <div className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
                     <span>Total Calcium</span>
                     <span title="NHANES LBXSC3SI (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('calcium', formData.calcium)}`}>
                       <input
                         type="number"
                         step="0.1"
@@ -355,17 +369,23 @@ export default function NewCaseModal() {
                         mg/dL
                       </span>
                     </div>
+                    {getStatus('calcium', formData.calcium) === 'Low' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
+                    )}
+                    {getStatus('calcium', formData.calcium) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Serum Phosphate */}
+                {/* Total Phosphate */}
                 <div className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
-                    <span>Serum Phosphate</span>
+                    <span>Total Phosphate</span>
                     <span title="NHANES LBXSPH (Ref: 2.5–4.5 mg/dL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('phosphate', formData.phosphate)}`}>
                       <input
                         type="number"
                         step="0.1"
@@ -377,6 +397,12 @@ export default function NewCaseModal() {
                         mg/dL
                       </span>
                     </div>
+                    {getStatus('phosphate', formData.phosphate) === 'Low' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
+                    )}
+                    {getStatus('phosphate', formData.phosphate) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
                   </div>
                 </div>
 
@@ -387,7 +413,7 @@ export default function NewCaseModal() {
                     <span title="NHANES LBXSAPSI (Ref: 44–147 IU/L)" className="text-slate-400 cursor-help"><Info size={13} /></span>
                   </div>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('alp', formData.alp)}`}>
                       <input
                         type="number"
                         step="1"
@@ -399,6 +425,37 @@ export default function NewCaseModal() {
                         IU/L
                       </span>
                     </div>
+                    {getStatus('alp', formData.alp) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
+                    {getStatus('alp', formData.alp) === 'Low' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Low</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* CTX-I (Resorption) */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-1 text-slate-800 font-semibold min-w-[160px]">
+                    <span>CTX-I (Resorption)</span>
+                    <span title="Bone Turnover Resorption Marker (Ref: < 300 pg/mL)" className="text-slate-400 cursor-help"><Info size={13} /></span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className={`flex items-center border rounded-lg overflow-hidden bg-white ${getFieldBorder('ctx', formData.ctx)}`}>
+                      <input
+                        type="number"
+                        step="10"
+                        value={formData.ctx || ''}
+                        onChange={(e) => setFormData({ ...formData, ctx: e.target.value })}
+                        className="w-24 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none text-right"
+                      />
+                      <span className="px-2.5 py-1.5 bg-slate-50 text-slate-500 font-medium text-[11px] border-l border-slate-200">
+                        pg/mL
+                      </span>
+                    </div>
+                    {getStatus('ctx', formData.ctx) === 'High' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">High</span>
+                    )}
                   </div>
                 </div>
               </div>

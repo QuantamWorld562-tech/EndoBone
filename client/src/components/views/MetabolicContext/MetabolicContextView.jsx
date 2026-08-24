@@ -4,11 +4,9 @@ import {
   AlertTriangle,
   Info,
   FlaskConical,
-  Activity,
   BarChart2,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
-import { useTrendingData } from '../../../hooks';
 import { MetabolicAnalyzeSkeleton } from '../../common';
 
 export default function MetabolicContextView({ patientId, onRunAssessment }) {
@@ -33,64 +31,34 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
     navigate(`/patients/${effectivePatientId}/assessment`);
   });
 
-
-  const { trendData } = useTrendingData(effectivePatientId);
-
   if (!biomarkers) {
     return <div className="p-10 text-center text-slate-500">Loading metabolic profile...</div>;
   }
 
   const getStatusBadge = (key) => {
     const data = biomarkers[key];
-    if (!data) return null;
+    if (!data || data.value === '' || data.value === null || data.value === undefined) {
+      return <span className="w-12 inline-block" />;
+    }
     const status = data.status || 'normal';
     if (status === 'elevated' || status === 'high') {
-      return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 text-red-700 ring-1 ring-red-200">High</span>;
+      return <span className="w-12 text-xs font-semibold text-red-600 pl-1">High</span>;
     }
     if (status === 'low' || status === 'deficient') {
-      return <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-700 ring-1 ring-amber-200">Low</span>;
+      return <span className="w-12 text-xs font-semibold text-amber-800 pl-1">Low</span>;
     }
-    return null;
+    return <span className="w-12 inline-block" />;
   };
 
   const getBorderColor = (key) => {
     const data = biomarkers[key];
-    if (!data) return 'border-slate-200';
+    if (!data || data.value === '' || data.value === null || data.value === undefined) {
+      return 'border-slate-200 bg-slate-50/40';
+    }
     const status = data.status || 'normal';
-    if (status === 'elevated' || status === 'high') return 'border-red-400 ring-1 ring-red-300';
-    if (status === 'low' || status === 'deficient') return 'border-amber-400 ring-1 ring-amber-300';
-    return 'border-slate-200';
-  };
-
-  const renderTrendChart = (key, color) => {
-    if (!trendData?.lastSixMonths) return null;
-    const points = trendData.lastSixMonths;
-    const values = points.map((p) => p[key]).filter((v) => v != null);
-    if (values.length < 2) return null;
-    const min = Math.min(...values) * 0.9;
-    const max = Math.max(...values) * 1.05;
-    const w = 320;
-    const h = 50;
-    const stepX = w / (values.length - 1);
-    const coords = values.map((v, i) => {
-      const x = i * stepX;
-      const y = h - ((v - min) / (max - min)) * h;
-      return [x, y];
-    });
-    const path = coords.map((c, i) => (i === 0 ? `M ${c[0]},${c[1]}` : `L ${c[0]},${c[1]}`)).join(' ');
-    const areaPath = `${path} L ${w},${h} L 0,${h} Z`;
-    return (
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12">
-        <defs>
-          <linearGradient id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={areaPath} fill={`url(#grad-${key})`} />
-        <path d={path} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
+    if (status === 'elevated' || status === 'high') return 'border-red-400 bg-red-50/20';
+    if (status === 'low' || status === 'deficient') return 'border-amber-400 bg-amber-50/20';
+    return 'border-slate-200 bg-slate-50/40';
   };
 
   const abnormalCount = Object.entries(biomarkers).filter(
@@ -143,15 +111,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('pth')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('pth')}`}>
                   <input
                     type="number"
                     step="0.1"
                     value={biomarkers.pth?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'pth', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     pg/mL
                   </span>
                 </div>
@@ -168,15 +136,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('vitaminD')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('vitaminD')}`}>
                   <input
                     type="number"
                     step="0.1"
                     value={biomarkers.vitaminD?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'vitaminD', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     ng/mL
                   </span>
                 </div>
@@ -184,24 +152,24 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
               </div>
             </div>
 
-            {/* Serum Calcium */}
+            {/* Total Calcium */}
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
-                <span>Serum Calcium</span>
+                <span>Total Calcium</span>
                 <span title="NHANES LBXSCA (Ref: 8.6–10.3 mg/dL)" className="text-slate-400 hover:text-slate-600 cursor-help">
                   <Info size={14} />
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('calcium')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('calcium')}`}>
                   <input
                     type="number"
                     step="0.1"
                     value={biomarkers.calcium?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'calcium', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     mg/dL
                   </span>
                 </div>
@@ -209,24 +177,24 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
               </div>
             </div>
 
-            {/* Serum Phosphate */}
+            {/* Total Phosphate */}
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <div className="flex items-center gap-1.5 text-slate-800 font-bold min-w-[200px]">
-                <span>Serum Phosphate</span>
+                <span>Total Phosphate</span>
                 <span title="NHANES LBXSPH (Ref: 2.5–4.5 mg/dL)" className="text-slate-400 hover:text-slate-600 cursor-help">
                   <Info size={14} />
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('phosphate')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('phosphate')}`}>
                   <input
                     type="number"
                     step="0.1"
                     value={biomarkers.phosphate?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'phosphate', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     mg/dL
                   </span>
                 </div>
@@ -243,15 +211,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('alp')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('alp')}`}>
                   <input
                     type="number"
                     step="1"
                     value={biomarkers.alp?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'alp', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     IU/L
                   </span>
                 </div>
@@ -268,15 +236,15 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
                 </span>
               </div>
               <div className="flex items-center gap-2.5 flex-1 justify-end">
-                <div className={`flex items-center border rounded-xl overflow-hidden bg-white shadow-sm transition ${getBorderColor('ctx')}`}>
+                <div className={`flex items-center border rounded-2xl overflow-hidden transition ${getBorderColor('ctx')}`}>
                   <input
                     type="number"
                     step="10"
                     value={biomarkers.ctx?.value ?? ''}
                     onChange={(e) => updateBiomarker(effectivePatientId, 'ctx', e.target.value)}
-                    className="w-28 px-3.5 py-2 text-sm font-black text-slate-900 focus:outline-none text-right"
+                    className="w-24 pl-4 pr-1 py-2 text-sm font-semibold text-slate-800 bg-transparent focus:outline-none text-right"
                   />
-                  <span className="px-3 py-2 bg-slate-50 text-slate-500 font-semibold text-xs border-l border-slate-200">
+                  <span className="px-3 py-2 text-slate-400 font-medium text-xs">
                     pg/mL
                   </span>
                 </div>
@@ -347,13 +315,20 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Ensure all out-of-range values are verified before proceeding to analysis.
+                {!isInputValid ? (
+                  <span className="text-amber-600 font-semibold flex items-center gap-1">
+                    <AlertTriangle size={12} className="shrink-0" />
+                    Some values are empty — defaults will be applied if analyzed now.
+                  </span>
+                ) : (
+                  'Ensure all out-of-range values are verified before proceeding to analysis.'
+                )}
               </p>
 
               <button
                 onClick={handleRunAssessment}
                 disabled={isAnalyzing}
-                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer"
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer disabled:opacity-50"
               >
                 <BarChart2 size={18} />
                 Analyze Patient Data

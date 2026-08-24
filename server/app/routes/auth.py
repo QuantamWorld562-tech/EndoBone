@@ -11,10 +11,12 @@ from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+import secrets
+
 # ───────────────────────────────────────────────
 # Lightweight JWT helpers (no external dependency)
 # ───────────────────────────────────────────────
-_SECRET = "endobone-ai-secret-key-change-in-production"
+_SECRET = getattr(settings, "JWT_SECRET", "endobone-ai-secret-key-2026-production")
 
 
 def _b64url(data: bytes) -> str:
@@ -30,12 +32,23 @@ def _create_jwt(payload: Dict[str, Any]) -> str:
     return f"{header}.{body}.{_b64url(sig)}"
 
 
-def _hash_password(password: str) -> str:
-    return hashlib.sha256((_SECRET + password).encode()).hexdigest()
+def _hash_password(password: str, salt: str = None) -> str:
+    if not salt:
+        salt = secrets.token_hex(16)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
+    return f"{salt}${key}"
 
 
-def _verify_password(password: str, hashed: str) -> bool:
-    return _hash_password(password) == hashed
+def _verify_password(password: str, stored_hash: str) -> bool:
+    if not stored_hash:
+        return False
+    if "$" in stored_hash:
+        salt, _ = stored_hash.split("$", 1)
+        return _hash_password(password, salt) == stored_hash
+    # Backward compatibility with legacy unsalted SHA256 hashes
+    legacy_hash = hashlib.sha256((_SECRET + password).encode()).hexdigest()
+    legacy_hash_fallback = hashlib.sha256(("endobone-ai-secret-key-change-in-production" + password).encode()).hexdigest()
+    return stored_hash == legacy_hash or stored_hash == legacy_hash_fallback
 
 
 # ───────────────────────────────────────────────

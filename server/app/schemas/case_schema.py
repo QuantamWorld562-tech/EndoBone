@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 class CaseBase(BaseModel):
@@ -46,9 +46,7 @@ class CaseResponse(CaseBase):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 class FullCaseResponse(CaseResponse):
     model: Optional[Dict[str, Any]] = None
@@ -57,10 +55,7 @@ class FullCaseResponse(CaseResponse):
     roi: Optional[List[Dict[str, Any]]] = []
     annotations: Optional[List[Dict[str, Any]]] = []
     simulation: Optional[Dict[str, Any]] = None
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 class ROIBase(BaseModel):
     region_name: str = Field("femoral-neck", description="ROI region identifier, e.g. proximal-femur, femoral-neck, shaft")
@@ -88,10 +83,7 @@ class ROIResponse(ROIBase):
     case_id: str
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 class AnnotationBase(BaseModel):
     text: str = Field(..., description="Clinician note or 3D annotation text")
@@ -115,10 +107,7 @@ class AnnotationResponse(AnnotationBase):
     case_id: str
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 class SimulationBase(BaseModel):
     load_vector_n: Optional[float] = Field(4200.0, description="Axial/transverse load applied in Newtons")
@@ -146,10 +135,7 @@ class SimulationResponse(SimulationBase):
     case_id: str
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-
-    class Config:
-        populate_by_name = True
-        extra = "allow"
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
 class CompleteCaseResponse(BaseModel):
     case: Dict[str, Any]

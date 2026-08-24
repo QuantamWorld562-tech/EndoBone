@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useMemo, useCallback, useEffect } 
 import {
   patients,
   biomarkersDB,
-  assessmentsDB,
   regionalAnalysisDB,
   surgicalPlansDB,
   referenceRanges,
@@ -10,6 +9,7 @@ import {
 import { patientService } from '../services/patientService';
 import { biomarkerService } from '../services/biomarkerService';
 import { assessmentService } from '../services/assessmentService';
+import { readApiError } from '../services/authService';
 import { toApiRegion, backendToUiRegion } from '../services/apiAdapters';
 
 const PatientDataContext = createContext(null);
@@ -45,6 +45,8 @@ export function computeDynamicAssessment(patientId, biomarkers) {
 
   if (calcium < 8.5) qualityRisk += 15;
   else if (calcium > 10.5) qualityRisk += 15;
+
+  if (phosphate < 2.5 || phosphate > 4.5) qualityRisk += 10;
 
   if (ctx > 400) {
     qualityRisk += 15;
@@ -149,7 +151,7 @@ export function computeDynamicAssessment(patientId, biomarkers) {
       direction: vitD < 30 ? 'down' : 'stable',
     },
     {
-      label: 'Serum Calcium',
+      label: 'Total Calcium',
       value: calcium,
       unit: 'mg/dL',
       impact: calcium < 8.6 ? 'Hypocalcemia driving parathyroid hyperactivity' : 'Normal extracellular calcium',
@@ -309,12 +311,12 @@ export function PatientDataProvider({ children }) {
     const procedure = newCase.procedure || 'Total Hip Arthroplasty (THA)';
     const patientName = newCase.name?.trim() || `Patient ${generatedId}`;
 
-    const pthVal = Number(newCase.pth) || 72.4;
-    const vitDVal = Number(newCase.vitaminD) || 28.1;
-    const calcVal = Number(newCase.calcium) || 9.4;
-    const phosVal = Number(newCase.phosphate) || 3.2;
-    const alpVal = Number(newCase.alp) || 112;
-    const ctxVal = Number(newCase.ctx) || 380;
+    const pthVal = newCase.pth !== '' && newCase.pth !== null && newCase.pth !== undefined && Number.isFinite(Number(newCase.pth)) ? Number(newCase.pth) : 45.0;
+    const vitDVal = newCase.vitaminD !== '' && newCase.vitaminD !== null && newCase.vitaminD !== undefined && Number.isFinite(Number(newCase.vitaminD)) ? Number(newCase.vitaminD) : 35.0;
+    const calcVal = newCase.calcium !== '' && newCase.calcium !== null && newCase.calcium !== undefined && Number.isFinite(Number(newCase.calcium)) ? Number(newCase.calcium) : 9.4;
+    const phosVal = newCase.phosphate !== '' && newCase.phosphate !== null && newCase.phosphate !== undefined && Number.isFinite(Number(newCase.phosphate)) ? Number(newCase.phosphate) : 3.5;
+    const alpVal = newCase.alp !== '' && newCase.alp !== null && newCase.alp !== undefined && Number.isFinite(Number(newCase.alp)) ? Number(newCase.alp) : 80;
+    const ctxVal = newCase.ctx !== '' && newCase.ctx !== null && newCase.ctx !== undefined && Number.isFinite(Number(newCase.ctx)) ? Number(newCase.ctx) : 220;
 
     let backendPatient;
     try {
@@ -525,7 +527,7 @@ export function PatientDataProvider({ children }) {
       setApiError(null);
       return result;
     } catch (error) {
-      setApiError(error.response?.data?.error || 'Unable to analyze patient biomarkers');
+      setApiError(readApiError(error, 'Unable to analyze patient biomarkers'));
       return null;
     } finally {
       setIsAnalyzing(false);
@@ -546,7 +548,7 @@ export function PatientDataProvider({ children }) {
         setPersistedAssessment(result);
         setApiError(null);
       } catch (error) {
-        setApiError(error.response?.data?.error || 'Unable to save planning note');
+        setApiError(readApiError(error, 'Unable to save planning note'));
       }
     }
   }, [persistedAssessment, updateRoiNote]);

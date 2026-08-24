@@ -38,6 +38,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm run build && serve -s build",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "e2e": "playwright test",
