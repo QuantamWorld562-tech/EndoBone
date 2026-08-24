@@ -4,7 +4,7 @@ import {
   Maximize2, Minimize2, Play, Pause, Bone, FlaskConical,
   ArrowUpRight, Brain, AlertTriangle, CheckCircle,
   MapPin, TrendingDown, FileText, Crosshair, Info,
-  LineChart, Tag, Compass
+  LineChart, Tag, Compass, Box, Plus, Sparkles, LayoutDashboard, ChevronRight, FolderOpen
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { EndocrineTrendChart } from '../../common';
@@ -88,9 +88,9 @@ function ZoneInspectionPanel({ zone }) {
         <div className="bg-white/70 rounded-xl p-3 border border-slate-100 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
             <Info size={11} className="text-slate-400 shrink-0" />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wide">Clinical Observation</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clinical Context</span>
           </div>
-          <p className="text-[11px] text-slate-700 font-medium leading-relaxed break-words">{zone.note}</p>
+          <p className="text-xs text-slate-700 leading-relaxed font-medium line-clamp-3">{zone.note}</p>
         </div>
       </div>
     </div>
@@ -100,15 +100,17 @@ function ZoneInspectionPanel({ zone }) {
 export default function Planning3DView({ patientId }) {
   const params = useParams();
   const navigate = useNavigate();
-  const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-
   const {
     biomarkers,
     selectedRegion, setSelectedRegion,
     roiNotes, updateRoiNote, persistRoiNote,
     regionalData, backendRiskLevel,
     patients,
+    activePatientId,
+    setIsNewCaseModalOpen,
   } = usePatientContext();
+
+  const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
   const [renderMode, setRenderMode] = useState('heatmap');
   const [viewAngle, setViewAngle] = useState('overview');
@@ -119,7 +121,8 @@ export default function Planning3DView({ patientId }) {
   const [hoveredZone, setHoveredZone] = useState(null);
 
   const currentPatient = useMemo(() => {
-    return patients?.find(p => p.id === effectivePatientId) || { name: 'Sarah J. Reed', id: effectivePatientId, age: 64, gender: 'Female' };
+    if (!effectivePatientId) return null;
+    return patients?.find(p => p.id === effectivePatientId) || null;
   }, [patients, effectivePatientId]);
 
   // Active zone = hovered or selected
@@ -164,6 +167,80 @@ export default function Planning3DView({ patientId }) {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isFullscreen]);
+
+  if (!effectivePatientId || !currentPatient) {
+    return (
+      <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8 animate-fade-in">
+        <div className="max-w-2xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-100 text-blue-600 ring-8 ring-blue-50/80 shadow-inner">
+            <Box size={32} />
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            No 3D Bone Model Loaded
+          </h3>
+          <p className="text-slate-600 text-xs sm:text-sm sm:text-base leading-relaxed">
+            The workspace has been reset. To view the interactive 3D anatomical model, load-bearing stress zones, and regional microarchitecture analyses, please select a patient case or add a new one.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
+          {/* Add New Case */}
+          <div
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-blue-200 hover:border-blue-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/30 group-hover:scale-110 transition-transform">
+                <Plus size={24} />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Add New Case
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase">
+                  <Sparkles size={11} /> New
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Create a new case with clinical indication and biomarkers to generate patient-specific 3D anatomical models.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+              <span>Open Case Creator</span>
+              <ChevronRight size={16} className="ml-1" />
+            </div>
+          </div>
+
+          {/* Select from Dashboard */}
+          <div
+            onClick={() => navigate('/dashboard')}
+            className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 hover:border-indigo-500 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-slate-800 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                <LayoutDashboard size={22} />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  Select from Recent Cases
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase">
+                  <FolderOpen size={11} /> Dashboard
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Select an existing patient profile from your dashboard to view the associated 3D bone geometry and DEXA T-Scores.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+              <span>View Dashboard Cases</span>
+              <ChevronRight size={16} className="ml-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

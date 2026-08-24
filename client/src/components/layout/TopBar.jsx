@@ -9,15 +9,16 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
   const location = useLocation();
   const params = useParams();
   const searchRef = useRef(null);
-  const { patients, setActivePatientId, activePatientId, isLoadingPatients } = usePatientContext();
-  const currentPatientId = params.patientId || activePatientId || (patients[0]?.id ?? 'PEB-8842-A');
+  const { patients = [], setActivePatientId, activePatientId, isLoadingPatients } = usePatientContext();
+  const currentPatientId = params.patientId || activePatientId || null;
   const doctorProfile = readStoredDoctorProfile();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const patient = useMemo(() => {
-    return patients.find((p) => p.id === currentPatientId) || patients[0];
+    if (!currentPatientId) return null;
+    return patients.find((p) => p.id === currentPatientId) || null;
   }, [patients, currentPatientId]);
 
   const searchResults = useMemo(() => {
@@ -155,7 +156,7 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
 
       {/* Right Controls: Patient Banner, Case Selector, Doctor Profile & Logout */}
       <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2">
-        {patient && (
+        {patient ? (
           <div className="hidden xl:flex items-center gap-3 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-200">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
               {patient.gender === 'Female' ? 'F' : 'M'}
@@ -171,6 +172,11 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
               </div>
             </div>
           </div>
+        ) : (
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-200 text-slate-400 text-xs font-semibold">
+            <UserRound size={14} />
+            <span>No Case Active</span>
+          </div>
         )}
 
         <div className="flex items-center gap-1 sm:gap-2">
@@ -179,11 +185,16 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
           </label>
           <select
             id="patient-selector"
-            value={currentPatientId}
+            value={currentPatientId || ''}
             onChange={(e) => handlePatientChange(e.target.value)}
             disabled={isLoadingPatients && patients.length === 0}
             className="text-xs sm:text-sm border border-slate-200 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 shadow-sm cursor-pointer max-w-[120px] sm:max-w-[180px] truncate"
           >
+            {!currentPatientId && (
+              <option value="" disabled>
+                Select Case...
+              </option>
+            )}
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.id} - {p.name}

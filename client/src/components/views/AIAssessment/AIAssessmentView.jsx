@@ -15,6 +15,10 @@ import {
   BrainCircuit,
   Target,
   Zap,
+  Plus,
+  LayoutDashboard,
+  ChevronRight,
+  FolderOpen,
 } from 'lucide-react';
 import { AssessmentSkeleton, RiskDonut, EndocrineTrendChart } from '../../common';
 import { usePatientContext } from '../../../context/PatientDataContext';
@@ -22,11 +26,93 @@ import { usePatientContext } from '../../../context/PatientDataContext';
 export default function AIAssessmentView({ patientId }) {
   const params = useParams();
   const navigate = useNavigate();
-  const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
-  const { assessment, persistedAssessment, isAnalyzing, biomarkers } = usePatientContext();
+  const {
+    assessment,
+    persistedAssessment,
+    isAnalyzing,
+    biomarkers,
+    activePatientId,
+    setIsNewCaseModalOpen,
+  } = usePatientContext();
 
-  if (isAnalyzing || !assessment) {
+  const effectivePatientId = patientId || params.patientId || activePatientId || null;
+
+  if (isAnalyzing) {
     return <AssessmentSkeleton />;
+  }
+
+  if (!effectivePatientId || !assessment) {
+    return (
+      <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8 animate-fade-in">
+        <div className="max-w-2xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-100 text-blue-600 ring-8 ring-blue-50/80 shadow-inner">
+            <BrainCircuit size={32} />
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            No AI Assessment Available
+          </h3>
+          <p className="text-slate-600 text-xs sm:text-sm sm:text-base leading-relaxed">
+            The workspace has been reset. To run predictive AI metabolic synthesis, evaluate bone quality indices, and generate clinical intervention pathways, choose an option below:
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
+          {/* Add New Case */}
+          <div
+            onClick={() => setIsNewCaseModalOpen(true)}
+            className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-blue-200 hover:border-blue-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/30 group-hover:scale-110 transition-transform">
+                <Plus size={24} />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Add New Case
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase">
+                  <Sparkles size={11} /> New
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Enter endocrine lab results and patient details to calculate comprehensive metabolic risk and multi-disciplinary pathways.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+              <span>Open Case Creator</span>
+              <ChevronRight size={16} className="ml-1" />
+            </div>
+          </div>
+
+          {/* Select from Dashboard */}
+          <div
+            onClick={() => navigate('/dashboard')}
+            className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 hover:border-indigo-500 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-slate-800 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                <LayoutDashboard size={22} />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  Select from Recent Cases
+                </h4>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase">
+                  <FolderOpen size={11} /> Dashboard
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                Load previous patient cases and their historical AI synthesis and risk breakdown profiles.
+              </p>
+            </div>
+            <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+              <span>View Dashboard Cases</span>
+              <ChevronRight size={16} className="ml-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const {

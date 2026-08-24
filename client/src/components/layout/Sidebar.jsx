@@ -14,10 +14,10 @@ import { usePatientContext } from '../../context/PatientDataContext';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard' },
-  { id: 'metabolic', label: 'Metabolic Context', icon: Activity, path: (pid) => `/patients/${pid}/metabolic` },
-  { id: 'assessment', label: 'AI Assessment', icon: BrainCircuit, path: (pid) => `/patients/${pid}/assessment` },
-  { id: 'planning', label: '3D Planning', icon: Box, path: (pid) => `/patients/${pid}/planning` },
-  { id: 'summary', label: 'Pre-Surgical Summary', icon: FileText, path: (pid) => `/patients/${pid}/summary` },
+  { id: 'metabolic', label: 'Metabolic Context', icon: Activity, path: (pid) => pid ? `/patients/${pid}/metabolic` : '/metabolic' },
+  { id: 'assessment', label: 'AI Assessment', icon: BrainCircuit, path: (pid) => pid ? `/patients/${pid}/assessment` : '/assessment' },
+  { id: 'planning', label: '3D Planning', icon: Box, path: (pid) => pid ? `/patients/${pid}/planning` : '/planning' },
+  { id: 'summary', label: 'Pre-Surgical Summary', icon: FileText, path: (pid) => pid ? `/patients/${pid}/summary` : '/summary' },
 ];
 
 export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
@@ -25,7 +25,7 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
   const navigate = useNavigate();
   const params = useParams();
   const { activePatientId, setIsNewCaseModalOpen } = usePatientContext();
-  const patientId = params.patientId || activePatientId || 'PEB-8842-A';
+  const patientId = params.patientId || activePatientId || null;
 
   const getActiveTab = () => {
     const pathname = location.pathname;

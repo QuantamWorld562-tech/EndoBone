@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -9,7 +9,8 @@ import { usePatientContext } from '../../context/PatientDataContext';
 
 export default function MainLayout() {
   const location = useLocation();
-  const { apiError, clearApiError } = usePatientContext();
+  const params = useParams();
+  const { apiError, clearApiError, setActivePatientId, activePatientId } = usePatientContext();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -18,6 +19,15 @@ export default function MainLayout() {
     }
     setMobileSidebarOpen(false);
   }, [location.pathname]);
+
+  // Synchronize global activePatientId whenever the URL contains a patient ID
+  useEffect(() => {
+    const match = location.pathname.match(/\/patients\/([^/]+)/);
+    const routePatientId = match ? match[1] : params.patientId;
+    if (routePatientId && routePatientId !== activePatientId) {
+      setActivePatientId(routePatientId);
+    }
+  }, [location.pathname, params.patientId, activePatientId, setActivePatientId]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">

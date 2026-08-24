@@ -175,13 +175,13 @@ export default function RegisterView() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="label">Institutional Email Address</label>
+                  <label className="label">Email Address (Gmail / Medical Email)</label>
                   <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    placeholder="name@institution.edu"
+                    placeholder="doctor@gmail.com"
                     required
                     className="input-field text-sm"
                   />

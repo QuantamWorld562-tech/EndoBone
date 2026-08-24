@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   FileDown,
   FileText,
@@ -18,6 +18,14 @@ import {
   Layers,
   Link2,
   Loader2,
+  RotateCcw,
+  Plus,
+  LayoutDashboard,
+  Undo2,
+  Sparkles,
+  Box,
+  FolderOpen,
+  X,
 } from 'lucide-react';
 import { useSurgicalPlan, usePatientData } from '../../../hooks';
 import { usePatientContext } from '../../../context/PatientDataContext';
@@ -25,10 +33,21 @@ import { assessmentService } from '../../../services/assessmentService';
 
 export default function PreSurgicalSummaryView({ patientId }) {
   const params = useParams();
-  const effectivePatientId = patientId || params.patientId || 'PEB-8842-A';
+  const navigate = useNavigate();
+  const {
+    biomarkers: contextBiomarkers,
+    roiNotes,
+    assessment,
+    persistedAssessment,
+    setIsNewCaseModalOpen,
+    resetWorkspace,
+    activePatientId,
+    setActivePatientId,
+  } = usePatientContext();
+
+  const effectivePatientId = patientId || params.patientId || activePatientId || null;
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
-  const { biomarkers: contextBiomarkers, roiNotes, assessment, persistedAssessment } = usePatientContext();
   const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
 
   // ── Surgeon notes: loaded from assessment.planning_notes, saved to backend ──
@@ -38,7 +57,24 @@ export default function PreSurgicalSummaryView({ patientId }) {
   const [isFinalized, setIsFinalized] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [toastMessage, setToastMessage] = useState({ text: '', type: 'success' });
+  const [isResetView, setIsResetView] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const notesDebounceRef = useRef(null);
+
+  // When effectivePatientId changes (e.g. from selecting a recent case on dashboard), exit reset mode
+  useEffect(() => {
+    if (effectivePatientId) {
+      setIsResetView(false);
+      setIsFinalized(false);
+    }
+  }, [effectivePatientId]);
+
+  // Sync selected procedure when patient or assessment data loads
+  useEffect(() => {
+    if (patient?.procedure || assessment?.procedure) {
+      setSelectedProcedure(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
+    }
+  }, [patient?.procedure, assessment?.procedure]);
 
   // Load planning_notes from persisted assessment on mount / when assessment changes
   useEffect(() => {
@@ -119,6 +155,36 @@ export default function PreSurgicalSummaryView({ patientId }) {
     } finally {
       setIsFinalizing(false);
     }
+  };
+
+  // ── Reset workspace handlers ──
+  const handleConfirmReset = () => {
+    setIsResetView(true);
+    setShowResetModal(false);
+    setSurgeonNotes('');
+    setIsFinalized(false);
+    setIsNotesDirty(false);
+    if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
+    resetWorkspace();
+    navigate('/summary');
+    showToast('Pre-surgical summary and active workspace reset.', 'warning');
+  };
+
+  const handleRestoreCase = () => {
+    setIsResetView(false);
+    setActivePatientId('PEB-8842-A');
+    navigate('/patients/PEB-8842-A/summary');
+    const notes = persistedAssessment?.planning_notes || assessment?.planning_notes || '';
+    setSurgeonNotes(notes);
+    showToast('Patient case summary restored.', 'success');
+  };
+
+  const handleAddNewCase = () => {
+    setIsNewCaseModalOpen(true);
+  };
+
+  const handleGoToDashboard = () => {
+    navigate('/dashboard');
   };
 
   // ── Share — real clipboard URL copy ──
@@ -435,22 +501,33 @@ export default function PreSurgicalSummaryView({ patientId }) {
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap shrink-0 print:hidden">
           <button
+            onClick={() => setShowResetModal(true)}
+            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-red-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-red-600 hover:bg-red-50 hover:border-red-300 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
+            title="Reset workspace and clear patient UI"
+          >
+            <RotateCcw size={15} />
+            <span>Reset UI</span>
+          </button>
+          <button
             onClick={() => window.print()}
-            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
+            disabled={isResetView}
+            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Printer size={15} />
             <span className="hidden xs:inline">Print</span>
           </button>
           <button
             onClick={handleShare}
-            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm"
+            disabled={isResetView}
+            className="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 bg-white rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 sm:gap-2 transition cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Link2 size={15} />
             <span className="hidden xs:inline">Share</span>
           </button>
           <button
             onClick={handleExportPdf}
-            className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-blue-700 flex items-center gap-1.5 sm:gap-2 transition shadow-lg shadow-blue-600/20 cursor-pointer"
+            disabled={isResetView}
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-blue-700 flex items-center gap-1.5 sm:gap-2 transition shadow-lg shadow-blue-600/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <FileDown size={15} />
             <span>Export PDF</span>
@@ -458,6 +535,140 @@ export default function PreSurgicalSummaryView({ patientId }) {
         </div>
       </div>
 
+      {/* Confirmation Reset Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600">
+                <RotateCcw size={22} />
+              </div>
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">Reset Pre-Surgical Summary?</h3>
+              <p className="text-slate-600 text-xs sm:text-sm mt-1.5 leading-relaxed">
+                This will reset the entire summary UI, clearing loaded 3D models, biomarker data, surgeon notes, and hardware checklists so you can start a fresh case or select from recent cases.
+              </p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/70 flex items-start gap-2.5 text-xs text-amber-800">
+              <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <span>You will be prompted to either add a new patient case or choose an existing case from your dashboard.</span>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs sm:text-sm font-bold hover:bg-slate-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmReset}
+                className="px-5 py-2.5 rounded-xl bg-red-600 text-white text-xs sm:text-sm font-bold hover:bg-red-700 transition shadow-lg shadow-red-600/20 flex items-center gap-2 cursor-pointer"
+              >
+                <RotateCcw size={15} />
+                Yes, Reset Workspace
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EMPTY / RESET STATE UI ── */}
+      {isResetView || !effectivePatientId ? (
+        <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8 animate-fade-in">
+          <div className="max-w-2xl mx-auto text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-100 text-blue-600 ring-8 ring-blue-50/80 shadow-inner">
+              <RotateCcw size={32} className="animate-spin-slow" />
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Pre-Surgical Workspace Cleared
+            </h3>
+            <p className="text-slate-600 text-xs sm:text-sm sm:text-base leading-relaxed">
+              No active patient or 3D anatomical model is currently loaded in this summary workspace. To conduct pre-operative planning and biomarker risk synthesis, choose an option below:
+            </p>
+          </div>
+
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
+            {/* Card 1: Add New Case */}
+            <div
+              onClick={handleAddNewCase}
+              className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-blue-200 hover:border-blue-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/30 group-hover:scale-110 transition-transform">
+                  <Plus size={24} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                    Add New Case
+                  </h4>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase">
+                    <Sparkles size={11} /> New
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                  Input demographics, pre-op scan ID, and metabolic biomarkers to run real-time AI risk assessment and 3D modeling.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+                <span>Open Case Creator</span>
+                <ChevronRight size={16} className="ml-1" />
+              </div>
+            </div>
+
+            {/* Card 2: Select from Dashboard */}
+            <div
+              onClick={handleGoToDashboard}
+              className="group relative bg-white p-6 sm:p-7 rounded-3xl border-2 border-slate-200 hover:border-indigo-500 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-slate-800 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                  <LayoutDashboard size={22} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    Select from Recent Cases
+                  </h4>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase">
+                    <FolderOpen size={11} /> Dashboard
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                  Browse clinical records, existing patient profiles, and recently evaluated surgical candidates on your dashboard.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center text-xs sm:text-sm font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                <span>View Dashboard Cases</span>
+                <ChevronRight size={16} className="ml-1" />
+              </div>
+            </div>
+          </div>
+
+          {/* Quick status & Restore option */}
+          <div className="max-w-3xl mx-auto pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span>Workspace Status: Cleared / Awaiting Case Selection</span>
+            </div>
+            <button
+              onClick={handleRestoreCase}
+              className="text-xs font-bold text-slate-600 hover:text-blue-600 flex items-center gap-1.5 transition py-1 px-3 rounded-lg hover:bg-slate-100"
+            >
+              <Undo2 size={13} />
+              <span>Restore Previous Case ({effectivePatientId})</span>
+            </button>
+          </div>
+        </div>
+      ) : (
       <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50 rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
 
         {/* Report Header Bar */}
@@ -795,6 +1006,15 @@ export default function PreSurgicalSummaryView({ patientId }) {
             </p>
             <div className="flex items-center gap-3">
               <button
+                type="button"
+                onClick={() => setShowResetModal(true)}
+                className="px-4 py-3 border-2 border-red-200 bg-white text-red-600 rounded-xl font-bold hover:bg-red-50 hover:border-red-300 transition flex items-center gap-2 text-sm cursor-pointer shadow-sm"
+                title="Reset workspace and clear patient UI"
+              >
+                <RotateCcw size={16} />
+                Reset UI
+              </button>
+              <button
                 onClick={handleSaveDraft}
                 disabled={isFinalized || isSaving}
                 className="px-5 py-3 border-2 border-slate-200 text-slate-800 rounded-xl font-bold hover:bg-slate-50 transition flex items-center gap-2 disabled:opacity-50 text-sm cursor-pointer"
@@ -819,6 +1039,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Regulatory Disclaimer */}
       <div className="bg-slate-100 rounded-2xl border border-slate-200 p-4 text-center text-xs text-slate-600 font-medium flex items-center justify-center gap-2">
