@@ -42,7 +42,6 @@ const REGION_ALIASES = {
   'intertrochanteric': 'intertrochanteric', intertrochanteric_line: 'intertrochanteric',
   shaft: 'shaft', diaphysis: 'shaft', femoral_shaft: 'shaft',
   'distal-condyles': 'distal-condyles', condyles: 'distal-condyles', metaphysis: 'distal-condyles',
-  'vertebral-body': 'vertebral-body', vertebral_body: 'vertebral-body',
   acetabulum: 'acetabulum',
 };
 
@@ -54,7 +53,6 @@ const MESH_TOKENS = {
   'intertrochanteric':  ['intertrochanteric', 'crista'],
   shaft:                ['shaft', 'diaphysis', 'corpus'],
   'distal-condyles':    ['condyle', 'distal', 'metaphysis', 'epicondyle'],
-  'vertebral-body':     ['vertebral', 'lumbar'],
   acetabulum:           ['acetabulum', 'acetabular'],
 };
 
@@ -66,7 +64,6 @@ const ANCHORS = {
   'lesser-trochanter':  [0.14, 0.36, -0.04],
   shaft:                [0.02, -0.05, 0.06],
   'distal-condyles':    [0.02, -0.78, 0.08],
-  'vertebral-body':     [0.00, 0.05, 0.22],
   acetabulum:           [-0.18, -0.58, 0.18],
 };
 
@@ -88,7 +85,6 @@ const RADII = {
   'lesser-trochanter': 0.42,
   shaft: 0.55,
   'distal-condyles': 0.48,
-  'vertebral-body': 0.42,
   acetabulum: 0.32,
 };
 

@@ -267,22 +267,22 @@ export const regionalAnalysisDB = {
       historyMRI: 'MRI from 6 months ago showed cortical thickness of 1.8 mm - progressive thinning noted.',
       comparisonToPrevious: '33% cortical thickness loss in 6 months'
     },
-    'vertebral-body': {
-      location: 'Vertebral Body (L4-L5)',
-      anatomy: 'Lumbar vertebra planned for surgical intervention',
-      observation: 'Moderate trabecular bone loss with maintained cortical thickness. Anterior vertebral wedging < 5° suggests early-stage compression but no acute fracture. Endplate integrity preserved.',
+    'greater-trochanter': {
+      location: 'Greater Trochanter',
+      anatomy: 'Abductor tendon insertion site on proximal femur',
+      observation: 'Moderate cortical thinning at the trochanteric crest with elevated local bone turnover markers. Preserved biomechanical anchor strength.',
       metrics: {
-        trabecularVBMD: '98.2 mg/cm³',
-        corticalVBMD: '768.5 mg/cm³',
+        trabecularVBMD: '198.6 mg/cm³',
+        corticalVBMD: '812.4 mg/cm³',
         estimatedStrength: '3,840 N',
-        wedgingAngle: '3.2°',
-        endplateIntegrity: 'Intact'
+        corticalThickness: '2.1 mm',
+        trabecularPattern: 'Mildly rarefied'
       },
       status: 'Moderate Risk',
       riskLevel: 'moderate',
-      recommendation: 'Standard fusion approach appropriate. Monitor endplate integrity intraoperatively.',
-      historyMRI: 'Previous imaging from 9 months ago showed minimal changes.',
-      comparisonToPrevious: 'Progressive trabecular loss - 8% decline in trabecular vBMD'
+      recommendation: 'Careful soft-tissue handling during abductor release and trochanteric reattachment.',
+      historyMRI: 'Previous imaging showed stable trochanteric cortical profile.',
+      comparisonToPrevious: 'Stable trabecular architecture'
     },
     'acetabulum': {
       location: 'Acetabulum',

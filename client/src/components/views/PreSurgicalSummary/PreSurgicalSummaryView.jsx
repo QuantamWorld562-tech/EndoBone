@@ -252,6 +252,17 @@ export default function PreSurgicalSummaryView({ patientId }) {
     return base;
   }, [overallRisk, assessment]);
 
+  const activeRoiNotes = useMemo(() => {
+    if (!roiNotes) return {};
+    const filtered = {};
+    for (const [region, note] of Object.entries(roiNotes)) {
+      if (region !== 'vertebral-body' && region !== 'vertebral_body' && note && typeof note === 'string' && note.trim()) {
+        filtered[region] = note;
+      }
+    }
+    return filtered;
+  }, [roiNotes]);
+
   const BiomarkerTable = () => (
     <div className="overflow-hidden rounded-xl border border-slate-200">
       <table className="w-full text-sm">
@@ -490,13 +501,13 @@ export default function PreSurgicalSummaryView({ patientId }) {
                   <h4 className="text-base font-extrabold text-slate-900">3D Region of Interest (ROI) Annotations</h4>
                 </div>
                 <div className="p-6 space-y-3">
-                  {Object.keys(roiNotes).length === 0 ? (
+                  {Object.keys(activeRoiNotes).length === 0 ? (
                     <div className="text-center py-4">
                       <p className="text-xs text-slate-400 italic">No ROI annotations added yet.</p>
                       <p className="text-[11px] text-slate-400 mt-1">Add notes in the 3D Planning step — they appear here automatically.</p>
                     </div>
                   ) : (
-                    Object.entries(roiNotes).map(([region, note]) => (
+                    Object.entries(activeRoiNotes).map(([region, note]) => (
                       <div key={region} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200 space-y-1">
                         <span className="text-[11px] font-black uppercase tracking-wider text-blue-700">
                           {region.replace(/-/g, ' ')}:
