@@ -234,8 +234,8 @@ export function computeDynamicAssessment(patientId, biomarkers) {
 }
 
 export function PatientDataProvider({ children }) {
-  // Global state across patient views
-  const [activePatientId, setActivePatientId] = useState('PEB-8842-A');
+  // Global state across patient views (null by default until selected or created)
+  const [activePatientId, setActivePatientId] = useState(null);
   // W-8: Start with empty list — Dashboard shows skeleton until real data arrives.
   // This prevents the flash of 3 mock patients before the backend responds.
   const [patientList, setPatientList] = useState([]);
