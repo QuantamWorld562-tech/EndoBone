@@ -355,12 +355,12 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
         const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
 
         const isLeft = z.side === 'left';
-        const [targetX, targetY] = z.offset || (isLeft ? [-44, 0] : [44, 0]);
-        const midX = isLeft ? -16 : 16;
+        const [targetX, targetY] = z.offset || (isLeft ? [-32, 0] : [32, 0]);
+        const midX = isLeft ? -12 : 12;
 
         return (
           <group key={z.id} position={z.anchor}>
-            <Html distanceFactor={7.5} zIndexRange={[40, 0]}>
+            <Html distanceFactor={9.0} zIndexRange={[40, 0]}>
               <div className="relative pointer-events-none select-none">
                 {/* 1. Target Pin Anchor on Bone Surface */}
                 <div
@@ -373,21 +373,21 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   onMouseLeave={() => onHoverZone?.(null)}
                 >
                   <div
-                    className="w-3 h-3 rounded-full flex items-center justify-center transition-transform hover:scale-125"
+                    className="w-2 h-2 rounded-full flex items-center justify-center transition-transform hover:scale-125"
                     style={{
                       background: 'rgba(3, 7, 18, 0.9)',
-                      border: `1.5px solid ${pinColor}`,
-                      boxShadow: `0 0 8px ${pinColor}`,
+                      border: `1px solid ${pinColor}`,
+                      boxShadow: `0 0 6px ${pinColor}`,
                     }}
                   >
                     <span
-                      className="w-1.5 h-1.5 rounded-full"
+                      className="w-1 h-1 rounded-full"
                       style={{ background: pinColor }}
                     />
                   </div>
                   {(isSelected || isHovered) && (
                     <span
-                      className="w-3.5 h-3.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                      className="w-3 h-3 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
                       style={{ background: pinColor }}
                     />
                   )}
@@ -402,15 +402,15 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                     d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
                     fill="none"
                     stroke={pinColor}
-                    strokeWidth={isSelected || isHovered ? '2.0' : '1.2'}
-                    strokeOpacity={isSelected || isHovered ? 0.95 : 0.70}
+                    strokeWidth={isSelected || isHovered ? '1.5' : '1.0'}
+                    strokeOpacity={isSelected || isHovered ? 0.95 : 0.65}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   <circle
                     cx={targetX}
                     cy={targetY}
-                    r={2}
+                    r={1.2}
                     fill={pinColor}
                   />
                 </svg>
@@ -421,7 +421,7 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   style={{
                     left: `${targetX}px`,
                     top: `${targetY}px`,
-                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(4px, -50%)',
+                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(3px, -50%)',
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -431,35 +431,35 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                   onMouseLeave={() => onHoverZone?.(null)}
                 >
                   <div
-                    className={`rounded-lg px-2 py-1 shadow-xl backdrop-blur-md transition-all ${
+                    className={`rounded px-1.5 py-0.5 shadow-lg backdrop-blur-md transition-all ${
                       isSelected || isHovered ? 'scale-105' : 'hover:scale-102'
                     }`}
                     style={{
                       background: isSelected || isHovered ? 'rgba(3, 7, 18, 0.96)' : 'rgba(15, 23, 42, 0.88)',
-                      border: `1px solid ${pinColor}aa`,
-                      boxShadow: isSelected || isHovered ? `0 0 14px ${pinColor}66` : '0 2px 8px rgba(0,0,0,0.5)',
-                      minWidth: 95,
-                      maxWidth: 120,
+                      border: `1px solid ${pinColor}88`,
+                      boxShadow: isSelected || isHovered ? `0 0 10px ${pinColor}55` : '0 2px 6px rgba(0,0,0,0.5)',
+                      minWidth: 75,
+                      maxWidth: 95,
                     }}
                   >
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span className="text-[10px] font-black text-white whitespace-nowrap tracking-tight truncate">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[7.5px] font-black text-white whitespace-nowrap tracking-tight truncate">
                         {z.label}
                       </span>
                       <span
-                        className="text-[7.5px] font-black px-1 py-0.2 rounded shrink-0 uppercase"
+                        className="text-[6px] font-black px-0.5 py-0 rounded shrink-0 uppercase"
                         style={{
                           background: `${pinColor}25`,
                           color: pinColor,
-                          border: `1px solid ${pinColor}44`,
+                          border: `0.5px solid ${pinColor}44`,
                         }}
                       >
-                        {isHigh ? 'High' : isMod ? 'Elev.' : 'Norm'}
+                        {isHigh ? 'High' : isMod ? 'Elev' : 'Norm'}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-1 mt-0.5 text-[8px] text-slate-400">
-                      <span className="font-semibold truncate max-w-[65px]">{z.subLabel || 'Anatomy'}</span>
+                    <div className="flex items-center justify-between gap-1 mt-0.5 text-[6.5px] text-slate-400">
+                      <span className="font-semibold truncate max-w-[50px]">{z.subLabel || 'Anatomy'}</span>
                       <span className="font-mono font-bold shrink-0" style={{ color: pinColor }}>
                         T: {z.tScore}
                       </span>
@@ -468,15 +468,15 @@ function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, o
                     {/* Detailed "Why it's a Risk Zone" when hovered or selected */}
                     {(isSelected || isHovered) && (
                       <div
-                        className="mt-1.5 pt-1.5 border-t border-white/10 text-left animate-fade-in w-44"
+                        className="mt-1 pt-1 border-t border-white/10 text-left animate-fade-in w-36"
                         style={{
                           position: 'relative',
                         }}
                       >
-                        <div className="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
+                        <div className="text-[6px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
                           Why It&apos;s a Risk Zone:
                         </div>
-                        <p className="text-[8.5px] text-slate-200 leading-tight font-medium mb-1.5">
+                        <p className="text-[7px] text-slate-200 leading-tight font-medium mb-1">
                           {z.note}
                         </p>
                         <div className="grid grid-cols-2 gap-1 text-[7.5px] bg-white/5 p-1 rounded border border-white/5">
