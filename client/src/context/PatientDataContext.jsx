@@ -672,6 +672,8 @@ export function PatientDataProvider({ children }) {
     setActivePatientId(null);
     setPersistedAssessment(null);
     setApiError(null);
+    setIsAnalyzing(false);
+    setSelectedRegion('proximal-femur');
   }, []);
 
   const value = {

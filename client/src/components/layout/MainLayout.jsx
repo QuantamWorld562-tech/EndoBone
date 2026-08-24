@@ -20,14 +20,22 @@ export default function MainLayout() {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
 
-  // Synchronize global activePatientId whenever the URL contains a patient ID
+  // Synchronize global activePatientId with the URL.
+  // IMPORTANT: When the URL does NOT contain a patient segment (e.g. /dashboard,
+  // /metabolic, /assessment, /planning, /summary) we MUST clear activePatientId
+  // to null so that views correctly show their empty/reset state.
   useEffect(() => {
     const match = location.pathname.match(/\/patients\/([^/]+)/);
-    const routePatientId = match ? match[1] : params.patientId;
+    const routePatientId = match ? match[1] : null;
+
     if (routePatientId && routePatientId !== activePatientId) {
+      // URL has a patient segment → activate that patient
       setActivePatientId(routePatientId);
+    } else if (!routePatientId && activePatientId) {
+      // URL has NO patient segment (e.g. /dashboard, /metabolic) → clear patient
+      setActivePatientId(null);
     }
-  }, [location.pathname, params.patientId, activePatientId, setActivePatientId]);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex overflow-x-hidden">
