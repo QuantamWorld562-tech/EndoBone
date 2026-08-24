@@ -6,3 +6,5 @@ export { default as Planning3DView } from './Planning3D/Planning3DView';
 export { default as PreSurgicalSummaryView } from './PreSurgicalSummary/PreSurgicalSummaryView';
 export { default as LoginView } from './Login/LoginView';
 export { default as RegisterView } from './Register/RegisterView';
+export { default as AdminDashboardView } from './Admin/AdminDashboardView';
+

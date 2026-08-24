@@ -9,8 +9,11 @@ import {
   Plus,
   BrainCircuit,
   X,
+  Shield,
+  ShieldCheck
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
+import { readStoredDoctorProfile } from '../../services';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard' },
@@ -26,9 +29,12 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
   const params = useParams();
   const { activePatientId, setIsNewCaseModalOpen } = usePatientContext();
   const patientId = params.patientId || activePatientId || null;
+  const currentDoctor = readStoredDoctorProfile();
+  const isAdmin = currentDoctor?.role === 'admin';
 
   const getActiveTab = () => {
     const pathname = location.pathname;
+    if (pathname.includes('/admin')) return 'admin';
     if (pathname.includes('/metabolic')) return 'metabolic';
     if (pathname.includes('/assessment')) return 'assessment';
     if (pathname.includes('/planning')) return 'planning';
@@ -116,6 +122,29 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
               </button>
             );
           })}
+
+          {isAdmin && (
+            <div className="pt-3 mt-2 border-t border-slate-100">
+              <div className="px-3 pb-1 text-[10px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1">
+                <ShieldCheck size={12} className="text-amber-600" />
+                <span>Administration</span>
+              </div>
+              <button
+                onClick={() => { navigate('/admin'); onCloseMobile?.(); }}
+                className={`w-full text-left px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl transition flex items-center gap-3 group cursor-pointer ${
+                  activeTab === 'admin'
+                    ? 'bg-amber-50 border-l-4 border-amber-600 text-amber-900 font-bold shadow-sm'
+                    : 'text-slate-700 hover:bg-amber-50/50 border-l-4 border-transparent font-semibold'
+                }`}
+              >
+                <Shield
+                  size={18}
+                  className={activeTab === 'admin' ? 'text-amber-600' : 'text-amber-500 group-hover:text-amber-700'}
+                />
+                <span className="text-xs sm:text-sm">Admin Access</span>
+              </button>
+            </div>
+          )}
         </nav>
 
         <div className="p-3 sm:p-4 border-t border-slate-100 sticky bottom-0 bg-white">

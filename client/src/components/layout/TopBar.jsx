@@ -220,11 +220,31 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
         </div>
 
         <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
+          {doctorProfile?.role === 'admin' && (
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 hover:bg-amber-100 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Open Admin Dashboard"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Admin Panel</span>
+            </button>
+          )}
+
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shrink-0">
             <UserRound size={15} />
           </div>
           <div className="hidden md:flex flex-col leading-tight">
-            <span className="text-xs font-bold text-slate-900 truncate max-w-[110px]">{doctorName}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-900 truncate max-w-[110px]">{doctorName}</span>
+              {doctorProfile?.role === 'admin' && (
+                <span className="bg-amber-100 text-amber-900 text-[9px] font-black px-1 rounded">Admin</span>
+              )}
+              {doctorProfile?.role === 'professor' && (
+                <span className="bg-purple-100 text-purple-900 text-[9px] font-black px-1 rounded">Prof</span>
+              )}
+            </div>
             <span className="text-[10px] text-slate-500 truncate max-w-[110px]">{doctorProfile?.institution || 'Orthopedic Specialist'}</span>
           </div>
           <button

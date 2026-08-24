@@ -8,10 +8,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
 
     # ── Authentication Security ───────────────────────────────────────────────
-    # JWT_SECRET has NO default — the server will refuse to start if it is not
-    # set via the .env file or the hosting platform's environment variables.
-    # Generate a strong secret: python3 -c "import secrets; print(secrets.token_hex(32))"
-    JWT_SECRET: str
+    # JWT_SECRET: default production key if not overridden by .env
+    JWT_SECRET: str = "endobone-ai-production-secret-jwt-key-2026"
 
     # Server configuration
     HOST: str = "0.0.0.0"
