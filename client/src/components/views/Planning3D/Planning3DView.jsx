@@ -223,7 +223,7 @@ export default function Planning3DView({ patientId }) {
           </div>
 
           {/* Viewer card */}
-          <div className="bg-slate-950  rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] relative">
+          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[580px] min-w-0 max-w-full relative">
             {/* Floating Top Center Exit Fullscreen Pill */}
             {isFullscreen && (
               <button
@@ -236,7 +236,7 @@ export default function Planning3DView({ patientId }) {
             )}
 
             {/* Toolbar */}
-            <div className="px-4 py-2.5 bg-[#0a0f1e] border-b border-slate-800/80 flex items-center justify-between gap-3 z-10">
+            <div className="px-4 py-2.5 bg-[#0a0f1e] border-b border-slate-800/80 flex items-center justify-between gap-3 z-10 min-w-0">
               <div className="flex items-center gap-1 p-0.5 bg-slate-900/60 rounded-xl border border-slate-800">
                 {[
                   { id: 'anatomical', label: 'Anatomical',  ac: 'bg-slate-700 text-slate-100' },
@@ -307,7 +307,7 @@ export default function Planning3DView({ patientId }) {
             </div>
 
             {/* 3D Canvas */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative w-full h-full min-w-0 max-w-full overflow-hidden">
               <BoneModelViewer
                 viewAngle={viewAngle}
                 heatmap={renderMode === 'heatmap'}

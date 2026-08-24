@@ -342,164 +342,270 @@ function createBoneMaterial(mode) {
 // 3D Anatomical Annotation Pins & Medical Diagram Leader Lines
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Anatomical Diagrammatic Leader Lines & Label Badges with Collision Clamping
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone }) {
+  const { camera, size } = useThree();
+  const [layout, setLayout] = useState({
+    side: z.side || 'left',
+    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -28 : 28),
+    targetY: z.offset ? z.offset[1] : 0,
+    midX: z.side === 'left' ? -10 : 10,
+  });
+
+  const isHigh = z.riskLevel === 'high';
+  const isMod = z.riskLevel === 'moderate';
+  const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
+
+  useFrame(() => {
+    if (!camera || !size.width || !size.height) return;
+
+    // 1. Project 3D bone anchor to Normalized Device Coordinates [-1, 1]
+    const vec = new THREE.Vector3(...z.anchor);
+    vec.project(camera);
+
+    // Convert NDC to pixel offset relative to center of canvas
+    const screenX = (vec.x * size.width) / 2;
+    const screenY = (-vec.y * size.height) / 2;
+
+    const halfW = size.width / 2;
+    const halfH = size.height / 2;
+    const badgeW = Math.min(Math.max(size.width * 0.14, 68), 88);
+    const edgeMargin = 16;
+
+    const baseSide = z.side || (vec.x < 0 ? 'left' : 'right');
+    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -28 : 28);
+    const rawTargetY = z.offset ? z.offset[1] : 0;
+
+    // 2. Boundary Collision Detection:
+    const wouldExceedLeft = (screenX + rawTargetX - badgeW) < (-halfW + edgeMargin);
+    const wouldExceedRight = (screenX + rawTargetX + badgeW) > (halfW - edgeMargin);
+
+    let effectiveSide = baseSide;
+    let targetX = rawTargetX;
+    let targetY = rawTargetY;
+
+    if (effectiveSide === 'left' && wouldExceedLeft) {
+      effectiveSide = 'right';
+      targetX = Math.abs(rawTargetX);
+    } else if (effectiveSide === 'right' && wouldExceedRight) {
+      effectiveSide = 'left';
+      targetX = -Math.abs(rawTargetX);
+    }
+
+    // 3. Fine-grained Edge Clamping to prevent clipping:
+    if (effectiveSide === 'left') {
+      const currentLeft = screenX + targetX - badgeW;
+      if (currentLeft < -halfW + edgeMargin) {
+        targetX += (-halfW + edgeMargin) - currentLeft;
+      }
+    } else {
+      const currentRight = screenX + targetX + badgeW;
+      if (currentRight > halfW - edgeMargin) {
+        targetX -= (currentRight - (halfW - edgeMargin));
+      }
+    }
+
+    // Y Axis Boundary Clamping:
+    const currentTop = screenY + targetY - 18;
+    const currentBottom = screenY + targetY + 18;
+    if (currentTop < -halfH + edgeMargin) {
+      targetY += (-halfH + edgeMargin) - currentTop;
+    } else if (currentBottom > halfH - edgeMargin) {
+      targetY -= (currentBottom - (halfH - edgeMargin));
+    }
+
+    const midX = targetX * 0.38;
+
+    if (
+      effectiveSide !== layout.side ||
+      Math.abs(targetX - layout.targetX) > 0.5 ||
+      Math.abs(targetY - layout.targetY) > 0.5
+    ) {
+      setLayout({
+        side: effectiveSide,
+        targetX,
+        targetY,
+        midX,
+      });
+    }
+  });
+
+  const isLeft = layout.side === 'left';
+  const { targetX, targetY, midX } = layout;
+
+  return (
+    <group position={z.anchor}>
+      <Html distanceFactor={9.0} zIndexRange={[40, 0]}>
+        <div className="relative pointer-events-none select-none">
+          {/* 1. Target Pin Anchor on Bone Surface */}
+          <div
+            className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectZone?.(z.id);
+            }}
+            onMouseEnter={() => onHoverZone?.(z)}
+            onMouseLeave={() => onHoverZone?.(null)}
+          >
+            <div
+              className="w-2.5 h-2.5 rounded-full flex items-center justify-center transition-transform hover:scale-125"
+              style={{
+                background: 'rgba(3, 7, 18, 0.95)',
+                border: `1.5px solid ${pinColor}`,
+                boxShadow: `0 0 6px ${pinColor}`,
+              }}
+            >
+              <span
+                className="w-1 h-1 rounded-full"
+                style={{ background: pinColor }}
+              />
+            </div>
+            {(isSelected || isHovered) && (
+              <span
+                className="w-3.5 h-3.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
+                style={{ background: pinColor }}
+              />
+            )}
+          </div>
+
+          {/* 2. SVG Dynamic Leader Line */}
+          <svg
+            className="absolute top-0 left-0 overflow-visible pointer-events-none"
+            style={{ width: 1, height: 1 }}
+          >
+            <path
+              d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
+              fill="none"
+              stroke={pinColor}
+              strokeWidth={isSelected || isHovered ? '1.5' : '1.0'}
+              strokeOpacity={isSelected || isHovered ? 0.95 : 0.65}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle
+              cx={targetX}
+              cy={targetY}
+              r={1.2}
+              fill={pinColor}
+            />
+          </svg>
+
+          {/* 3. Scaled Responsive Label Badge */}
+          <div
+            className="absolute pointer-events-auto cursor-pointer transition-all duration-150"
+            style={{
+              left: `${targetX}px`,
+              top: `${targetY}px`,
+              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(3px, -50%)',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectZone?.(z.id);
+            }}
+            onMouseEnter={() => onHoverZone?.(z)}
+            onMouseLeave={() => onHoverZone?.(null)}
+          >
+            <div
+              className={`rounded-md shadow-lg backdrop-blur-md transition-all ${
+                isSelected || isHovered ? 'scale-105 ring-1' : 'hover:scale-102'
+              }`}
+              style={{
+                background: isSelected || isHovered ? 'rgba(3, 7, 18, 0.96)' : 'rgba(15, 23, 42, 0.90)',
+                border: `1px solid ${pinColor}88`,
+                boxShadow: isSelected || isHovered ? `0 0 10px ${pinColor}55` : '0 2px 6px rgba(0,0,0,0.5)',
+                minWidth: 'clamp(68px, 12vw, 84px)',
+                maxWidth: 'clamp(76px, 14vw, 92px)',
+                padding: 'clamp(2px, 0.4vw, 4px) clamp(4px, 0.8vw, 7px)',
+              }}
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span
+                  className="font-black text-white whitespace-nowrap tracking-tight truncate max-w-[58px]"
+                  style={{ fontSize: 'clamp(0.46rem, 0.8vw, 0.58rem)' }}
+                >
+                  {z.label}
+                </span>
+                <span
+                  className="font-black px-1 py-0.2 rounded shrink-0 uppercase"
+                  style={{
+                    background: `${pinColor}25`,
+                    color: pinColor,
+                    border: `0.5px solid ${pinColor}44`,
+                    fontSize: 'clamp(0.38rem, 0.65vw, 0.48rem)',
+                  }}
+                >
+                  {isHigh ? 'High' : isMod ? 'Elev' : 'Norm'}
+                </span>
+              </div>
+
+              <div
+                className="flex items-center justify-between gap-1 mt-0.5 text-slate-400"
+                style={{ fontSize: 'clamp(0.40rem, 0.7vw, 0.50rem)' }}
+              >
+                <span className="font-semibold truncate max-w-[48px]">{z.subLabel || 'Anatomy'}</span>
+                <span className="font-mono font-bold shrink-0" style={{ color: pinColor }}>
+                  T: {z.tScore}
+                </span>
+              </div>
+
+              {/* Dynamic Compact Insight on Hover / Select */}
+              {(isSelected || isHovered) && (
+                <div
+                  className="mt-1 pt-1 border-t border-white/10 text-left animate-fade-in"
+                  style={{
+                    width: 'clamp(115px, 22vw, 145px)',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    className="font-black uppercase tracking-wider text-slate-400 mb-0.5"
+                    style={{ fontSize: 'clamp(0.36rem, 0.6vw, 0.46rem)' }}
+                  >
+                    Risk Zone Insight:
+                  </div>
+                  <p
+                    className="text-slate-200 leading-tight font-medium line-clamp-2 mb-1"
+                    style={{ fontSize: 'clamp(0.42rem, 0.7vw, 0.52rem)' }}
+                  >
+                    {z.note}
+                  </p>
+                  <div
+                    className="flex items-center justify-between bg-white/5 px-1 py-0.5 rounded border border-white/5"
+                    style={{ fontSize: 'clamp(0.38rem, 0.65vw, 0.48rem)' }}
+                  >
+                    <span className="text-slate-400">vBMD: <b className="text-white">{z.vBMD}</b></span>
+                    <span className="font-bold" style={{ color: pinColor }}>
+                      {isHigh ? '87%' : isMod ? '52%' : '12%'} Risk
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Html>
+    </group>
+  );
+}
+
 function AnnotationPins({ zones, activeZoneId, hoveredZoneId, showAnnotations, onSelectZone, onHoverZone }) {
   if (!showAnnotations) return null;
 
   return (
     <group>
-      {zones.map((z) => {
-        const isSelected = activeZoneId === z.id;
-        const isHovered = hoveredZoneId === z.id;
-        const isHigh = z.riskLevel === 'high';
-        const isMod = z.riskLevel === 'moderate';
-        const pinColor = isHigh ? '#ef4444' : isMod ? '#f97316' : '#14b8a6';
-
-        const isLeft = z.side === 'left';
-        const [targetX, targetY] = z.offset || (isLeft ? [-32, 0] : [32, 0]);
-        const midX = isLeft ? -12 : 12;
-
-        return (
-          <group key={z.id} position={z.anchor}>
-            <Html distanceFactor={9.0} zIndexRange={[40, 0]}>
-              <div className="relative pointer-events-none select-none">
-                {/* 1. Target Pin Anchor on Bone Surface */}
-                <div
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectZone?.(z.id);
-                  }}
-                  onMouseEnter={() => onHoverZone?.(z)}
-                  onMouseLeave={() => onHoverZone?.(null)}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full flex items-center justify-center transition-transform hover:scale-125"
-                    style={{
-                      background: 'rgba(3, 7, 18, 0.9)',
-                      border: `1px solid ${pinColor}`,
-                      boxShadow: `0 0 6px ${pinColor}`,
-                    }}
-                  >
-                    <span
-                      className="w-1 h-1 rounded-full"
-                      style={{ background: pinColor }}
-                    />
-                  </div>
-                  {(isSelected || isHovered) && (
-                    <span
-                      className="w-3 h-3 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
-                      style={{ background: pinColor }}
-                    />
-                  )}
-                </div>
-
-                {/* 2. SVG Leader Connector Line */}
-                <svg
-                  className="absolute top-0 left-0 overflow-visible pointer-events-none"
-                  style={{ width: 1, height: 1 }}
-                >
-                  <path
-                    d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
-                    fill="none"
-                    stroke={pinColor}
-                    strokeWidth={isSelected || isHovered ? '1.5' : '1.0'}
-                    strokeOpacity={isSelected || isHovered ? 0.95 : 0.65}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx={targetX}
-                    cy={targetY}
-                    r={1.2}
-                    fill={pinColor}
-                  />
-                </svg>
-
-                {/* 3. Label Badge & Callout Box */}
-                <div
-                  className="absolute pointer-events-auto cursor-pointer transition-all duration-200"
-                  style={{
-                    left: `${targetX}px`,
-                    top: `${targetY}px`,
-                    transform: isLeft ? 'translate(-100%, -50%)' : 'translate(3px, -50%)',
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectZone?.(z.id);
-                  }}
-                  onMouseEnter={() => onHoverZone?.(z)}
-                  onMouseLeave={() => onHoverZone?.(null)}
-                >
-                  <div
-                    className={`rounded px-1.5 py-0.5 shadow-lg backdrop-blur-md transition-all ${
-                      isSelected || isHovered ? 'scale-105' : 'hover:scale-102'
-                    }`}
-                    style={{
-                      background: isSelected || isHovered ? 'rgba(3, 7, 18, 0.96)' : 'rgba(15, 23, 42, 0.88)',
-                      border: `1px solid ${pinColor}88`,
-                      boxShadow: isSelected || isHovered ? `0 0 10px ${pinColor}55` : '0 2px 6px rgba(0,0,0,0.5)',
-                      minWidth: 75,
-                      maxWidth: 95,
-                    }}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[7.5px] font-black text-white whitespace-nowrap tracking-tight truncate">
-                        {z.label}
-                      </span>
-                      <span
-                        className="text-[6px] font-black px-0.5 py-0 rounded shrink-0 uppercase"
-                        style={{
-                          background: `${pinColor}25`,
-                          color: pinColor,
-                          border: `0.5px solid ${pinColor}44`,
-                        }}
-                      >
-                        {isHigh ? 'High' : isMod ? 'Elev' : 'Norm'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-1 mt-0.5 text-[6.5px] text-slate-400">
-                      <span className="font-semibold truncate max-w-[50px]">{z.subLabel || 'Anatomy'}</span>
-                      <span className="font-mono font-bold shrink-0" style={{ color: pinColor }}>
-                        T: {z.tScore}
-                      </span>
-                    </div>
-
-                    {/* Detailed "Why it's a Risk Zone" when hovered or selected */}
-                    {(isSelected || isHovered) && (
-                      <div
-                        className="mt-1 pt-1 border-t border-white/10 text-left animate-fade-in w-36"
-                        style={{
-                          position: 'relative',
-                        }}
-                      >
-                        <div className="text-[6px] font-black uppercase tracking-wider text-slate-400 mb-0.5">
-                          Why It&apos;s a Risk Zone:
-                        </div>
-                        <p className="text-[7px] text-slate-200 leading-tight font-medium mb-1">
-                          {z.note}
-                        </p>
-                        <div className="grid grid-cols-2 gap-1 text-[7.5px] bg-white/5 p-1 rounded border border-white/5">
-                          <div>
-                            <span className="text-slate-400 block text-[6.5px]">vBMD</span>
-                            <span className="font-bold text-white">{z.vBMD} mg/cm³</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 block text-[6.5px]">Fracture Risk</span>
-                            <span className="font-bold" style={{ color: pinColor }}>
-                              {isHigh ? '87% High' : isMod ? '52% Mod' : '12% Low'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Html>
-          </group>
-        );
-      })}
+      {zones.map((z) => (
+        <AnnotationPinItem
+          key={z.id}
+          z={z}
+          isSelected={activeZoneId === z.id}
+          isHovered={hoveredZoneId === z.id}
+          onSelectZone={onSelectZone}
+          onHoverZone={onHoverZone}
+        />
+      ))}
     </group>
   );
 }
@@ -843,8 +949,9 @@ export default function BoneModelViewer({
   }, [annotationsOn, onToggleAnnotations]);
 
   return (
-    <div className="relative h-full w-full select-none">
+    <div className="relative h-full w-full min-w-0 max-w-full overflow-hidden select-none">
       <Canvas
+        className="w-full h-full min-w-0 max-w-full overflow-hidden"
         camera={{ position: CAM.overview.pos, fov: 45, near: 0.05, far: 50 }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}

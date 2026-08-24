@@ -208,7 +208,7 @@ export default function RegisterView() {
                     </button>
                   </div>
                   <p className="text-xs text-slate-400 mt-1.5">
-                    Must be at least 12 characters, include a number and a symbol.
+                    Must be at least 8 characters, include a number and a symbol.
                   </p>
                 </div>
               </div>

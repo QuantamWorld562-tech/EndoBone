@@ -33,16 +33,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# ── CORS ─────────────────────────────────────────────────────────────────────
+# Restricted to known origins. Wildcard "*" is intentionally removed.
+# Add production/preview URLs to settings.CORS_ORIGINS via the .env file.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
-# Mount Routers under /api
+# ── Routers — all mounted under /api prefix only ──────────────────────────────
+# Duplicate root-level mounts have been removed (C-6 fix).
+# The old root-mounted /assess and /health routes are no longer needed because
+# the frontend uses /api/assessments/analyze exclusively.
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(cases.router, prefix=settings.API_V1_STR)
 app.include_router(biomarkers.router, prefix=settings.API_V1_STR)
@@ -50,10 +55,6 @@ app.include_router(models.router, prefix=settings.API_V1_STR)
 app.include_router(assessment.router, prefix=settings.API_V1_STR)
 app.include_router(simulation.router, prefix=settings.API_V1_STR)
 app.include_router(health.router, prefix=settings.API_V1_STR)
-
-# Also expose direct root endpoints for backwards compatibility
-app.include_router(assessment.router)
-app.include_router(health.router)
 
 # Mount 3D bone storage if available
 storage_dir = settings.STORAGE_DIR
