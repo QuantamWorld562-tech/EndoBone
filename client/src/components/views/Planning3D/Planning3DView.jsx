@@ -115,7 +115,7 @@ export default function Planning3DView({ patientId }) {
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showAnnotations, setShowAnnotations] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState('curves');
+  const [sidebarTab, setSidebarTab] = useState('biomarkers');
   const [hoveredZone, setHoveredZone] = useState(null);
 
   const currentPatient = useMemo(() => {
@@ -354,18 +354,18 @@ export default function Planning3DView({ patientId }) {
 
         {/* ── Right Clinical Sidebar (5 Cols on desktop) ── */}
         <div className="lg:col-span-5 space-y-4 min-w-0 max-w-full overflow-hidden flex flex-col">
-          {/* Multi-Tab Switcher (Curves, Anatomy, Biomarkers) */}
+          {/* Multi-Tab Switcher (1. Lab Panel, 2. Anatomy & Notes, 3. Endocrine Graphs) */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex shadow-sm min-w-0 overflow-x-auto">
             <button
-              onClick={() => setSidebarTab('curves')}
+              onClick={() => setSidebarTab('biomarkers')}
               className={`flex-1 py-2 px-2.5 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-                sidebarTab === 'curves'
+                sidebarTab === 'biomarkers'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <LineChart size={13} className="shrink-0" />
-              <span className="truncate">Endocrine Graphs</span>
+              <FlaskConical size={13} className="shrink-0" />
+              <span className="truncate">Lab Panel</span>
             </button>
             <button
               onClick={() => setSidebarTab('anatomy')}
@@ -379,30 +379,39 @@ export default function Planning3DView({ patientId }) {
               <span className="truncate">Anatomy &amp; Notes</span>
             </button>
             <button
-              onClick={() => setSidebarTab('biomarkers')}
+              onClick={() => setSidebarTab('curves')}
               className={`flex-1 py-2 px-2.5 text-xs font-black rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-                sidebarTab === 'biomarkers'
+                sidebarTab === 'curves'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <FlaskConical size={13} className="shrink-0" />
-              <span className="truncate">Lab Panel</span>
+              <LineChart size={13} className="shrink-0" />
+              <span className="truncate">Endocrine Graphs</span>
             </button>
           </div>
 
-          {/* Tab 1: Endocrine Profile & Biomarker Curves */}
-          {sidebarTab === 'curves' && (
-            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-3.5 sm:p-4 shadow-xl space-y-3.5 min-w-0 max-w-full overflow-hidden">
-              <EndocrineTrendChart biomarkers={biomarkers} patientName={currentPatient.name} />
-              <div className="pt-2 border-t border-slate-800 flex items-center justify-between min-w-0">
-                <button
-                  onClick={() => setSidebarTab('anatomy')}
-                  className="w-full py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Crosshair size={13} />
-                  <span>Inspect 3D Anatomical Risk Zones</span>
-                </button>
+          {/* Tab 1: Lab Biomarkers Panel */}
+          {sidebarTab === 'biomarkers' && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm min-w-0 max-w-full overflow-hidden">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Synchronized Lab Panel</p>
+              <div className="space-y-2 min-w-0">
+                {BIOMARKER_INPUTS.map(item => {
+                  const b = biomarkers?.[item.key] || {};
+                  const status = b.status || 'normal';
+                  return (
+                    <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-xs mb-1 min-w-0">
+                        <span className="font-bold text-slate-700 truncate">{item.fullLabel}</span>
+                        <span className="font-black text-slate-900 font-mono shrink-0">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Ref: {item.ref}</span>
+                        <span className={`font-bold uppercase ${status === 'elevated' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-teal-600'}`}>{status}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -430,27 +439,18 @@ export default function Planning3DView({ patientId }) {
             </div>
           )}
 
-          {/* Tab 3: Lab Biomarkers Panel */}
-          {sidebarTab === 'biomarkers' && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-sm min-w-0 max-w-full overflow-hidden">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Synchronized Lab Panel</p>
-              <div className="space-y-2 min-w-0">
-                {BIOMARKER_INPUTS.map(item => {
-                  const b = biomarkers?.[item.key] || {};
-                  const status = b.status || 'normal';
-                  return (
-                    <div key={item.key} className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
-                      <div className="flex flex-wrap items-center justify-between gap-1 text-xs mb-1 min-w-0">
-                        <span className="font-bold text-slate-700 truncate">{item.fullLabel}</span>
-                        <span className="font-black text-slate-900 font-mono shrink-0">{b.value ?? '—'} <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span></span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>Ref: {item.ref}</span>
-                        <span className={`font-bold uppercase ${status === 'elevated' ? 'text-red-600' : status === 'low' ? 'text-amber-600' : 'text-teal-600'}`}>{status}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Tab 3: Endocrine Profile & Biomarker Curves */}
+          {sidebarTab === 'curves' && (
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-800 p-3.5 sm:p-4 shadow-xl space-y-3.5 min-w-0 max-w-full overflow-hidden">
+              <EndocrineTrendChart biomarkers={biomarkers} patientName={currentPatient.name} />
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between min-w-0">
+                <button
+                  onClick={() => setSidebarTab('anatomy')}
+                  className="w-full py-2.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <Crosshair size={13} />
+                  <span>Inspect 3D Anatomical Risk Zones</span>
+                </button>
               </div>
             </div>
           )}
