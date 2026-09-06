@@ -39,7 +39,7 @@ export default function AIAssessmentView({ patientId }) {
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
   if (isCaseLoading || isAnalyzing) {
-    return <AssessmentSkeleton />;
+    return <AssessmentSkeleton isAnalyzing={isAnalyzing} />;
   }
 
   if (!effectivePatientId || !assessment) {

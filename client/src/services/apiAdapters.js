@@ -28,6 +28,7 @@ export function toUiPatient(patient) {
     procedure: patient.procedure || patient.clinical_indication || 'Pre-surgical bone planning',
     condition: patient.condition || patient.clinical_indication || 'Pre-Surgical Bone Mineral Density Evaluation',
     status: patient.status || 'active',
+    scheduledDate: patient.scheduledDate || patient.scheduled_date || patient.scheduled_at || null,
   };
 }
 

@@ -26,12 +26,34 @@ import {
   Box,
   FolderOpen,
   X,
+  Calendar,
 } from 'lucide-react';
 import { useSurgicalPlan, usePatientData } from '../../../hooks';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { assessmentService } from '../../../services/assessmentService';
 import { PreSurgicalSummarySkeleton } from '../../common';
 import { REVISION_CHECKLISTS } from '../../../constants/checklists';
+import { generateDynamicAnnotations } from '../../../utils/modelAnnotationEngine';
+
+function formatScheduledDate(dateStr) {
+  if (!dateStr) return 'Not Scheduled';
+  try {
+    const raw = String(dateStr).split('T')[0];
+    const parts = raw.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const dt = new Date(year, month, day);
+      if (!Number.isNaN(dt.getTime())) {
+        return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+  return dateStr;
+}
 
 export default function PreSurgicalSummaryView({ patientId }) {
   const params = useParams();
@@ -46,12 +68,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
     activePatientId,
     setActivePatientId,
     isCaseLoading,
+    isAnalyzing,
+    updateScheduledDate,
   } = usePatientContext();
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
-  if (isCaseLoading) {
-    return <PreSurgicalSummarySkeleton />;
+  if (isCaseLoading || isAnalyzing) {
+    return <PreSurgicalSummarySkeleton isAnalyzing={isAnalyzing} />;
   }
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
@@ -77,6 +101,8 @@ export default function PreSurgicalSummaryView({ patientId }) {
   const [toastMessage, setToastMessage] = useState({ text: '', type: 'success' });
   const [isResetView, setIsResetView] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+  const [scheduleInputDate, setScheduleInputDate] = useState('');
   const notesDebounceRef = useRef(null);
 
   // When effectivePatientId changes (e.g. from selecting a recent case on dashboard), exit reset mode
@@ -519,15 +545,22 @@ export default function PreSurgicalSummaryView({ patientId }) {
   const riskLevel = overallRisk >= 65 ? 'HIGH' : overallRisk >= 40 ? 'MODERATE' : 'LOW';
   const rclStyle = getRCL(riskLevel);
 
-  // Risk zone data from assessment / context
+  // Risk zone data dynamically generated from active model and validated biomarkers
   const riskZones = useMemo(() => {
-    const base = [
-      { label: 'Femoral Neck', risk: overallRisk >= 65 ? 'HIGH' : overallRisk >= 40 ? 'MODERATE' : 'LOW', tscore: assessment?.dexa_tscore || '-2.1' },
-      { label: 'Greater Trochanter', risk: overallRisk >= 55 ? 'MODERATE' : 'LOW', tscore: assessment?.dexa_tscore ? String((parseFloat(assessment.dexa_tscore) + 0.4).toFixed(1)) : '-1.7' },
-      { label: 'Femoral Shaft', risk: 'LOW', tscore: assessment?.dexa_tscore ? String((parseFloat(assessment.dexa_tscore) + 1.1).toFixed(1)) : '-1.0' },
-    ];
-    return base;
-  }, [overallRisk, assessment]);
+    const dynamicAnatomy = generateDynamicAnnotations({
+      patient,
+      biomarkers: contextBiomarkers,
+      assessment,
+      roiNotes,
+    });
+    return dynamicAnatomy.zones.map((zone) => ({
+      label: zone.label,
+      risk: (zone.riskLevel || 'LOW').toUpperCase(),
+      tscore: zone.tScore || assessment?.dexa_tscore || '-1.5',
+      vBMD: zone.vBMD,
+      note: zone.note,
+    }));
+  }, [patient, contextBiomarkers, assessment, roiNotes]);
 
   const activeRoiNotes = useMemo(() => {
     if (!roiNotes) return {};
@@ -799,10 +832,83 @@ export default function PreSurgicalSummaryView({ patientId }) {
                   <span className="font-bold text-slate-800">{patient.age} yrs • {patient.gender}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-200">
-                <Clock size={15} className="text-slate-500" />
-                <span className="text-slate-500 font-semibold">Scheduled:</span>
-                <span className="font-black text-slate-900">{scheduledDate}</span>
+              {/* Scheduled Surgery Date with Interactive Rescheduler */}
+              <div className="relative">
+                <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-200">
+                  <Calendar size={15} className="text-blue-600 shrink-0" />
+                  <span className="text-slate-500 font-semibold text-xs sm:text-sm">Scheduled:</span>
+                  <span className="font-black text-slate-900 text-xs sm:text-sm">
+                    {formatScheduledDate(patient?.scheduledDate || scheduledDate)}
+                  </span>
+                  {!isFinalized && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setScheduleInputDate((patient?.scheduledDate || scheduledDate || '').split('T')[0]);
+                        setIsEditingSchedule((prev) => !prev);
+                      }}
+                      className="ml-1 p-1 hover:bg-slate-200 rounded-lg text-slate-500 hover:text-slate-800 transition-colors"
+                      title="Reschedule surgery date"
+                    >
+                      <Edit3 size={13} />
+                    </button>
+                  )}
+                </div>
+
+                {isEditingSchedule && (
+                  <div className="absolute top-full left-0 mt-2 z-40 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 w-72 animate-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-1.5 text-xs font-black text-slate-800 uppercase tracking-wide">
+                        <Calendar size={13} className="text-blue-600" />
+                        <span>Reschedule Surgery</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingSchedule(false)}
+                        className="text-slate-400 hover:text-slate-600 p-0.5"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">New Surgery Date</label>
+                        <input
+                          type="date"
+                          value={scheduleInputDate}
+                          onChange={(e) => setScheduleInputDate(e.target.value)}
+                          className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingSchedule(false)}
+                          className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!scheduleInputDate || !effectivePatientId) return;
+                            await updateScheduledDate(effectivePatientId, scheduleInputDate);
+                            setIsEditingSchedule(false);
+                            setToastMessage({
+                              text: `Surgery rescheduled for ${formatScheduledDate(scheduleInputDate)}`,
+                              type: 'success',
+                            });
+                            setTimeout(() => setToastMessage({ text: '', type: 'success' }), 4000);
+                          }}
+                          className="px-3.5 py-1.5 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                        >
+                          <Save size={12} />
+                          Save Date
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 px-3.5 py-2 bg-blue-50 rounded-xl border border-blue-200">
                 <Layers size={15} className="text-blue-600" />
