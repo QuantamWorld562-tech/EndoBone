@@ -16,9 +16,11 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
     activePatientId,
     isLoadingPatients,
     resetWorkspace,
+    setIsDoctorProfileOpen,
+    currentDoctorProfile,
   } = usePatientContext();
   const currentPatientId = params.patientId || activePatientId || null;
-  const doctorProfile = readStoredDoctorProfile();
+  const doctorProfile = currentDoctorProfile || readStoredDoctorProfile();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -239,21 +241,37 @@ export default function TopBar({ onSelectPatient, onToggleMobileMenu }) {
             </button>
           )}
 
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shrink-0">
-            <UserRound size={15} />
-          </div>
-          <div className="hidden md:flex flex-col leading-tight">
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-bold text-slate-900 truncate max-w-[110px]">{doctorName}</span>
-              {doctorProfile?.role === 'admin' && (
-                <span className="bg-amber-100 text-amber-900 text-[9px] font-black px-1 rounded">Admin</span>
-              )}
-              {doctorProfile?.role === 'professor' && (
-                <span className="bg-purple-100 text-purple-900 text-[9px] font-black px-1 rounded">Prof</span>
-              )}
+          {/* Interactive Doctor Profile Button */}
+          <button
+            type="button"
+            onClick={() => setIsDoctorProfileOpen(true)}
+            className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl hover:bg-slate-100/90 border border-transparent hover:border-slate-200 transition cursor-pointer group text-left"
+            title="Click to view & edit Profile, Hospital name, Password, Assessments, and Patients"
+            aria-label="Open Doctor Profile & Patients Directory"
+          >
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+              <span className="text-xs font-black">
+                {(doctorProfile?.firstName?.[0] || 'D').toUpperCase()}
+                {(doctorProfile?.lastName?.[0] || 'R').toUpperCase()}
+              </span>
             </div>
-            <span className="text-[10px] text-slate-500 truncate max-w-[110px]">{doctorProfile?.institution || 'Orthopedic Specialist'}</span>
-          </div>
+            <div className="hidden md:flex flex-col leading-tight">
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold text-slate-900 truncate max-w-[110px] group-hover:text-blue-600 transition-colors">
+                  {doctorName}
+                </span>
+                {doctorProfile?.role === 'admin' && (
+                  <span className="bg-amber-100 text-amber-900 text-[9px] font-black px-1 rounded">Admin</span>
+                )}
+                {doctorProfile?.role === 'professor' && (
+                  <span className="bg-purple-100 text-purple-900 text-[9px] font-black px-1 rounded">Prof</span>
+                )}
+              </div>
+              <span className="text-[10px] text-slate-500 truncate max-w-[110px]">
+                {doctorProfile?.institution || 'Orthopedic Specialist'}
+              </span>
+            </div>
+          </button>
           <button
             type="button"
             onClick={handleLogout}
