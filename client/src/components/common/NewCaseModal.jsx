@@ -60,14 +60,14 @@ const PRESETS = [
 
 const PROCEDURES = [
   {
-    id: 'tka',
-    name: 'Total Knee Arthroplasty (TKA)',
-    desc: 'Distal femur/knee 3D anatomy, ROI, planning annotations and scenario visualization',
-  },
-  {
     id: 'tha',
     name: 'Total Hip Arthroplasty (THA)',
     desc: 'Proximal femur/hip anatomy and implant/planning considerations',
+  },
+  {
+    id: 'tka',
+    name: 'Total Knee Arthroplasty (TKA)',
+    desc: 'Distal femur/knee 3D anatomy, ROI, planning annotations and scenario visualization',
   },
   {
     id: 'fff',
@@ -85,9 +85,9 @@ const PROCEDURES = [
     desc: 'Useful future extension around femoral neck/intertrochanteric region',
   },
   {
-    id: 'rap',
-    name: 'Revision arthroplasty planning',
-    desc: 'Bone-stock/anatomical review with clinical biomarkers',
+    id: 'revision',
+    name: 'Revision Arthroplasty',
+    desc: 'Modular revision reconstruction with joint-specific implant and fixation checklists',
   },
 ];
 
@@ -98,7 +98,7 @@ export default function NewCaseModal() {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
-    procedure: PROCEDURES[1].name, // Total Hip Arthroplasty (THA) default
+    procedure: PROCEDURES[0].name, // Total Hip Arthroplasty (THA) default
     gender: 'Female',
     pth: '',
     vitaminD: '',
@@ -107,6 +107,7 @@ export default function NewCaseModal() {
     alp: '',
     ctx: '',
   });
+  const [revisionSubType, setRevisionSubType] = useState('Revision Total Hip Arthroplasty');
 
   if (!isNewCaseModalOpen) return null;
 
@@ -149,7 +150,13 @@ export default function NewCaseModal() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newPatientId = await addNewCase(formData);
+    const finalProcedure = formData.procedure === 'Revision Arthroplasty'
+      ? revisionSubType
+      : formData.procedure;
+    const newPatientId = await addNewCase({
+      ...formData,
+      procedure: finalProcedure,
+    });
     setIsNewCaseModalOpen(false);
     navigate(`/patients/${newPatientId}/metabolic`);
   };
@@ -277,8 +284,45 @@ export default function NewCaseModal() {
                   </option>
                 ))}
               </select>
+
+              {formData.procedure === 'Revision Arthroplasty' && (
+                <div className="mt-2.5 p-2.5 bg-blue-50/80 border border-blue-200 rounded-lg space-y-2">
+                  <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider block">
+                    Revision Procedure Selection:
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newCaseRevisionSubType"
+                        value="Revision Total Hip Arthroplasty"
+                        checked={revisionSubType === 'Revision Total Hip Arthroplasty'}
+                        onChange={(e) => setRevisionSubType(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      Revision Total Hip Arthroplasty
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newCaseRevisionSubType"
+                        value="Revision Total Knee Arthroplasty"
+                        checked={revisionSubType === 'Revision Total Knee Arthroplasty'}
+                        onChange={(e) => setRevisionSubType(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      Revision Total Knee Arthroplasty
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <p className="text-[11px] text-slate-500 italic leading-snug">
-                {PROCEDURES.find((p) => p.name === formData.procedure)?.desc || ''}
+                {formData.procedure === 'Revision Arthroplasty'
+                  ? (revisionSubType === 'Revision Total Knee Arthroplasty'
+                      ? 'Revision femoral/tibial components, stem extensions, augments, and constraint planning'
+                      : 'Revision femoral stem, cup/shell, augment, screws, head, liner, and bone graft planning')
+                  : (PROCEDURES.find((p) => p.name === formData.procedure)?.desc || '')}
               </p>
             </div>
           </div>
