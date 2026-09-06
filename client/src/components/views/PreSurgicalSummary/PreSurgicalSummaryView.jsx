@@ -48,12 +48,8 @@ export default function PreSurgicalSummaryView({ patientId }) {
   } = usePatientContext();
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
-
-  if (isCaseLoading) {
-    return <PreSurgicalSummarySkeleton />;
-  }
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
-  const { patient } = usePatientData(effectivePatientId);
+  const { patient, loading: isPatientLoading } = usePatientData(effectivePatientId);
   const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
 
   // ── Surgeon notes: loaded from assessment.planning_notes, saved to backend ──
@@ -481,6 +477,10 @@ export default function PreSurgicalSummaryView({ patientId }) {
     warning: 'bg-amber-700 text-white border-amber-600',
     error: 'bg-red-700 text-white border-red-600',
   };
+
+  if (isCaseLoading || (effectivePatientId && isPatientLoading && !patient)) {
+    return <PreSurgicalSummarySkeleton />;
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 relative min-w-0 max-w-full">

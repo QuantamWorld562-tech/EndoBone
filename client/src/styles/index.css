@@ -161,6 +161,21 @@
   .scrollbar-hidden::-webkit-scrollbar {
     display: none; /* Chrome/Safari/WebKit */
   }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 35%, #f8fafc 50%, #e2e8f0 65%, #f1f5f9 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite linear;
+  }
 }
 
 @media print {

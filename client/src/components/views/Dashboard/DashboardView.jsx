@@ -17,11 +17,18 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { usePatientContext, computeDynamicAssessment } from '../../../context/PatientDataContext';
-import { CaseLoadingOverlay } from '../../common';
+import { CaseLoadingOverlay, DashboardSkeleton } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen, allBiomarkers } = usePatientContext();
+  const {
+    patients,
+    deleteCase,
+    setActivePatientId,
+    setIsNewCaseModalOpen,
+    allBiomarkers,
+    isLoadingPatients,
+  } = usePatientContext();
   const [loadingPatient, setLoadingPatient] = useState(null);
 
   const resolveRisk = useCallback((p) => {
@@ -133,6 +140,10 @@ export default function DashboardView({ onSelectPatient }) {
       setCaseToDelete(null);
     }
   };
+
+  if (isLoadingPatients) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">

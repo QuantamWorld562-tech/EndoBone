@@ -9,6 +9,9 @@ export {
   MetabolicAnalyzeSkeleton,
   Planning3DSkeleton,
   PreSurgicalSummarySkeleton,
+  DashboardSkeleton,
+  AdminDashboardSkeleton,
+  AppLoadingSkeleton,
+  WorkspaceRouteSkeleton,
   CaseLoadingOverlay,
 } from './LoadingSkeleton';
-

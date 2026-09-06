@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WorkflowStepper from './WorkflowStepper';
-import { NewCaseModal, CaseLoadingOverlay, SettingsModal, SupportModal } from '../common';
+import {
+  NewCaseModal,
+  CaseLoadingOverlay,
+  SettingsModal,
+  SupportModal,
+  WorkspaceRouteSkeleton,
+} from '../common';
 import { usePatientContext } from '../../context/PatientDataContext';
 
 export default function MainLayout() {
@@ -85,7 +91,9 @@ export default function MainLayout() {
         )}
 
         <main className="flex-1 p-3.5 sm:p-5 lg:p-8 min-w-0 max-w-full overflow-x-hidden print:overflow-visible print:p-0">
-          <Outlet />
+          <Suspense fallback={<WorkspaceRouteSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 
