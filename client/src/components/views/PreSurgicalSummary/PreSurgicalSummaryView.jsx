@@ -231,15 +231,18 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   // ── Compute effective surgical plan (backend → fallback to dynamic) ──
   const effectivePlan = useMemo(() => {
-    if (plan && plan.overview) return plan;
     const proc = selectedProcedure;
     const risk = assessment?.overallQualityRisk ?? 52;
     const isHighRisk = risk >= 65;
     const isModerateRisk = risk >= 40;
 
-    const isRevision = proc === 'Revision Arthroplasty' || proc.toLowerCase().includes('revision');
-    const isRevisionKnee = isRevision && (revisionSubType === 'Revision Total Knee Arthroplasty' || proc.toLowerCase().includes('knee') || proc.toLowerCase().includes('tka'));
+    const isRevision = proc === 'Revision Arthroplasty' || proc?.toLowerCase().includes('revision');
+    const isRevisionKnee = isRevision && (revisionSubType === 'Revision Total Knee Arthroplasty' || proc?.toLowerCase().includes('knee') || proc?.toLowerCase().includes('tka'));
     const isRevisionHip = isRevision && !isRevisionKnee;
+
+    if (plan && plan.overview && !isRevision && selectedProcedure === (patient?.procedure || plan?.procedure)) {
+      return plan;
+    }
 
     let hardwareGroups = [];
     if (isRevisionHip) {
