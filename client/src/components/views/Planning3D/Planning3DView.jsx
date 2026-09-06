@@ -9,6 +9,7 @@ import {
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { EndocrineTrendChart, Planning3DSkeleton } from '../../common';
 import BoneModelViewer from './BoneModelViewer';
+import { generateDynamicAnnotations } from '../../../utils/modelAnnotationEngine';
 
 const BIOMARKER_INPUTS = [
   { key: 'pth', fullLabel: 'Parathyroid Hormone', unit: 'pg/mL', ref: '15–65', step: 1 },
@@ -108,33 +109,45 @@ export default function Planning3DView({ patientId }) {
     patients,
     activePatientId,
     isCaseLoading,
+    isAnalyzing,
     setIsNewCaseModalOpen,
   } = usePatientContext();
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
   const [renderMode, setRenderMode] = useState('heatmap');
-  const [viewAngle, setViewAngle] = useState('overview');
+  const [viewAngle, setViewAngle] = useState('coronal');
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showAnnotations, setShowAnnotations] = useState(true);
   const [sidebarTab, setSidebarTab] = useState('curves');
   const [hoveredZone, setHoveredZone] = useState(null);
+  const [layoutMode, setLayoutMode] = useState('workstation'); // 'workstation' | 'split'
 
   const currentPatient = useMemo(() => {
     if (!effectivePatientId) return null;
     return patients?.find(p => p.id === effectivePatientId) || null;
   }, [patients, effectivePatientId]);
 
+  // Dynamic model and biomarker-driven 3D annotations calculation
+  const dynamicAnatomy = useMemo(() => {
+    return generateDynamicAnnotations({
+      patient: currentPatient,
+      biomarkers,
+      assessment: regionalData,
+      roiNotes: roiNotes || {},
+    });
+  }, [currentPatient, biomarkers, regionalData, roiNotes]);
+
   // Active zone = hovered or selected
   const activeZone = useMemo(() => {
     const id = hoveredZone?.id || selectedRegion;
-    return STATIC_ZONES.find(z => z.id === id) || STATIC_ZONES[0];
-  }, [hoveredZone, selectedRegion]);
+    return dynamicAnatomy.zones.find(z => z.id === id) || dynamicAnatomy.zones[0];
+  }, [hoveredZone, selectedRegion, dynamicAnatomy.zones]);
 
-  const effectiveRiskLevel = backendRiskLevel ?? regionalData?.riskLevel ?? 'high';
-  const rs = RISK_CFG[effectiveRiskLevel] ?? RISK_CFG.high;
-  const currentRoiNote = roiNotes?.[selectedRegion] ?? '';
+  const effectiveRiskLevel = backendRiskLevel ?? dynamicAnatomy.overallRiskLevel ?? 'low';
+  const rs = RISK_CFG[effectiveRiskLevel] ?? RISK_CFG.low;
+  const currentRoiNote = roiNotes?.[activeZone?.id || selectedRegion] ?? '';
 
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
@@ -169,8 +182,8 @@ export default function Planning3DView({ patientId }) {
     };
   }, [isFullscreen]);
 
-  if (isCaseLoading) {
-    return <Planning3DSkeleton />;
+  if (isCaseLoading || isAnalyzing) {
+    return <Planning3DSkeleton isAnalyzing={isAnalyzing} />;
   }
 
   if (!effectivePatientId || !currentPatient) {
@@ -261,14 +274,34 @@ export default function Planning3DView({ patientId }) {
               {effectiveRiskLevel === 'high' ? 'High Risk Active' : 'Normal Profile'}
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-              THA Workflow
+              {currentPatient.procedure || 'Orthopedic Case'}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            <span className="text-red-600 font-bold">1 critical zone</span> · <span className="text-orange-600 font-bold">1 elevated</span> · Interactive longitudinal curves synchronized with 3D bone risk shading
+            <span className="text-red-600 font-bold">{dynamicAnatomy.criticalZoneCount} critical</span> · <span className="text-orange-600 font-bold">{dynamicAnatomy.elevatedZoneCount} elevated</span> · Real-time 3D stress mesh synchronized with laboratory profile
           </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Workstation vs Split View Mode Switcher */}
+          <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setLayoutMode('workstation')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                layoutMode === 'workstation' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Workstation
+            </button>
+            <button
+              onClick={() => setLayoutMode('split')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                layoutMode === 'split' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Split View
+            </button>
+          </div>
+
           <button
             onClick={() => navigate(`/patients/${effectivePatientId}/assessment`)}
             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200"
@@ -287,112 +320,158 @@ export default function Planning3DView({ patientId }) {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-5">
-        {/* ── 3D Viewport (7 Cols on desktop, 100% full screen when active) ── */}
-        <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-slate-950 p-3 sm:p-4' : 'lg:col-span-7'} flex flex-col gap-3 min-w-0 max-w-full`}>
-          {/* Anatomy strip / DICOM Workstation Header */}
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 px-3.5 sm:px-4 py-2.5 flex items-center justify-between shadow-sm min-w-0">
-            <div className="flex items-center gap-2 min-w-0 truncate">
-              <div className="flex items-center gap-1.5 pr-2 sm:pr-3 border-r border-slate-700 shrink-0">
-                <Bone size={14} className="text-blue-400" />
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest hidden xs:inline">3D WORKSTATION</span>
+      <div className={layoutMode === 'workstation' && !isFullscreen ? 'space-y-6' : 'grid lg:grid-cols-12 gap-5'}>
+        {/* ── 3D Viewport (100% full screen when active, full 12 cols in workstation mode, 7 cols in split) ── */}
+        <div
+          className={`${
+            isFullscreen
+              ? 'fixed inset-0 z-50 bg-[#030712] p-2 sm:p-3'
+              : layoutMode === 'workstation'
+              ? 'w-full'
+              : 'lg:col-span-7'
+          } flex flex-col gap-3 min-w-0 max-w-full`}
+        >
+          {/* Top Bar: DICOM Workstation Patient Strip (Matching Screenshot) */}
+          <div className="bg-[#080e1e] rounded-2xl border border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-lg min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#0d162b] rounded-full border border-slate-700/80 text-xs font-semibold text-slate-200">
+                <Bone size={13} className="text-blue-400 shrink-0" />
+                <span className="truncate">
+                  {dynamicAnatomy.modelName} • Patient {currentPatient.name} ({currentPatient.id})
+                </span>
               </div>
-              <span className="text-xs font-bold text-slate-100 truncate">
-                Femur Mesh • {currentPatient.name} ({currentPatient.id})
-              </span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-medium shrink-0">
-              <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300">
-                <Compass size={11} className="text-cyan-400" /> 0.4mm
-              </span>
-              <span className="hidden md:inline">F, {currentPatient.age || 64} • Density Map Active</span>
+            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium shrink-0">
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#0d162b] rounded-full border border-slate-700/80 text-xs font-semibold text-slate-300">
+                <span className="text-cyan-400 font-bold">0.4mm</span>
+                <span className="text-slate-600">|</span>
+                <span>
+                  {currentPatient.gender === 'Female' ? 'F' : currentPatient.gender === 'Male' ? 'M' : 'P'},{' '}
+                  {currentPatient.age || 58} • {dynamicAnatomy.anatomyType.toUpperCase()} Density Map Active
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Viewer card */}
-          <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl flex flex-col flex-1 min-h-[440px] sm:min-h-[500px] lg:min-h-[560px] min-w-0 max-w-full relative">
-            {/* Floating Top Center Exit Fullscreen Pill */}
-            {isFullscreen && (
-              <button
-                onClick={toggleFullscreen}
-                className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-indigo-950/90 backdrop-blur-md border border-indigo-500/60 rounded-full text-xs font-black text-indigo-200 shadow-2xl hover:bg-indigo-900 transition animate-fade-in pointer-events-auto cursor-pointer"
-              >
-                <Minimize2 size={13} />
-                <span>Exit Fullscreen Mode (Esc)</span>
-              </button>
-            )}
-
-            {/* Toolbar */}
-            <div className="px-3 sm:px-4 py-2 bg-[#0a0f1e] border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 z-10 min-w-0">
-              <div className="flex items-center gap-1 p-0.5 bg-slate-900/60 rounded-xl border border-slate-800 overflow-x-auto scrollbar-none max-w-full">
+          {/* Viewer Card */}
+          <div
+            className={`bg-[#030712] rounded-2xl border border-slate-800/90 overflow-hidden shadow-2xl flex flex-col flex-1 ${
+              isFullscreen ? 'h-full' : layoutMode === 'workstation' ? 'min-h-[580px] lg:min-h-[660px]' : 'min-h-[500px]'
+            } min-w-0 max-w-full relative`}
+          >
+            {/* Toolbar (Matching Screenshot) */}
+            <div className="px-3 sm:px-4 py-2.5 bg-[#060a16] border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 z-10 min-w-0">
+              {/* Left: Shading Modes */}
+              <div className="flex items-center gap-1 p-1 bg-[#0d152a] rounded-xl border border-slate-800 overflow-x-auto scrollbar-none max-w-full">
                 {[
                   { id: 'anatomical', label: 'Anatomical', ac: 'bg-slate-700 text-slate-100' },
-                  { id: 'heatmap', label: 'Risk Heatmap', ac: 'bg-orange-600 text-white shadow-md shadow-orange-600/30' },
-                  { id: 'xray', label: 'X-Ray', ac: 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30' },
-                  { id: 'wireframe', label: 'Wireframe', ac: 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' },
-                  { id: 'mesh', label: 'Mesh', ac: 'bg-teal-600 text-white shadow-md shadow-teal-600/30' },
-                ].map(btn => (
+                  {
+                    id: 'heatmap',
+                    label: 'Risk Heatmap',
+                    ac: 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-[0_0_15px_rgba(249,115,22,0.45)] border border-orange-400/50',
+                  },
+                  {
+                    id: 'xray',
+                    label: 'X-Ray',
+                    ac: 'bg-cyan-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.45)] border border-cyan-400/50',
+                  },
+                  {
+                    id: 'wireframe',
+                    label: 'Wireframe',
+                    ac: 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.45)] border border-indigo-400/50',
+                  },
+                  {
+                    id: 'mesh',
+                    label: 'Mesh',
+                    ac: 'bg-teal-600 text-white shadow-[0_0_15px_rgba(20,184,166,0.45)] border border-teal-400/50',
+                  },
+                ].map((btn) => (
                   <button
                     key={btn.id}
                     onClick={() => setRenderMode(btn.id)}
-                    className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition whitespace-nowrap cursor-pointer ${renderMode === btn.id ? btn.ac : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      renderMode === btn.id ? btn.ac : 'text-slate-400 hover:text-slate-200'
+                    }`}
                   >
                     {btn.label}
                   </button>
                 ))}
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Center: Exit Fullscreen Pill */}
+              {isFullscreen ? (
+                <button
+                  onClick={toggleFullscreen}
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/60 rounded-full text-xs font-black text-indigo-200 shadow-xl transition cursor-pointer"
+                >
+                  <Minimize2 size={12} />
+                  <span>Exit Fullscreen Mode (Esc)</span>
+                </button>
+              ) : (
+                <button
+                  onClick={toggleFullscreen}
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-slate-900/60 hover:bg-slate-800 border border-slate-700/60 rounded-full text-[11px] font-bold text-slate-400 hover:text-slate-200 transition cursor-pointer"
+                >
+                  <Maximize2 size={11} />
+                  <span>Expand Workstation</span>
+                </button>
+              )}
+
+              {/* Right Controls */}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => setShowAnnotations(!showAnnotations)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${showAnnotations
-                      ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                    showAnnotations
+                      ? 'bg-blue-600/30 border-blue-500/70 text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.3)]'
                       : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
-                    }`}
-                  title="Toggle 3D Bone Diagram Annotations"
+                  }`}
+                  title="Toggle 3D Bone Annotations"
                 >
                   <Tag size={12} />
                   <span className="hidden sm:inline">Annotations</span>
                 </button>
 
-                <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-slate-900 rounded-lg border border-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-300">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 rounded-lg border border-slate-800 text-xs font-bold text-slate-300">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span>1 critical</span>
+                  <span>{dynamicAnatomy.criticalZoneCount} critical</span>
                   <span className="w-2 h-2 rounded-full bg-orange-500" />
-                  <span>1 elevated</span>
+                  <span>{dynamicAnatomy.elevatedZoneCount} elevated</span>
                 </div>
 
                 {/* Play / Pause 3D Auto-Rotation */}
                 <button
                   onClick={() => setAutoRotate(!autoRotate)}
-                  className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border transition text-xs font-bold cursor-pointer ${autoRotate
-                      ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300 shadow-sm shadow-cyan-500/20'
-                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                    }`}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border transition text-xs font-bold cursor-pointer ${
+                    autoRotate
+                      ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                      : 'bg-slate-800 border-slate-700 text-slate-200 hover:text-white'
+                  }`}
                   title={autoRotate ? 'Pause 3D Auto-Rotation' : 'Play 3D Auto-Rotation'}
                 >
                   {autoRotate ? <Pause size={12} className="fill-current" /> : <Play size={12} className="fill-current ml-0.5" />}
-                  <span className="hidden sm:inline">{autoRotate ? 'Pause' : 'Play'}</span>
+                  <span>{autoRotate ? 'Pause' : 'Play'}</span>
                 </button>
 
                 {/* Fullscreen Button */}
                 <button
                   onClick={toggleFullscreen}
-                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition text-xs font-bold cursor-pointer ${isFullscreen
-                      ? 'bg-indigo-600/30 border-indigo-500/60 text-indigo-200 shadow-sm shadow-indigo-500/20'
-                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                    }`}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold transition cursor-pointer"
                   title={isFullscreen ? 'Exit Fullscreen View (Esc)' : 'Expand to Fullscreen 3D Workstation'}
                 >
                   {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-                  <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+                  <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
                 </button>
               </div>
             </div>
 
             {/* 3D Canvas */}
-            <div className="flex-1 relative w-full h-full min-w-0 max-w-full overflow-hidden">
+            <div className="flex-1 relative w-full h-full min-w-0 max-w-full overflow-hidden bg-[#030712]">
               <BoneModelViewer
+                modelPath={dynamicAnatomy.modelPath}
+                zoneRisks={dynamicAnatomy.zones}
+                riskLevel={effectiveRiskLevel}
+                clinicalNote={activeZone?.note || ''}
                 viewAngle={viewAngle}
                 heatmap={renderMode === 'heatmap'}
                 wireframe={renderMode === 'wireframe'}
@@ -401,8 +480,11 @@ export default function Planning3DView({ patientId }) {
                 showAnnotations={showAnnotations}
                 autoRotate={autoRotate}
                 isFullscreen={isFullscreen}
-                selectedRegion={selectedRegion}
-                onSelectRegion={(id) => { setSelectedRegion(id); setSidebarTab('anatomy'); }}
+                selectedRegion={activeZone?.id || selectedRegion}
+                onSelectRegion={(id) => {
+                  setSelectedRegion(id);
+                  setSidebarTab('anatomy');
+                }}
                 onZoneHover={setHoveredZone}
                 onViewAngleChange={setViewAngle}
                 onToggleAnnotations={setShowAnnotations}
@@ -415,24 +497,47 @@ export default function Planning3DView({ patientId }) {
             </div>
 
             {/* Bottom Scan Analysis Footer Bar — matching reference monitor */}
-            <div className="px-4 py-2.5 bg-slate-900/95 border-t border-slate-800 text-xs font-semibold text-slate-300 flex flex-wrap items-center justify-between gap-2 z-10">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-cyan-400 tracking-wider">Scan Analysis</span>
+            <div className="px-4 py-2.5 bg-[#080e1e] border-t border-slate-800/90 text-xs font-semibold text-slate-300 flex flex-wrap items-center justify-between gap-3 z-10">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-[11px] font-black uppercase text-cyan-400 tracking-wider">SCAN ANALYSIS</span>
                 <span className="text-slate-600">|</span>
-                <span className="font-bold text-slate-100">Osteopenia (T-Score: -2.3)</span>
+                <span className="text-xs font-bold text-slate-100">
+                  {effectiveRiskLevel === 'high'
+                    ? 'Osteoporosis Profile'
+                    : effectiveRiskLevel === 'moderate'
+                    ? 'Osteopenia Profile'
+                    : 'Preserved Mineral Density'}{' '}
+                  (T-Score: {dynamicAnatomy.overallTScore})
+                </span>
                 <span className="text-slate-600">|</span>
-                <span className="text-amber-400 font-bold">Hip Fracture Risk: Moderate (9.4%)</span>
+                <span className="text-xs font-bold text-amber-400">
+                  {dynamicAnatomy.anatomyType.toUpperCase()} Fracture Risk:{' '}
+                  {effectiveRiskLevel === 'high' ? 'High' : effectiveRiskLevel === 'moderate' ? 'Moderate' : 'Low'} (
+                  {dynamicAnatomy.fractureRiskPct}%)
+                </span>
               </div>
-              <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> T-Score &gt; 1.0</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> T-Score &lt; -2.5</span>
+              <div className="flex items-center gap-3 text-xs text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" /> T-Score &gt; 1.0
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500" /> T-Score &lt; -2.5
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ── Right Clinical Sidebar (5 Cols on desktop) ── */}
-        <div className="lg:col-span-5 space-y-4 min-w-0 max-w-full overflow-hidden flex flex-col">
+        {/* ── Clinical Details Panel (Below in workstation mode, or right 5 cols in split mode) ── */}
+        <div
+          className={`${
+            isFullscreen
+              ? 'hidden'
+              : layoutMode === 'workstation'
+              ? 'w-full space-y-5'
+              : 'lg:col-span-5 space-y-4'
+          } min-w-0 max-w-full overflow-hidden flex flex-col`}
+        >
           {/* Multi-Tab Switcher (Curves, Anatomy, Biomarkers) */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex shadow-sm min-w-0 overflow-x-auto">
             <button
@@ -497,8 +602,8 @@ export default function Planning3DView({ patientId }) {
                 <textarea
                   rows={3}
                   value={currentRoiNote}
-                  onChange={(e) => updateRoiNote(selectedRegion, e.target.value)}
-                  onBlur={() => persistRoiNote(selectedRegion)}
+                  onChange={(e) => updateRoiNote(currentPatient?.id, activeZone?.id || selectedRegion, e.target.value)}
+                  onBlur={() => persistRoiNote(currentPatient?.id, activeZone?.id || selectedRegion, currentRoiNote)}
                   placeholder="Add region-specific notes or surgical precautions..."
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed"
                 />

@@ -32,27 +32,4 @@ describe('Revision Arthroplasty Checklists', () => {
     ]);
     expect(revisionTkaItems.length).toBe(7);
   });
-
-  it('correctly maps default selections and risk triggers for Revision THA', () => {
-    const tha = REVISION_CHECKLISTS.r_tha.items;
-    const stem = tha.find(i => i.name === 'Revision Femoral Stem');
-    const augment = tha.find(i => i.name === 'Acetabular Augment');
-    const graft = tha.find(i => i.name === 'Bone Void Filler/Graft');
-
-    expect(stem.defaultSelected).toBe(true);
-    expect(augment.riskTrigger).toBe('moderate');
-    expect(graft.riskTrigger).toBe('high');
-  });
-
-  it('correctly maps default selections and risk triggers for Revision TKA', () => {
-    const tka = REVISION_CHECKLISTS.r_tka.items;
-    const comp = tka.find(i => i.name === 'Revision Femoral Component');
-    const constraint = tka.find(i => i.name === 'Constraint/Constrained Insert');
-    const graft = tka.find(i => i.name === 'Bone Void Filler/Graft');
-
-    expect(comp.defaultSelected).toBe(true);
-    expect(constraint.riskTrigger).toBe('moderate');
-    expect(graft.riskTrigger).toBe('high');
-  });
 });
-

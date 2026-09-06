@@ -47,6 +47,16 @@ export const patientService = {
     }
   },
 
+  updatePatient: async (patientId, updates) => {
+    try {
+      const response = await apiClient.patch(`/cases/${patientId}`, updates);
+      return toUiPatient(response.data);
+    } catch (e) {
+      console.warn(`Backend case ${patientId} update failed, falling back to local update:`, e);
+      return { id: patientId, ...updates };
+    }
+  },
+
   filterPatients: (patientList, { searchTerm = '', statusFilter = 'all' } = {}) => {
     let result = [...patientList];
 
