@@ -42,7 +42,6 @@ const CAM = {
 };
 
 const REGION_ALIASES = {
-  // Femur
   'femoral-neck': 'femoral-neck', femoral_neck: 'femoral-neck', 'proximal-femur': 'femoral-neck',
   'femoral-head': 'femoral-head', femoral_head: 'femoral-head', caput: 'femoral-head', head: 'femoral-head',
   'greater-trochanter': 'greater-trochanter', greater_trochanter: 'greater-trochanter', trochanter: 'greater-trochanter',
@@ -51,33 +50,9 @@ const REGION_ALIASES = {
   shaft: 'shaft', diaphysis: 'shaft', femoral_shaft: 'shaft',
   'distal-condyles': 'distal-condyles', condyles: 'distal-condyles', metaphysis: 'distal-condyles',
   acetabulum: 'acetabulum',
-
-  // Spine
-  'l1-l2-endplate': 'l1-l2-endplate', 'l1_l2_endplate': 'l1-l2-endplate', 'l1-l2': 'l1-l2-endplate',
-  'l3-vertebral-body': 'l3-vertebral-body', 'l3_vertebral_body': 'l3-vertebral-body', 'l3-body': 'l3-vertebral-body',
-  'l4-pedicle': 'l4-pedicle', 'l4_pedicle': 'l4-pedicle', 'pedicle-screws': 'l4-pedicle',
-  'l4-l5-interbody': 'l4-l5-interbody', 'l4_l5_interbody': 'l4-l5-interbody', 'l4-l5-disc': 'l4-l5-interbody',
-  'l5-pars': 'l5-pars', 'l5_pars': 'l5-pars', 'l5-facet': 'l5-pars',
-  's1-sacral-promontory': 's1-sacral-promontory', 's1_sacral_promontory': 's1-sacral-promontory', 's1-base': 's1-sacral-promontory',
-
-  // Tibia / Knee
-  'medial-tibial-plateau': 'medial-tibial-plateau', 'medial_tibial_plateau': 'medial-tibial-plateau', 'medial-plateau': 'medial-tibial-plateau',
-  'lateral-tibial-plateau': 'lateral-tibial-plateau', 'lateral_tibial_plateau': 'lateral-tibial-plateau', 'lateral-plateau': 'lateral-tibial-plateau',
-  'tibial-tuberosity': 'tibial-tuberosity', 'tibial_tuberosity': 'tibial-tuberosity', 'tuberosity': 'tibial-tuberosity',
-  'proximal-metaphysis': 'proximal-metaphysis', 'proximal_metaphysis': 'proximal-metaphysis',
-  'tibial-shaft': 'tibial-shaft', 'tibial_shaft': 'tibial-shaft',
-  'medial-malleolus': 'medial-malleolus', 'medial_malleolus': 'medial-malleolus', 'distal-plafond': 'medial-malleolus',
-
-  // Pelvis
-  'acetabular-dome': 'acetabular-dome', 'acetabular_dome': 'acetabular-dome', 'cup-shell': 'acetabular-dome',
-  'posterior-column': 'posterior-column', 'posterior_column': 'posterior-column',
-  'iliac-crest': 'iliac-crest', 'iliac_crest': 'iliac-crest', 'iliac-wing': 'iliac-crest',
-  'anterior-pubic-ramus': 'anterior-pubic-ramus', 'anterior_pubic_ramus': 'anterior-pubic-ramus',
-  'ischial-tuberosity': 'ischial-tuberosity', 'ischial_tuberosity': 'ischial-tuberosity',
 };
 
 const MESH_TOKENS = {
-  // Femur
   'femoral-neck': ['femoral_neck', 'neck', 'collum'],
   'femoral-head': ['femoral_head', 'head', 'caput'],
   'greater-trochanter': ['greater_trochanter', 'trochanter_major', 'trochanter'],
@@ -86,33 +61,9 @@ const MESH_TOKENS = {
   shaft: ['shaft', 'diaphysis', 'corpus'],
   'distal-condyles': ['condyle', 'distal', 'metaphysis', 'epicondyle'],
   acetabulum: ['acetabulum', 'acetabular'],
-
-  // Spine
-  'l1-l2-endplate': ['l1', 'l2', 'superior', 'endplate', 'vertebra'],
-  'l3-vertebral-body': ['l3', 'body', 'vertebral', 'corpus'],
-  'l4-pedicle': ['l4', 'pedicle', 'screw', 'fixation'],
-  'l4-l5-interbody': ['l4', 'l5', 'interbody', 'disc', 'cage'],
-  'l5-pars': ['l5', 'pars', 'facet', 'articular'],
-  's1-sacral-promontory': ['s1', 'sacrum', 'sacral', 'promontory'],
-
-  // Tibia
-  'medial-tibial-plateau': ['medial', 'plateau', 'condyle', 'tibia'],
-  'lateral-tibial-plateau': ['lateral', 'plateau', 'condyle'],
-  'tibial-tuberosity': ['tuberosity', 'patellar', 'anterior'],
-  'proximal-metaphysis': ['metaphysis', 'proximal', 'cancellous'],
-  'tibial-shaft': ['shaft', 'diaphysis', 'corpus', 'cortex'],
-  'medial-malleolus': ['malleolus', 'distal', 'plafond'],
-
-  // Pelvis
-  'acetabular-dome': ['acetabulum', 'dome', 'roof', 'cup'],
-  'posterior-column': ['posterior', 'column', 'wall'],
-  'iliac-crest': ['ilium', 'iliac', 'wing', 'crest'],
-  'anterior-pubic-ramus': ['pubis', 'pubic', 'ramus', 'anterior'],
-  'ischial-tuberosity': ['ischium', 'ischial', 'tuberosity'],
 };
 
 const ANCHORS = {
-  // Femur
   'femoral-head': [0.32, 0.88, 0.12],
   'femoral-neck': [0.22, 0.70, 0.10],
   'greater-trochanter': [-0.24, 0.62, 0.06],
@@ -121,67 +72,19 @@ const ANCHORS = {
   shaft: [0.02, -0.05, 0.06],
   'distal-condyles': [0.02, -0.78, 0.08],
   acetabulum: [-0.18, -0.58, 0.18],
-
-  // Spine
-  'l1-l2-endplate': [0.0, 0.72, 0.16],
-  'l3-vertebral-body': [0.0, 0.32, 0.20],
-  'l4-pedicle': [-0.24, -0.04, 0.10],
-  'l4-l5-interbody': [0.0, -0.25, 0.20],
-  'l5-pars': [0.26, -0.48, -0.04],
-  's1-sacral-promontory': [0.0, -0.80, 0.14],
-
-  // Tibia
-  'medial-tibial-plateau': [0.24, 0.82, 0.08],
-  'lateral-tibial-plateau': [-0.24, 0.82, 0.08],
-  'tibial-tuberosity': [0.02, 0.58, 0.26],
-  'proximal-metaphysis': [0.02, 0.32, 0.08],
-  'tibial-shaft': [0.02, -0.15, 0.08],
-  'medial-malleolus': [0.18, -0.82, 0.08],
-
-  // Pelvis
-  'acetabular-dome': [0.40, 0.16, 0.22],
-  'posterior-column': [0.34, -0.14, -0.16],
-  'iliac-crest': [-0.52, 0.70, 0.10],
-  'anterior-pubic-ramus': [0.12, -0.42, 0.26],
-  'ischial-tuberosity': [0.30, -0.74, -0.06],
 };
 
 const ANATOMICAL_OFFSETS = {
-  // Femur (Positioned precisely to mirror medical 3D imaging workstation)
-  'femoral-head': { side: 'right', offset: [85, -28], subLabel: 'Caput Fe...' },
-  'femoral-neck': { side: 'right', offset: [88, 6], subLabel: 'Collum Fe...' },
-  'greater-trochanter': { side: 'left', offset: [-88, -20], subLabel: 'Trochant...' },
-  'intertrochanteric': { side: 'left', offset: [-88, 30], subLabel: 'Crista Int...' },
-  'lesser-trochanter': { side: 'right', offset: [85, 30], subLabel: 'Trochant...' },
-  shaft: { side: 'right', offset: [75, 0], subLabel: 'Diaphysis...' },
-  'distal-condyles': { side: 'left', offset: [-80, -10], subLabel: 'Condyli' },
-
-  // Spine
-  'l1-l2-endplate': { side: 'right', offset: [85, -25], subLabel: 'Superior Endplate' },
-  'l3-vertebral-body': { side: 'left', offset: [-88, -15], subLabel: 'Corpus L3' },
-  'l4-pedicle': { side: 'left', offset: [-88, 20], subLabel: 'Pedicle Trajectory' },
-  'l4-l5-interbody': { side: 'right', offset: [85, 10], subLabel: 'Interbody Cage' },
-  'l5-pars': { side: 'right', offset: [85, 35], subLabel: 'Pars / Facet' },
-  's1-sacral-promontory': { side: 'left', offset: [-88, 30], subLabel: 'Sacral Promontory' },
-
-  // Tibia
-  'medial-tibial-plateau': { side: 'right', offset: [85, -25], subLabel: 'Medial Plateau' },
-  'lateral-tibial-plateau': { side: 'left', offset: [-88, -25], subLabel: 'Lateral Plateau' },
-  'tibial-tuberosity': { side: 'right', offset: [85, 10], subLabel: 'Tuberosity' },
-  'proximal-metaphysis': { side: 'left', offset: [-88, 15], subLabel: 'Metaphysis' },
-  'tibial-shaft': { side: 'right', offset: [75, 0], subLabel: 'Tibial Diaphysis' },
-  'medial-malleolus': { side: 'left', offset: [-80, -10], subLabel: 'Distal Plafond' },
-
-  // Pelvis
-  'acetabular-dome': { side: 'right', offset: [85, -20], subLabel: 'Acetabular Roof' },
-  'posterior-column': { side: 'left', offset: [-88, 10], subLabel: 'Posterior Wall' },
-  'iliac-crest': { side: 'left', offset: [-88, -25], subLabel: 'Iliac Wing' },
-  'anterior-pubic-ramus': { side: 'right', offset: [85, 25], subLabel: 'Pubic Ramus' },
-  'ischial-tuberosity': { side: 'left', offset: [-88, 25], subLabel: 'Ischial Spine' },
+  'femoral-head': { side: 'right', offset: [10, -10], subLabel: 'Caput Femoris' },
+  'femoral-neck': { side: 'right', offset: [10, -2], subLabel: 'Collum Femoris' },
+  'greater-trochanter': { side: 'left', offset: [-10, -8], subLabel: 'Trochanter Major' },
+  'intertrochanteric': { side: 'left', offset: [-10, 4], subLabel: 'Crista Intertroch.' },
+  'lesser-trochanter': { side: 'right', offset: [10, 8], subLabel: 'Trochanter Minor' },
+  shaft: { side: 'right', offset: [10, 16], subLabel: 'Diaphysis / Corpus' },
+  'distal-condyles': { side: 'left', offset: [-10, 4], subLabel: 'Condyli' },
 };
 
 const RADII = {
-  // Femur
   'femoral-head': 0.40,
   'femoral-neck': 0.55,
   'greater-trochanter': 0.48,
@@ -190,29 +93,6 @@ const RADII = {
   shaft: 0.55,
   'distal-condyles': 0.48,
   acetabulum: 0.32,
-
-  // Spine
-  'l1-l2-endplate': 0.42,
-  'l3-vertebral-body': 0.46,
-  'l4-pedicle': 0.44,
-  'l4-l5-interbody': 0.50,
-  'l5-pars': 0.40,
-  's1-sacral-promontory': 0.45,
-
-  // Tibia
-  'medial-tibial-plateau': 0.50,
-  'lateral-tibial-plateau': 0.48,
-  'tibial-tuberosity': 0.42,
-  'proximal-metaphysis': 0.46,
-  'tibial-shaft': 0.52,
-  'medial-malleolus': 0.44,
-
-  // Pelvis
-  'acetabular-dome': 0.46,
-  'posterior-column': 0.44,
-  'iliac-crest': 0.50,
-  'anterior-pubic-ramus': 0.40,
-  'ischial-tuberosity': 0.44,
 };
 
 function slug(v = '') {
@@ -578,9 +458,9 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
 
   const [layout, setLayout] = useState({
     side: z.side || 'left',
-    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -80 : 80),
+    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -10 : 10),
     targetY: z.offset ? z.offset[1] : 0,
-    midX: z.side === 'left' ? -38 : 38,
+    midX: z.side === 'left' ? -4 : 4,
   });
 
   const isHigh = z.riskLevel === 'high';
@@ -595,11 +475,11 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     const screenY = (-vec.y * size.height) / 2;
     const halfW = size.width / 2;
     const halfH = size.height / 2;
-    const badgeW = 145;
-    const edgeMargin = 16;
+    const badgeW = isElevated ? 95 : 60;
+    const edgeMargin = 12;
 
     const baseSide = z.side || (vec.x < 0 ? 'left' : 'right');
-    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -80 : 80);
+    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -10 : 10);
     const rawTargetY = z.offset ? z.offset[1] : 0;
 
     // 2. Boundary Collision Detection:
@@ -618,7 +498,7 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
       targetX = -Math.abs(rawTargetX);
     }
 
-    // 3. Fine-grained Edge Clamping:
+    // 3. Fine-grained Edge Clamping to prevent clipping:
     if (effectiveSide === 'left') {
       const currentLeft = screenX + targetX - badgeW;
       if (currentLeft < -halfW + edgeMargin) {
@@ -632,15 +512,15 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     }
 
     // Y Axis Boundary Clamping:
-    const currentTop = screenY + targetY - 24;
-    const currentBottom = screenY + targetY + 24;
+    const currentTop = screenY + targetY - (isElevated ? 32 : 12);
+    const currentBottom = screenY + targetY + (isElevated ? 32 : 12);
     if (currentTop < -halfH + edgeMargin) {
       targetY += (-halfH + edgeMargin) - currentTop;
     } else if (currentBottom > halfH - edgeMargin) {
       targetY -= (currentBottom - (halfH - edgeMargin));
     }
 
-    const midX = targetX * 0.45;
+    const midX = targetX * 0.35;
 
     if (
       effectiveSide !== layout.side ||
@@ -662,17 +542,17 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
   return (
     <group position={z.anchor}>
       <Html
-        distanceFactor={4.2}
-        zIndexRange={isElevated ? [9999, 9999] : [50, 200]}
+        distanceFactor={8.8}
+        zIndexRange={isElevated ? [99999, 99999] : [50, 10]}
         style={{
-          zIndex: isElevated ? 9999 : 50,
+          zIndex: isElevated ? 99999 : 10,
           pointerEvents: 'none',
         }}
       >
         <div className="relative pointer-events-none select-none">
-          {/* 1. Target Pin Anchor Ring on Bone Surface (Matching Screenshot) */}
+          {/* 1. Target Pin Anchor on Bone Surface */}
           <div
-            className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10 flex items-center justify-center transition-transform hover:scale-125"
+            className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto z-10"
             onClick={(e) => {
               e.stopPropagation();
               onSelectZone?.(z.id);
@@ -680,33 +560,28 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
             onMouseEnter={() => onHoverZone?.(z)}
             onMouseLeave={() => onHoverZone?.(null)}
           >
-            {/* Outer Glowing Hollow Ring */}
             <div
-              className="w-4 h-4 rounded-full flex items-center justify-center transition-all"
+              className="w-2 h-2 rounded-full flex items-center justify-center transition-transform hover:scale-125"
               style={{
-                background: 'rgba(3, 7, 18, 0.88)',
-                border: `2px solid ${pinColor}`,
-                boxShadow: `0 0 10px ${pinColor}bb, inset 0 0 4px ${pinColor}66`,
+                background: 'rgba(3, 7, 18, 0.95)',
+                border: `1.2px solid ${pinColor}`,
+                boxShadow: `0 0 4px ${pinColor}`,
               }}
             >
-              {/* Center Dot */}
               <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: pinColor,
-                  boxShadow: `0 0 6px ${pinColor}`,
-                }}
+                className="w-0.8 h-0.8 rounded-full"
+                style={{ background: pinColor }}
               />
             </div>
             {isElevated && (
               <span
-                className="w-5 h-5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-70 pointer-events-none"
+                className="w-2.5 h-2.5 rounded-full absolute -top-0.5 -left-0.5 animate-ping opacity-75"
                 style={{ background: pinColor }}
               />
             )}
           </div>
 
-          {/* 2. SVG Dynamic Angled Leader Line (Matching Screenshot) */}
+          {/* 2. SVG Dynamic Leader Line */}
           <svg
             className="absolute top-0 left-0 overflow-visible pointer-events-none"
             style={{ width: 1, height: 1 }}
@@ -715,30 +590,27 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
               d={`M 0 0 L ${midX} ${targetY} L ${targetX} ${targetY}`}
               fill="none"
               stroke={pinColor}
-              strokeWidth={isElevated ? '2' : '1.5'}
-              strokeOpacity={isElevated ? 1.0 : 0.85}
+              strokeWidth={isElevated ? '1.2' : '0.8'}
+              strokeOpacity={isElevated ? 1.0 : 0.65}
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{
-                filter: `drop-shadow(0 0 4px ${pinColor}aa)`,
-              }}
             />
             <circle
               cx={targetX}
               cy={targetY}
-              r={isElevated ? 2 : 1.5}
+              r={isElevated ? 1.2 : 1.0}
               fill={pinColor}
             />
           </svg>
 
-          {/* 3. Scaled Responsive Floating HUD Card (Matching Screenshot) */}
+          {/* 3. Scaled Responsive Label Badge (10px proximity) */}
           <div
             className="absolute pointer-events-auto cursor-pointer transition-all duration-150"
             style={{
               left: `${targetX}px`,
               top: `${targetY}px`,
-              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(0%, -50%)',
-              zIndex: isElevated ? 9999 : 50,
+              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(2px, -50%)',
+              zIndex: isElevated ? 99999 : 10,
             }}
             onClick={(e) => {
               e.stopPropagation();
@@ -748,58 +620,58 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
             onMouseLeave={() => onHoverZone?.(null)}
           >
             <div
-              className={`rounded-xl transition-all ${
-                isElevated ? 'scale-105 shadow-2xl ring-1 ring-white/20' : 'hover:scale-102 shadow-lg'
-              }`}
+              className={`rounded transition-all ${isElevated ? 'scale-105 ring-1 ring-blue-500/40 shadow-lg' : 'hover:scale-102 shadow-sm'
+                }`}
               style={{
-                background: 'rgba(5, 10, 24, 0.94)',
-                backdropFilter: 'blur(12px)',
-                border: `1.5px solid ${pinColor}`,
+                background: isElevated ? '#020617' : 'rgba(9, 13, 31, 0.95)',
+                border: `1px solid ${isElevated ? pinColor : pinColor + '88'}`,
                 boxShadow: isElevated
-                  ? `0 6px 24px rgba(0,0,0,0.95), 0 0 16px ${pinColor}66`
-                  : `0 4px 16px rgba(0,0,0,0.85), 0 0 10px ${pinColor}44`,
-                width: isElevated ? 152 : 138,
-                minWidth: 125,
-                padding: '6px 10px',
+                  ? `0 4px 12px rgba(0,0,0,0.95), 0 0 8px ${pinColor}88`
+                  : '0 1px 4px rgba(0,0,0,0.5)',
+                width: isElevated ? 95 : 'max-content',
+                minWidth: 55,
+                maxWidth: isElevated ? 100 : 78,
+                minHeight: 18,
+                padding: '1.5px 3.5px',
               }}
             >
-              {/* Header Row: Landmark Label & Severity Badge */}
-              <div className="flex items-center justify-between gap-1.5">
-                <span className="font-bold text-white text-[12px] truncate tracking-tight max-w-[80px]">
+              {/* Header: Full Zone Name & Status Badge */}
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-black text-white whitespace-nowrap text-[7px] tracking-tight truncate max-w-[48px]">
                   {z.label}
                 </span>
                 <span
-                  className="font-black px-1.5 py-0.5 rounded text-[8.5px] uppercase tracking-wider shrink-0"
+                  className="font-black px-0.8 py-0.1 rounded shrink-0 uppercase text-[5.5px]"
                   style={{
                     background: `${pinColor}25`,
                     color: pinColor,
-                    border: `1px solid ${pinColor}99`,
+                    border: `0.5px solid ${pinColor}55`,
                   }}
                 >
-                  {isHigh ? 'HIGH' : isMod ? 'ELEV' : 'NORM'}
+                  {isHigh ? 'High' : isMod ? 'Elev' : 'Norm'}
                 </span>
               </div>
 
-              {/* Sub-Header Row: Latin Subtitle & Color-Coded T-Score */}
-              <div className="flex items-center justify-between gap-1.5 mt-1 text-slate-400">
-                <span className="font-medium text-[10px] text-slate-400 truncate max-w-[65px]">
+              {/* Sub-Header: Landmark Sub-Label & T-Score */}
+              <div className="flex items-center justify-between gap-1 mt-0.1 text-slate-400">
+                <span className="font-semibold text-[6px] whitespace-nowrap text-slate-400 truncate max-w-[40px]">
                   {z.subLabel || 'Landmark'}
                 </span>
-                <span className="font-mono font-black text-[11.5px] shrink-0" style={{ color: pinColor }}>
+                <span className="font-mono font-bold text-[6.5px] shrink-0" style={{ color: pinColor }}>
                   T: {z.tScore}
                 </span>
               </div>
 
-              {/* Full Detailed Insight on Hover / Select */}
+              {/* Full Detailed Insight on Hover / Select — slim and compact */}
               {isElevated && (
-                <div className="mt-2 pt-1.5 border-t border-white/15 text-left animate-fade-in space-y-1">
-                  <div className="text-[8px] font-black uppercase tracking-wider text-slate-400">
-                    Clinical Context:
+                <div className="mt-1 pt-1 border-t border-white/15 text-left animate-fade-in space-y-0.8">
+                  <div className="text-[6.8px] font-black uppercase tracking-wider text-slate-400">
+                    Risk Zone Insight:
                   </div>
-                  <p className="text-[9px] text-slate-200 leading-tight font-medium line-clamp-3">
+                  <p className="text-[7.5px] text-slate-200 leading-tight font-medium line-clamp-2 break-words">
                     {z.note}
                   </p>
-                  <div className="flex items-center justify-between text-[8px] bg-slate-900/90 px-2 py-0.5 rounded border border-slate-800 mt-1">
+                  <div className="flex items-center justify-between text-[7px] bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800 mt-0.5">
                     <span className="text-slate-400">vBMD: <b className="text-white">{z.vBMD}</b></span>
                     <span className="font-bold" style={{ color: pinColor }}>
                       {isHigh ? '87%' : isMod ? '52%' : '12%'} Risk
@@ -866,9 +738,14 @@ function RealAnatomicalBoneModel({
       // High-definition geometry preparation:
       // 1. Compute smooth normals for accurate PBR lighting across curved surfaces
       c.geometry.computeVertexNormals();
-      // 2. Compute tangents for correct clearcoat normal mapping
-      if (c.geometry.getIndex()) {
-        try { c.geometry.computeTangents(); } catch (_) { /* non-indexed geo — skip */ }
+      // 2. Compute tangents only if all required attributes exist (index, position, normal, uv)
+      if (
+        c.geometry.getIndex() &&
+        c.geometry.attributes.position &&
+        c.geometry.attributes.normal &&
+        c.geometry.attributes.uv
+      ) {
+        try { c.geometry.computeTangents(); } catch (_) { /* skip */ }
       }
       // 3. Merge vertices to remove duplicate boundary seams before normal smoothing
       c.geometry.normalizeNormals();
@@ -1263,7 +1140,7 @@ export default function BoneModelViewer({
         />
 
         <Suspense fallback={null}>
-          <BoneModelErrorBoundary key={modelPath}>
+          <BoneModelErrorBoundary>
             <RealAnatomicalBoneModel
               modelPath={modelPath}
               mode={mode}
@@ -1286,23 +1163,19 @@ export default function BoneModelViewer({
             color="#010b1a"
           />
 
-          {/* Holographic staging rings — 4-ring depth to mirror medical workstation staging */}
-          <group position={[0, -1.24, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          {/* Holographic staging rings — 3-ring depth to emphasise 3D space */}
+          <group position={[0, -1.23, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <mesh>
-              <ringGeometry args={[0.48, 0.495, 96]} />
-              <meshBasicMaterial color="#38bdf8" opacity={0.30} transparent side={THREE.DoubleSide} />
+              <ringGeometry args={[0.68, 0.70, 96]} />
+              <meshBasicMaterial color="#38bdf8" opacity={0.35} transparent side={THREE.DoubleSide} />
             </mesh>
             <mesh>
-              <ringGeometry args={[0.88, 0.895, 96]} />
-              <meshBasicMaterial color="#0284c7" opacity={0.22} transparent side={THREE.DoubleSide} />
+              <ringGeometry args={[1.02, 1.035, 96]} />
+              <meshBasicMaterial color="#0284c7" opacity={0.18} transparent side={THREE.DoubleSide} />
             </mesh>
             <mesh>
-              <ringGeometry args={[1.30, 1.315, 96]} />
-              <meshBasicMaterial color="#0369a1" opacity={0.15} transparent side={THREE.DoubleSide} />
-            </mesh>
-            <mesh>
-              <ringGeometry args={[1.75, 1.765, 96]} />
-              <meshBasicMaterial color="#075985" opacity={0.08} transparent side={THREE.DoubleSide} />
+              <ringGeometry args={[1.38, 1.39, 96]} />
+              <meshBasicMaterial color="#075985" opacity={0.10} transparent side={THREE.DoubleSide} />
             </mesh>
           </group>
         </Suspense>

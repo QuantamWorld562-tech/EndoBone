@@ -95,5 +95,17 @@ describe('API Adapters & Utility Tests', () => {
     expect(res.overallQualityRisk).toBeGreaterThanOrEqual(65);
     expect(res.insights.length).toBeGreaterThan(0);
     expect(res.insights[0].severity).toBe('high');
+
+    const normalBiomarkers = {
+      pth: { value: 42 },
+      vitaminD: { value: 45 },
+      calcium: { value: 9.6 },
+      phosphate: { value: 3.5 },
+      alp: { value: 78 },
+      ctx: { value: 210 },
+    };
+    const resNormal = computeDynamicAssessment('PEB-8840-C', normalBiomarkers);
+    expect(resNormal.overallQualityRisk).toBeLessThan(40);
+    expect(resNormal.dexa_tscore).toBeGreaterThan(-1.0);
   });
 });

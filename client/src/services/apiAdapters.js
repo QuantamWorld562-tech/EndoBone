@@ -28,7 +28,8 @@ export function toUiPatient(patient) {
     procedure: patient.procedure || patient.clinical_indication || 'Pre-surgical bone planning',
     condition: patient.condition || patient.clinical_indication || 'Pre-Surgical Bone Mineral Density Evaluation',
     status: patient.status || 'active',
-    scheduledDate: patient.scheduledDate || patient.scheduled_date || patient.scheduled_at || null,
+    riskLevel: patient.riskLevel || patient.risk_level || null,
+    scheduledDate: patient.scheduled_date || patient.scheduledDate || null,
   };
 }
 
@@ -45,10 +46,10 @@ export function toUiAssessment(assessment) {
   const derivedNumericRisk = Number.isFinite(numericRiskScore)
     ? numericRiskScore
     : riskLevel === 'high'
-    ? 82
-    : riskLevel === 'moderate'
-    ? 52
-    : 24;
+      ? 82
+      : riskLevel === 'moderate'
+        ? 52
+        : 24;
 
   // Normalise contributing_factors — backend sends [{ factor, explanation }]
   const rawFactors = aiResults?.contributing_factors ?? assessment.contributing_factors ?? null;

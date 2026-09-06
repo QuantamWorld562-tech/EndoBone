@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText,
@@ -16,13 +16,45 @@ import {
   Plus,
   Sparkles,
 } from 'lucide-react';
-import { usePatientContext } from '../../../context/PatientDataContext';
+import { usePatientContext, computeDynamicAssessment } from '../../../context/PatientDataContext';
 import { CaseLoadingOverlay } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen } = usePatientContext();
+  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen, allBiomarkers } = usePatientContext();
   const [loadingPatient, setLoadingPatient] = useState(null);
+
+  const resolveRisk = useCallback((p) => {
+    if (!p) return 'low';
+    const explicit = p.riskLevel || p.risk_level;
+    if (explicit) return String(explicit).toLowerCase();
+
+    const bm = allBiomarkers?.[p.id] || p.initial_biomarkers || p.biomarkers;
+    if (bm) {
+      const assessment = computeDynamicAssessment(p.id, bm);
+      if (assessment?.overallQualityRisk >= 65) return 'high';
+      if (assessment?.overallQualityRisk >= 40) return 'moderate';
+      return 'low';
+    }
+
+    if (p.id === 'PEB-8842-A') return 'high';
+    if (p.id === 'PEB-8841-B') return 'moderate';
+    if (p.id === 'PEB-8840-C') return 'low';
+    if (p.id === 'PEB-8839-D') return 'moderate';
+
+    return 'low';
+  }, [allBiomarkers]);
+
+  const getRiskBadge = useCallback((p) => {
+    const risk = resolveRisk(p);
+    if (risk === 'high') {
+      return { text: 'HIGH', level: 'high', cls: 'bg-red-100 text-red-700 ring-red-200' };
+    }
+    if (risk === 'moderate') {
+      return { text: 'MODERATE', level: 'moderate', cls: 'bg-amber-100 text-amber-700 ring-amber-200' };
+    }
+    return { text: 'LOW', level: 'low', cls: 'bg-teal-100 text-teal-700 ring-teal-200' };
+  }, [resolveRisk]);
 
   const handleSelectPatient = (id) => {
     const targetPatient = patients.find((p) => p.id === id);
@@ -56,28 +88,29 @@ export default function DashboardView({ onSelectPatient }) {
     });
   }, [patients, searchTerm, statusFilter]);
 
-  const activeCases = filteredPatients.filter((p) => p.status === 'active').length;
-  const pendingReviews = filteredPatients.filter((p) => p.status === 'pending-review').length;
-  const highRiskCases = filteredPatients.length;
+  const totalCount = filteredPatients.length;
+  const highRiskCases = filteredPatients.filter((p) => resolveRisk(p) === 'high').length;
+  const moderateRiskCases = filteredPatients.filter((p) => resolveRisk(p) === 'moderate').length;
+  const lowRiskCases = filteredPatients.filter((p) => resolveRisk(p) === 'low').length;
 
   const stats = [
     {
       label: 'Active Cases',
-      value: activeCases,
+      value: totalCount,
       icon: FileText,
       color: 'blue',
       grad: 'from-blue-500 to-blue-700',
       bg: 'bg-blue-50',
-      val: activeCases || patients.length,
+      val: totalCount,
     },
     {
-      label: 'Pending Reviews',
-      value: pendingReviews,
+      label: 'Moderate Risk Cases',
+      value: moderateRiskCases,
       icon: AlertTriangle,
       color: 'amber',
       grad: 'from-amber-500 to-orange-600',
       bg: 'bg-amber-50',
-      val: pendingReviews || 1,
+      val: moderateRiskCases,
     },
     {
       label: 'High Risk Profile',
@@ -86,18 +119,9 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'red',
       grad: 'from-red-500 to-red-700',
       bg: 'bg-red-50',
-      val: highRiskCases || 4,
+      val: highRiskCases,
     },
   ];
-
-  const getRiskBadge = (status) => {
-    const map = {
-      active: { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' },
-      'pending-review': { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' },
-      completed: { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' },
-    };
-    return map[status] || map.active;
-  };
 
   const handleConfirmDelete = async () => {
     if (!caseToDelete) return;
@@ -207,7 +231,7 @@ export default function DashboardView({ onSelectPatient }) {
               <div className="p-8 sm:p-10 text-center text-slate-500 text-xs sm:text-sm">No matching patients found.</div>
             ) : (
               filteredPatients.map((p) => {
-                const badge = getRiskBadge(p.status);
+                const badge = getRiskBadge(p);
                 return (
                   <div
                     key={p.id}
@@ -280,24 +304,31 @@ export default function DashboardView({ onSelectPatient }) {
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
             <h3 className="text-lg font-extrabold text-slate-900 mb-4">Risk Distribution</h3>
             <div className="space-y-4">
-              {[
-                { label: 'High Risk', count: 5, pct: 42, color: 'bg-red-500', text: 'text-red-600', bg: 'bg-red-50' },
-                { label: 'Moderate', count: 4, pct: 33, color: 'bg-amber-500', text: 'text-amber-600', bg: 'bg-amber-50' },
-                { label: 'Low / Normal', count: 3, pct: 25, color: 'bg-teal-500', text: 'text-teal-600', bg: 'bg-teal-50' },
-              ].map((r, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${r.color}`} />
-                      <span className="text-sm font-semibold text-slate-700">{r.label}</span>
+              {(() => {
+                const totalDist = Math.max(patients.length, 1);
+                const dHigh = patients.filter((p) => resolveRisk(p) === 'high').length;
+                const dMod = patients.filter((p) => resolveRisk(p) === 'moderate').length;
+                const dLow = patients.filter((p) => resolveRisk(p) === 'low').length;
+
+                return [
+                  { label: 'High Risk', count: dHigh, pct: Math.round((dHigh / totalDist) * 100), color: 'bg-red-500', text: 'text-red-600', bg: 'bg-red-50' },
+                  { label: 'Moderate', count: dMod, pct: Math.round((dMod / totalDist) * 100), color: 'bg-amber-500', text: 'text-amber-600', bg: 'bg-amber-50' },
+                  { label: 'Low / Normal', count: dLow, pct: Math.round((dLow / totalDist) * 100), color: 'bg-teal-500', text: 'text-teal-600', bg: 'bg-teal-50' },
+                ].map((r, i) => (
+                  <div key={i}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${r.color}`} />
+                        <span className="text-sm font-semibold text-slate-700">{r.label}</span>
+                      </div>
+                      <span className={`text-sm font-bold ${r.text}`}>{r.count}</span>
                     </div>
-                    <span className={`text-sm font-bold ${r.text}`}>{r.count}</span>
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className={`h-full ${r.color} rounded-full transition-all`} style={{ width: `${r.pct}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div className={`h-full ${r.color} rounded-full transition-all`} style={{ width: `${r.pct}%` }} />
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
 

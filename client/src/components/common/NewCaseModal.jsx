@@ -10,10 +10,8 @@ import {
   Users,
   UserCircle,
   Calendar,
-  Bone,
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
-import { AVAILABLE_MODELS } from '../../utils/modelAnnotationEngine';
 
 const PRESETS = [
   {
@@ -31,22 +29,22 @@ const PRESETS = [
     },
   },
   {
-    id: 'moderate-risk',
-    title: 'Osteopenic Transition',
+    id: 'moderate-deficiency',
+    title: 'Vitamin D Deficiency',
     badge: 'Moderate',
     badgeCls: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
     values: {
-      pth: 58.0,
-      vitaminD: 32.5,
-      calcium: 9.2,
-      phosphate: 3.6,
-      alp: 95,
-      ctx: 280,
+      pth: 64.0,
+      vitaminD: 18.5,
+      calcium: 8.8,
+      phosphate: 3.0,
+      alp: 92,
+      ctx: 310,
     },
   },
   {
-    id: 'normal-profile',
-    title: 'Normal Metabolic Health',
+    id: 'normal-baseline',
+    title: 'Optimal Homeostasis',
     badge: 'Normal',
     badgeCls: 'bg-teal-100 text-teal-700 ring-1 ring-teal-200',
     values: {
@@ -62,52 +60,34 @@ const PRESETS = [
 
 const PROCEDURES = [
   {
-    id: 'tha',
-    name: 'Total Hip Arthroplasty (THA)',
-    desc: 'Proximal femur/hip anatomy and implant/planning considerations',
-    defaultModel: '01',
-  },
-  {
     id: 'tka',
     name: 'Total Knee Arthroplasty (TKA)',
     desc: 'Distal femur/knee 3D anatomy, ROI, planning annotations and scenario visualization',
-    defaultModel: 'tibia',
   },
   {
-    id: 'spine_fusion',
-    name: 'L4-L5 Discectomy & Fusion',
-    desc: 'Lumbar spine decompression and interbody cage instrumentation',
-    defaultModel: 'spine',
-  },
-  {
-    id: 'vertebroplasty',
-    name: 'Vertebroplasty L3',
-    desc: 'Percutaneous cement augmentation for osteoporotic compression fracture',
-    defaultModel: 'spine',
+    id: 'tha',
+    name: 'Total Hip Arthroplasty (THA)',
+    desc: 'Proximal femur/hip anatomy and implant/planning considerations',
   },
   {
     id: 'fff',
     name: 'Femoral fracture fixation',
     desc: '3D fracture-region visualization, ROI and fixation-planning concepts',
-    defaultModel: '02',
   },
   {
     id: 'dfff',
     name: 'Distal femur fracture fixation',
     desc: 'Directly compatible with a femur-focused system',
-    defaultModel: '04',
   },
   {
     id: 'pfff',
     name: 'Proximal femur fracture fixation',
     desc: 'Useful future extension around femoral neck/intertrochanteric region',
-    defaultModel: '03',
   },
   {
-    id: 'revision',
-    name: 'Revision Arthroplasty',
-    desc: 'Modular revision reconstruction with joint-specific implant and fixation checklists',
-    defaultModel: '07',
+    id: 'rap',
+    name: 'Revision arthroplasty planning',
+    desc: 'Bone-stock/anatomical review with clinical biomarkers',
   },
 ];
 
@@ -118,10 +98,8 @@ export default function NewCaseModal() {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
-    procedure: PROCEDURES[0].name, // Total Hip Arthroplasty (THA) default
+    procedure: PROCEDURES[1].name, // Total Hip Arthroplasty (THA) default
     gender: 'Female',
-    model_id: '01',
-    scheduledDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     pth: '',
     vitaminD: '',
     calcium: '',
@@ -129,8 +107,6 @@ export default function NewCaseModal() {
     alp: '',
     ctx: '',
   });
-  const [revisionSubType, setRevisionSubType] = useState('Revision Total Hip Arthroplasty');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isNewCaseModalOpen) return null;
 
@@ -138,27 +114,6 @@ export default function NewCaseModal() {
     setFormData((prev) => ({
       ...prev,
       ...preset.values,
-    }));
-  };
-
-  const handleProcedureChange = (newProcName) => {
-    const procObj = PROCEDURES.find((p) => p.name === newProcName);
-    let autoModel = procObj?.defaultModel || '01';
-    if (newProcName === 'Revision Arthroplasty') {
-      autoModel = revisionSubType === 'Revision Total Knee Arthroplasty' ? 'tibia' : '07';
-    }
-    setFormData((prev) => ({
-      ...prev,
-      procedure: newProcName,
-      model_id: autoModel,
-    }));
-  };
-
-  const handleRevisionSubTypeChange = (subType) => {
-    setRevisionSubType(subType);
-    setFormData((prev) => ({
-      ...prev,
-      model_id: subType === 'Revision Total Knee Arthroplasty' ? 'tibia' : '07',
     }));
   };
 
@@ -194,24 +149,9 @@ export default function NewCaseModal() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const finalProcedure = formData.procedure === 'Revision Arthroplasty'
-        ? revisionSubType
-        : formData.procedure;
-      const newPatientId = await addNewCase({
-        ...formData,
-        procedure: finalProcedure,
-        model_id: formData.model_id,
-        scheduledDate: formData.scheduledDate,
-      });
-      setIsNewCaseModalOpen(false);
-      navigate(`/patients/${newPatientId}/assessment`);
-    } catch (err) {
-      console.error('Case intake error:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    const newPatientId = await addNewCase(formData);
+    setIsNewCaseModalOpen(false);
+    navigate(`/patients/${newPatientId}/metabolic`);
   };
 
   return (
@@ -241,7 +181,7 @@ export default function NewCaseModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 scrollbar-thin bg-slate-50/50">
-          
+
           {/* Quick Preset Selector */}
           <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
             <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
@@ -264,7 +204,7 @@ export default function NewCaseModal() {
           </div>
 
           {/* Patient Info & Surgical Procedure Strip */}
-          <div className="grid md:grid-cols-6 gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div className="grid md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             {/* Patient Name */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -320,29 +260,15 @@ export default function NewCaseModal() {
               </select>
             </div>
 
-            {/* Scheduled Date */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Calendar size={14} className="text-blue-600" />
-                Surgery Date
-              </label>
-              <input
-                type="date"
-                value={formData.scheduledDate}
-                onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                className="w-full px-2.5 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              />
-            </div>
-
             {/* Surgical Procedure */}
-            <div className="space-y-1.5">
+            <div className="md:col-span-1 space-y-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                 <Stethoscope size={14} className="text-blue-600" />
                 Surgical Procedure
               </label>
               <select
                 value={formData.procedure}
-                onChange={(e) => handleProcedureChange(e.target.value)}
+                onChange={(e) => setFormData({ ...formData, procedure: e.target.value })}
                 className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 {PROCEDURES.map((p) => (
@@ -351,87 +277,15 @@ export default function NewCaseModal() {
                   </option>
                 ))}
               </select>
-
-              {formData.procedure === 'Revision Arthroplasty' && (
-                <div className="mt-2.5 p-2 bg-blue-50/80 border border-blue-200 rounded-lg space-y-1.5">
-                  <span className="text-[10px] font-black text-blue-900 uppercase tracking-wider block">
-                    Revision Selection:
-                  </span>
-                  <div className="flex flex-col gap-1">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="newCaseRevisionSubType"
-                        value="Revision Total Hip Arthroplasty"
-                        checked={revisionSubType === 'Revision Total Hip Arthroplasty'}
-                        onChange={(e) => handleRevisionSubTypeChange(e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      Rev. THA
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="newCaseRevisionSubType"
-                        value="Revision Total Knee Arthroplasty"
-                        checked={revisionSubType === 'Revision Total Knee Arthroplasty'}
-                        onChange={(e) => handleRevisionSubTypeChange(e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      Rev. TKA
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              <p className="text-[11px] text-slate-500 italic leading-snug truncate" title={formData.procedure === 'Revision Arthroplasty'
-                  ? (revisionSubType === 'Revision Total Knee Arthroplasty'
-                      ? 'Revision femoral/tibial components, augments, and constraint'
-                      : 'Revision stem, cup/shell, augments, screws, and graft')
-                  : (PROCEDURES.find((p) => p.name === formData.procedure)?.desc || '')}>
-                {formData.procedure === 'Revision Arthroplasty'
-                  ? (revisionSubType === 'Revision Total Knee Arthroplasty'
-                      ? 'Revision components, augments, constraint'
-                      : 'Revision stem, cup, screws, graft')
-                  : (PROCEDURES.find((p) => p.name === formData.procedure)?.desc || '')}
-              </p>
-            </div>
-
-            {/* 3D Bone Model & CT Scan */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Bone size={14} className="text-blue-600" />
-                3D Bone Model
-              </label>
-              <select
-                value={formData.model_id}
-                onChange={(e) => setFormData({ ...formData, model_id: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-slate-900 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              >
-                <optgroup label="Patient CT Scans (Femur)">
-                  {AVAILABLE_MODELS.filter((m) => m.type === 'femur').map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Spine, Knee &amp; Pelvis">
-                  {AVAILABLE_MODELS.filter((m) => m.type !== 'femur').map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              <p className="text-[11px] text-slate-500 italic leading-snug truncate" title={AVAILABLE_MODELS.find((m) => m.id === formData.model_id)?.indication}>
-                {AVAILABLE_MODELS.find((m) => m.id === formData.model_id)?.indication || 'Target 3D geometric mesh'}
+              <p className="text-[11px] text-slate-500 italic leading-snug">
+                {PROCEDURES.find((p) => p.name === formData.procedure)?.desc || ''}
               </p>
             </div>
           </div>
 
           {/* Biomarker Two-Column Layout */}
           <div className="grid md:grid-cols-5 gap-5">
-            
+
             {/* Left Card (3 cols): Bone Metabolism Panel */}
             <div className="md:col-span-3 bg-white rounded-xl border border-slate-200 p-5 space-y-4 shadow-sm">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -627,20 +481,10 @@ export default function NewCaseModal() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 px-4 bg-blue-900 hover:bg-blue-950 disabled:bg-blue-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                  className="w-full py-3 px-4 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Sparkles size={16} className="animate-spin text-blue-300" />
-                      <span>Validating with AI & Initializing Case...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} className="text-blue-300" />
-                      <span>Validate with AI & Initialize Case</span>
-                    </>
-                  )}
+                  <BarChart2 size={16} />
+                  Analyze Patient Data
                 </button>
               </div>
 

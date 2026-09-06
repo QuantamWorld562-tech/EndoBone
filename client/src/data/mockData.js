@@ -25,7 +25,8 @@ export const patients = [
     scheduledDate: '2024-10-24',
     referralDate: '2024-08-10',
     clinician: 'Dr. James Morrison, MD',
-    status: 'active'
+    status: 'active',
+    riskLevel: 'high'
   },
   {
     id: 'PEB-8841-B',
@@ -38,7 +39,8 @@ export const patients = [
     scheduledDate: '2024-09-15',
     referralDate: '2024-08-01',
     clinician: 'Dr. Sarah Chen, MD',
-    status: 'pending-review'
+    status: 'pending-review',
+    riskLevel: 'moderate'
   },
   {
     id: 'PEB-8840-C',
@@ -51,7 +53,8 @@ export const patients = [
     scheduledDate: '2024-11-01',
     referralDate: '2024-07-25',
     clinician: 'Dr. Michael Zhang, MD',
-    status: 'completed'
+    status: 'completed',
+    riskLevel: 'low'
   },
   {
     id: 'PEB-8839-D',
@@ -64,7 +67,8 @@ export const patients = [
     scheduledDate: '2024-10-10',
     referralDate: '2024-08-05',
     clinician: 'Dr. Patricia Kumar, MD',
-    status: 'active'
+    status: 'active',
+    riskLevel: 'moderate'
   }
 ];
 

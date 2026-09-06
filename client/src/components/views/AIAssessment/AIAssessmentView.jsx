@@ -39,7 +39,7 @@ export default function AIAssessmentView({ patientId }) {
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
   if (isCaseLoading || isAnalyzing) {
-    return <AssessmentSkeleton isAnalyzing={isAnalyzing} />;
+    return <AssessmentSkeleton />;
   }
 
   if (!effectivePatientId || !assessment) {
@@ -203,10 +203,10 @@ export default function AIAssessmentView({ patientId }) {
             <span className="text-slate-500 font-semibold">DEXA</span>
             <span
               className={`font-black ${dexa_tscore <= -2.5
-                  ? 'text-red-600'
-                  : dexa_tscore <= -1
-                    ? 'text-amber-600'
-                    : 'text-teal-600'
+                ? 'text-red-600'
+                : dexa_tscore <= -1
+                  ? 'text-amber-600'
+                  : 'text-teal-600'
                 }`}
             >
               {dexa_tscore}
@@ -272,10 +272,10 @@ export default function AIAssessmentView({ patientId }) {
                     <h3 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
                       AI Clinical Reasoning Engine
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${aiResults.risk_level === 'high'
-                          ? 'bg-red-500/30 text-red-300 border border-red-400/40'
-                          : aiResults.risk_level === 'moderate'
-                            ? 'bg-amber-500/30 text-amber-300 border border-amber-400/40'
-                            : 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40'
+                        ? 'bg-red-500/30 text-red-300 border border-red-400/40'
+                        : aiResults.risk_level === 'moderate'
+                          ? 'bg-amber-500/30 text-amber-300 border border-amber-400/40'
+                          : 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40'
                         }`}>
                         {aiResults.risk_level} Risk Level
                       </span>

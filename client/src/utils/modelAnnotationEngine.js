@@ -484,20 +484,37 @@ export function generateDynamicAnnotations({
   const anatomyType = modelConfig.anatomyType || 'femur';
   const templates = ANATOMICAL_TEMPLATES[anatomyType] || ANATOMICAL_TEMPLATES.femur;
 
-  // Extract and sanitize numeric biomarker inputs
-  const parseNum = (v, def) => {
-    if (v === '' || v === null || v === undefined) return def;
-    const n = typeof v === 'number' ? v : parseFloat(v);
-    return Number.isFinite(n) ? n : def;
+  // Robustly extract numeric biomarker inputs from biomarkers object or patient fields
+  const getBioVal = (keys, fallback) => {
+    for (const k of keys) {
+      const v1 = biomarkers?.[k]?.value ?? biomarkers?.[k];
+      if (v1 !== '' && v1 !== null && v1 !== undefined) {
+        const n = typeof v1 === 'number' ? v1 : parseFloat(v1);
+        if (Number.isFinite(n)) return n;
+      }
+      const v2 = patient?.[k]?.value ?? patient?.[k];
+      if (v2 !== '' && v2 !== null && v2 !== undefined) {
+        const n = typeof v2 === 'number' ? v2 : parseFloat(v2);
+        if (Number.isFinite(n)) return n;
+      }
+      const v3 = patient?.initial_biomarkers?.[k]?.value ?? patient?.initial_biomarkers?.[k];
+      if (v3 !== '' && v3 !== null && v3 !== undefined) {
+        const n = typeof v3 === 'number' ? v3 : parseFloat(v3);
+        if (Number.isFinite(n)) return n;
+      }
+    }
+    return fallback;
   };
 
-  const pth = parseNum(biomarkers?.pth?.value, 45.0);
-  const vitD = parseNum(biomarkers?.vitaminD?.value, 35.0);
-  const calcium = parseNum(biomarkers?.calcium?.value, 9.4);
-  const ctx = parseNum(biomarkers?.ctx?.value, 220);
+  const pth = getBioVal(['pth', 'PTH'], 40.0);
+  const vitD = getBioVal(['vitaminD', 'vitamin_d', 'vitD', 'vit_d', 'VITD'], 45.0);
+  const calcium = getBioVal(['calcium', 'ca', 'CA'], 9.5);
+  const ctx = getBioVal(['ctx', 'CTX'], 200.0);
+  const phosphate = getBioVal(['phosphate', 'phos', 'p', 'PHOSPHATE'], 3.5);
+  const alp = getBioVal(['alp', 'ALP'], 75.0);
 
   // Calculate dynamic bone quality & metabolic stress index (0 to 100)
-  let qualityPenalty = 15; // healthy baseline
+  let qualityPenalty = 10; // healthy baseline
   if (pth > 80) qualityPenalty += 30;
   else if (pth > 65) qualityPenalty += 18;
 
@@ -505,8 +522,11 @@ export function generateDynamicAnnotations({
   else if (vitD < 30) qualityPenalty += 15;
 
   if (calcium < 8.6 || calcium > 10.3) qualityPenalty += 15;
-  if (ctx > 400) qualityPenalty += 20;
-  else if (ctx > 300) qualityPenalty += 10;
+  if (ctx > 400) qualityPenalty += 25;
+  else if (ctx > 300) qualityPenalty += 12;
+
+  if (alp > 147) qualityPenalty += 15;
+  if (phosphate < 2.5 || phosphate > 4.5) qualityPenalty += 10;
 
   qualityPenalty = Math.min(Math.max(qualityPenalty, 5), 95);
 
@@ -516,7 +536,7 @@ export function generateDynamicAnnotations({
   else if (qualityPenalty >= 35) overallRiskLevel = 'moderate';
 
   // Overall DEXA T-Score estimation
-  let overallTScore = -1.1;
+  let overallTScore = -0.6;
   if (overallRiskLevel === 'high') {
     overallTScore = Number((-2.5 - (qualityPenalty - 60) * 0.035).toFixed(1));
   } else if (overallRiskLevel === 'moderate') {
@@ -525,7 +545,7 @@ export function generateDynamicAnnotations({
     overallTScore = Number((-0.4 - qualityPenalty * 0.02).toFixed(1));
   }
 
-  const fractureRiskPct = overallRiskLevel === 'high' ? 88 : overallRiskLevel === 'moderate' ? 52 : 14;
+  const fractureRiskPct = overallRiskLevel === 'high' ? 88 : overallRiskLevel === 'moderate' ? 52 : 9.4;
 
   let criticalZoneCount = 0;
   let elevatedZoneCount = 0;
