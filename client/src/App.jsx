@@ -3,6 +3,7 @@ import { MainLayout } from './components/layout';
 import { PatientDataProvider } from './context/PatientDataContext';
 import { hydrateAuthHeader } from './services';
 import { Suspense, lazy } from 'react';
+import { AppLoadingSkeleton } from './components/common';
 
 const LandingView = lazy(() => import('./components/views/Landing/LandingView'));
 const LoginView = lazy(() => import('./components/views/Login/LoginView'));
@@ -44,7 +45,7 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <PatientDataProvider>
-        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-slate-500 font-medium">Loading Application...</div>}>
+        <Suspense fallback={<AppLoadingSkeleton />}>
           <Routes>
           {/* Public Landing Page */}
           <Route path="/" element={<LandingView />} />

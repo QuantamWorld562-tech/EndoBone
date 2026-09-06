@@ -258,7 +258,8 @@ export default function LandingView({ onStart }) {
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform text-blue-600" />
           </button>
           <p className="text-xs text-slate-400 mt-6">
-            © 2024 EndoBone AI. For clinical research use only. Not a replacement for professional medical judgment.
+            {/* © 2026 EndoBone AI. For clinical research use only. Not a replacement for professional medical judgment. */}
+            © 2026 EndoBone AI
           </p>
         </div>
       </section>

@@ -42,6 +42,7 @@ import {
   readStoredDoctorProfile,
   readApiError
 } from '../../../services';
+import { AdminDashboardSkeleton } from '../../common';
 
 export default function AdminDashboardView() {
   const navigate = useNavigate();
@@ -218,6 +219,10 @@ export default function AdminDashboardView() {
         );
     }
   };
+
+  if (isLoading && users.length === 0 && patients.length === 0) {
+    return <AdminDashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">

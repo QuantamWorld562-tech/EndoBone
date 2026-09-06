@@ -18,7 +18,7 @@
 import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF, Html, ContactShadows, Preload } from '@react-three/drei';
-import { Eye, EyeOff, Tag } from 'lucide-react';
+import { Eye, EyeOff, Tag, Bone } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -996,6 +996,27 @@ function ViewportOverlay({
   );
 }
 
+function Model3DLoadingFallback() {
+  return (
+    <Html center>
+      <div className="flex flex-col items-center justify-center pointer-events-none select-none text-center p-5 bg-slate-950/85 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl space-y-3 min-w-[220px] animate-fade-in">
+        <div className="relative inline-flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <Bone size={22} className="animate-pulse text-blue-400" />
+          </div>
+          <div className="absolute -inset-1.5 rounded-2xl border-2 border-blue-500/20 border-t-cyan-400 animate-spin" />
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs font-bold text-slate-200">Loading 3D Anatomy...</p>
+          <div className="w-28 h-1 bg-slate-800 rounded-full overflow-hidden mx-auto">
+            <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full animate-shimmer bg-[length:200%_100%]" />
+          </div>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Root Export
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1139,7 +1160,7 @@ export default function BoneModelViewer({
           panSpeed={0.8}
         />
 
-        <Suspense fallback={null}>
+        <Suspense fallback={<Model3DLoadingFallback />}>
           <BoneModelErrorBoundary>
             <RealAnatomicalBoneModel
               modelPath={modelPath}
