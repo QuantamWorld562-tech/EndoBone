@@ -17,34 +17,6 @@ export function SkeletonBlock({ className = '' }) {
   );
 }
 
-export function AiValidationBanner({
-  title = 'AI Analysis & Validation in Progress',
-  message = 'Suspending UI updates while AI analyzes raw endocrine biomarkers and validates clinical constraints...',
-}) {
-  return (
-    <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 text-white p-4 sm:p-5 rounded-2xl shadow-xl border border-blue-500/30 flex items-center justify-between gap-4 animate-fade-in mb-6">
-      <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-300 shrink-0">
-          <Brain size={22} className="animate-pulse text-blue-400" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-xs sm:text-sm font-black tracking-wide uppercase text-blue-200">{title}</h4>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-400/30">
-              <Sparkles size={10} className="animate-spin" /> Live Validation
-            </span>
-          </div>
-          <p className="text-xs text-blue-100/80 font-medium mt-0.5 truncate sm:whitespace-normal">{message}</p>
-        </div>
-      </div>
-      <div className="hidden sm:flex items-center gap-2 text-xs text-blue-200/80 font-semibold shrink-0 px-3 py-1.5 rounded-xl bg-blue-900/40 border border-blue-500/20">
-        <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
-        <span>UI Suspended</span>
-      </div>
-    </div>
-  );
-}
-
 export function CaseLoadingOverlay({
   patientId = 'PEB-8842-A',
   patientName = 'Patient Case',
@@ -104,13 +76,12 @@ export function CaseLoadingOverlay({
             return (
               <div
                 key={idx}
-                className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${
-                  isDone
+                className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${isDone
                     ? 'text-teal-700 font-semibold'
                     : isCurrent
-                    ? 'text-blue-700 font-bold'
-                    : 'text-slate-400'
-                }`}
+                      ? 'text-blue-700 font-bold'
+                      : 'text-slate-400'
+                  }`}
               >
                 {isDone ? (
                   <CheckCircle2 size={15} className="text-teal-600 shrink-0" />
@@ -142,15 +113,9 @@ export function CaseLoadingOverlay({
   );
 }
 
-export function AssessmentSkeleton({ isAnalyzing = false, message }) {
+export function AssessmentSkeleton() {
   return (
     <div className="space-y-8 animate-fade-in">
-      {isAnalyzing && (
-        <AiValidationBanner
-          title="AI Synthesis & Risk Validation Active"
-          message={message || "Suspending UI updates while AI evaluates endocrine biomarkers, T-scores, and fracture risk..."}
-        />
-      )}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-3">
           <SkeletonBlock className="h-10 w-80 max-w-full" />
@@ -223,15 +188,9 @@ export function MetabolicAnalyzeSkeleton() {
   );
 }
 
-export function Planning3DSkeleton({ isAnalyzing = false, message }) {
+export function Planning3DSkeleton() {
   return (
     <div className="space-y-6 animate-fade-in">
-      {isAnalyzing && (
-        <AiValidationBanner
-          title="3D Biomechanical AI Validation in Progress"
-          message={message || "Suspending UI updates while AI calculates stress vectors and validates load-bearing zones..."}
-        />
-      )}
       <div className="flex justify-between items-center">
         <div className="space-y-2">
           <SkeletonBlock className="h-9 w-64" />
@@ -256,15 +215,9 @@ export function Planning3DSkeleton({ isAnalyzing = false, message }) {
   );
 }
 
-export function PreSurgicalSummarySkeleton({ isAnalyzing = false, message }) {
+export function PreSurgicalSummarySkeleton() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      {isAnalyzing && (
-        <AiValidationBanner
-          title="Pre-Surgical AI Validation in Progress"
-          message={message || "Suspending UI updates while AI validates surgical protocol, fixation constraints, and checklists..."}
-        />
-      )}
       {/* Header Skeleton */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
