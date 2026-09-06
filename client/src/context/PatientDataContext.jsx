@@ -340,12 +340,48 @@ export function PatientDataProvider({ children }) {
     },
   });
 
+  // Update scheduled surgery date across patient list and backend
+  const updateScheduledDate = useCallback(async (patientId, newDate) => {
+    if (!patientId || !newDate) return;
+    setPatientList((prev) =>
+      prev.map((p) => (p.id === patientId ? { ...p, scheduledDate: newDate } : p))
+    );
+    try {
+      await patientService.updatePatient(patientId, { scheduled_date: newDate, scheduledDate: newDate });
+    } catch (e) {
+      console.warn('Could not update scheduled date on backend (local update applied):', e);
+    }
+  }, []);
+
+  const runAssessment = useCallback(async (patientId, biomarkerValues) => {
+    setIsAnalyzing(true);
+    try {
+      const result = await assessmentService.analyze(patientId, biomarkerValues);
+      setPersistedAssessment(result);
+
+      // Fix 1: sync backend target_region back into the shared selectedRegion so
+      // the 3D viewer immediately highlights the AI-identified anatomical zone.
+      if (result?.selectedRegion) {
+        setSelectedRegion(result.selectedRegion);
+      }
+
+      setApiError(null);
+      return result;
+    } catch (error) {
+      setApiError(readApiError(error, 'Unable to analyze patient biomarkers'));
+      return null;
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, []);
+
   // Create and register a brand new patient case
   const addNewCase = useCallback(async (newCase) => {
     const gender = newCase.gender || 'Female';
     const generatedId = newCase.id || `PEB-${Math.floor(1000 + Math.random() * 9000)}-${gender[0].toUpperCase()}`;
     const procedure = newCase.procedure || 'Total Hip Arthroplasty (THA)';
     const patientName = newCase.name?.trim() || `Patient ${generatedId}`;
+    const scheduledDate = newCase.scheduledDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const pthVal = newCase.pth !== '' && newCase.pth !== null && newCase.pth !== undefined && Number.isFinite(Number(newCase.pth)) ? Number(newCase.pth) : 45.0;
     const vitDVal = newCase.vitaminD !== '' && newCase.vitaminD !== null && newCase.vitaminD !== undefined && Number.isFinite(Number(newCase.vitaminD)) ? Number(newCase.vitaminD) : 35.0;
@@ -355,10 +391,11 @@ export function PatientDataProvider({ children }) {
     const ctxVal = newCase.ctx !== '' && newCase.ctx !== null && newCase.ctx !== undefined && Number.isFinite(Number(newCase.ctx)) ? Number(newCase.ctx) : 220;
 
     let backendPatient;
+    const resolvedModelId = newCase.model_id || '01';
     try {
       backendPatient = await patientService.createPatient({
         case_id: generatedId,
-        model_id: '01',
+        model_id: resolvedModelId,
         patient_name: patientName,
         name: patientName,
         patient_age: Number(newCase.age) || 58,
@@ -368,6 +405,7 @@ export function PatientDataProvider({ children }) {
         procedure: procedure,
         clinical_indication: procedure,
         condition: 'Pre-Surgical Bone Mineral Density Evaluation',
+        scheduled_date: scheduledDate,
         pth: pthVal,
         vitamin_d: vitDVal,
         vitaminD: vitDVal,
@@ -402,6 +440,8 @@ export function PatientDataProvider({ children }) {
       gender: gender,
       condition: 'Pre-Surgical Bone Mineral Density Evaluation',
       procedure: procedure,
+      model_id: resolvedModelId,
+      scheduledDate: scheduledDate,
       status: 'active',
       lastUpdated: new Date().toISOString().split('T')[0],
     };
@@ -468,8 +508,19 @@ export function PatientDataProvider({ children }) {
     }
 
     setActivePatientId(patientId);
+
+    // AI Validation Step: Suspend UI updates while AI validates raw input
+    setIsAnalyzing(true);
+    try {
+      await runAssessment(patientId, initialBiomarkers);
+    } catch (valErr) {
+      console.warn('AI validation notice during case creation:', valErr);
+    } finally {
+      setIsAnalyzing(false);
+    }
+
     return patientId;
-  }, []);
+  }, [runAssessment]);
 
   // Delete a patient case from backend database and local state
   const deleteCase = useCallback(async (caseId) => {
@@ -568,27 +619,6 @@ export function PatientDataProvider({ children }) {
     }));
   }, []);
 
-  const runAssessment = useCallback(async (patientId, biomarkerValues) => {
-    setIsAnalyzing(true);
-    try {
-      const result = await assessmentService.analyze(patientId, biomarkerValues);
-      setPersistedAssessment(result);
-
-      // Fix 1: sync backend target_region back into the shared selectedRegion so
-      // the 3D viewer immediately highlights the AI-identified anatomical zone.
-      if (result?.selectedRegion) {
-        setSelectedRegion(result.selectedRegion);
-      }
-
-      setApiError(null);
-      return result;
-    } catch (error) {
-      setApiError(readApiError(error, 'Unable to analyze patient biomarkers'));
-      return null;
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, []);
 
   // Persist ROI note immediately to local state and synchronize with API if assessment exists
   const persistRoiNote = useCallback(async (patientId, regionKey, noteText) => {
@@ -729,6 +759,7 @@ export function PatientDataProvider({ children }) {
     regionalData: dynamicRegionalData,
     regionalAnalysisDB,
     surgicalPlansDB,
+    updateScheduledDate,
     persistedAssessment,
     setPersistedAssessment,
     isAnalyzing,
