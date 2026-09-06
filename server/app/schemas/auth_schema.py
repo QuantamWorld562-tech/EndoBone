@@ -11,17 +11,26 @@ class UserRole(str, Enum):
 
 class LoginRequest(BaseModel):
     email: str = Field(..., description="User's email address")
-    password: str = Field(..., min_length=8, description="Account password")
+    password: str = Field(..., min_length=1, description="Account password")
 
 
 class RegisterRequest(BaseModel):
     firstName: str = Field(..., min_length=1, description="First name")
     lastName: str = Field(..., min_length=1, description="Last name")
     email: str = Field(..., description="Email address")
-    password: str = Field(..., min_length=8, description="Password — minimum 8 characters")
+    password: str = Field(..., min_length=4, description="Password — minimum 4 characters")
     licenseNumber: Optional[str] = Field(None, description="Medical license number")
     institution: Optional[str] = Field(None, description="Hospital / institution")
     role: Optional[UserRole] = Field(UserRole.doctor, description="User role (default: doctor)")
+
+
+class GoogleLoginRequest(BaseModel):
+    access_token: Optional[str] = Field(None, description="Google OAuth access token from frontend")
+    email: Optional[str] = Field(None, description="Fallback Google account email")
+    firstName: Optional[str] = Field("Clinician", description="First name")
+    lastName: Optional[str] = Field("", description="Last name")
+    licenseNumber: Optional[str] = Field(None, description="Medical license number")
+    institution: Optional[str] = Field(None, description="Hospital / institution")
 
 
 class DoctorProfile(BaseModel):
@@ -32,6 +41,17 @@ class DoctorProfile(BaseModel):
     role: UserRole = UserRole.doctor
     licenseNumber: Optional[str] = None
     institution: Optional[str] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+
+
+class UpdateProfileRequest(BaseModel):
+    firstName: Optional[str] = Field(None, description="Updated first name")
+    lastName: Optional[str] = Field(None, description="Updated last name")
+    institution: Optional[str] = Field(None, description="Updated hospital / institution")
+    licenseNumber: Optional[str] = Field(None, description="Updated medical license number")
+    department: Optional[str] = Field(None, description="Department / surgical specialty")
+    phone: Optional[str] = Field(None, description="Office contact phone number")
 
 
 class AuthResponse(BaseModel):

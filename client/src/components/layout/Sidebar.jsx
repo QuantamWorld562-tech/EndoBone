@@ -10,14 +10,10 @@ import {
   BrainCircuit,
   X,
   Shield,
-  ShieldCheck,
-  UserRound,
   Sparkles,
-  ChevronRight,
-  LogOut
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
-import { readStoredDoctorProfile, clearAuthSession } from '../../services';
+import { readStoredDoctorProfile } from '../../services';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard', badge: null },
@@ -36,9 +32,11 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
     setIsNewCaseModalOpen,
     setIsSettingsModalOpen,
     setIsSupportModalOpen,
+    setIsDoctorProfileOpen,
+    currentDoctorProfile,
   } = usePatientContext();
   const patientId = params.patientId || activePatientId || null;
-  const currentDoctor = readStoredDoctorProfile();
+  const currentDoctor = currentDoctorProfile || readStoredDoctorProfile();
   const isAdmin = currentDoctor?.role === 'admin';
 
   const getActiveTab = () => {
@@ -67,16 +65,6 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
     }
     onCloseMobile?.();
   };
-
-  const handleLogout = () => {
-    clearAuthSession();
-    navigate('/login', { replace: true });
-    onCloseMobile?.();
-  };
-
-  const doctorName = currentDoctor
-    ? `${currentDoctor.firstName || ''} ${currentDoctor.lastName || ''}`.trim()
-    : 'Clinical User';
 
   return (
     <>

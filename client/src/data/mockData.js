@@ -21,12 +21,10 @@ export const patients = [
     gender: 'Female',
     mrn: 'MRN-892834',
     procedure: 'L4-L5 Discectomy & Fusion',
-    model_id: 'spine',
     scheduledDate: '2024-10-24',
     referralDate: '2024-08-10',
     clinician: 'Dr. James Morrison, MD',
-    status: 'active',
-    riskLevel: 'high'
+    status: 'active'
   },
   {
     id: 'PEB-8841-B',
@@ -35,12 +33,10 @@ export const patients = [
     gender: 'Male',
     mrn: 'MRN-892835',
     procedure: 'Proximal Femur ORIF',
-    model_id: '02',
     scheduledDate: '2024-09-15',
     referralDate: '2024-08-01',
     clinician: 'Dr. Sarah Chen, MD',
-    status: 'pending-review',
-    riskLevel: 'moderate'
+    status: 'pending-review'
   },
   {
     id: 'PEB-8840-C',
@@ -49,12 +45,10 @@ export const patients = [
     gender: 'Female',
     mrn: 'MRN-892836',
     procedure: 'Vertebroplasty L3',
-    model_id: 'spine',
     scheduledDate: '2024-11-01',
     referralDate: '2024-07-25',
     clinician: 'Dr. Michael Zhang, MD',
-    status: 'completed',
-    riskLevel: 'low'
+    status: 'completed'
   },
   {
     id: 'PEB-8839-D',
@@ -63,12 +57,10 @@ export const patients = [
     gender: 'Male',
     mrn: 'MRN-892837',
     procedure: 'T12-L1 Fusion',
-    model_id: 'spine',
     scheduledDate: '2024-10-10',
     referralDate: '2024-08-05',
     clinician: 'Dr. Patricia Kumar, MD',
-    status: 'active',
-    riskLevel: 'moderate'
+    status: 'active'
   }
 ];
 

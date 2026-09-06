@@ -9,7 +9,7 @@ import {
 import { patientService } from '../services/patientService';
 import { biomarkerService } from '../services/biomarkerService';
 import { assessmentService } from '../services/assessmentService';
-import { readApiError } from '../services/authService';
+import { readApiError, readStoredDoctorProfile } from '../services/authService';
 import { toApiRegion, backendToUiRegion } from '../services/apiAdapters';
 
 const PatientDataContext = createContext(null);
@@ -21,22 +21,20 @@ const PatientDataContext = createContext(null);
 export function computeDynamicAssessment(patientId, biomarkers) {
   const parseBiomarkerNum = (val, fallback) => {
     if (val === '' || val === null || val === undefined) return fallback;
-    const direct = typeof val === 'object' && val !== null ? val.value : val;
-    if (direct === '' || direct === null || direct === undefined) return fallback;
-    const n = typeof direct === 'number' ? direct : parseFloat(direct);
+    const n = typeof val === 'number' ? val : parseFloat(val);
     return Number.isFinite(n) ? n : fallback;
   };
 
-  const pth = parseBiomarkerNum(biomarkers?.pth, 40);
-  const vitD = parseBiomarkerNum(biomarkers?.vitaminD ?? biomarkers?.vitamin_d, 45);
-  const calcium = parseBiomarkerNum(biomarkers?.calcium, 9.5);
-  const phosphate = parseBiomarkerNum(biomarkers?.phosphate, 3.5);
-  const alp = parseBiomarkerNum(biomarkers?.alp, 75);
-  const ctx = parseBiomarkerNum(biomarkers?.ctx, 200);
+  const pth = parseBiomarkerNum(biomarkers?.pth?.value, 65);
+  const vitD = parseBiomarkerNum(biomarkers?.vitaminD?.value, 30);
+  const calcium = parseBiomarkerNum(biomarkers?.calcium?.value, 9.0);
+  const phosphate = parseBiomarkerNum(biomarkers?.phosphate?.value, 3.5);
+  const alp = parseBiomarkerNum(biomarkers?.alp?.value, 80);
+  const ctx = parseBiomarkerNum(biomarkers?.ctx?.value, 300);
 
-  // Base score calculation - physiologic healthy baseline
-  let qualityRisk = 12;
-  let structuralVuln = 10;
+  // Base score calculation
+  let qualityRisk = 30; // base moderate-low
+  let structuralVuln = 20;
 
   // Metabolic penalties
   if (pth > 80) qualityRisk += 25;
@@ -60,14 +58,15 @@ export function computeDynamicAssessment(patientId, biomarkers) {
   if (alp > 140) structuralVuln += 15;
 
   // Clamp 0 - 100
-  qualityRisk = Math.min(Math.max(qualityRisk, 10), 95);
+  qualityRisk = Math.min(Math.max(qualityRisk, 15), 95);
   structuralVuln = Math.min(Math.max(structuralVuln, 10), 90);
 
   // Dynamic DEXA T-Score estimation
-  let tscore = -0.8;
-  if (qualityRisk >= 65) tscore = -2.8;
-  else if (qualityRisk >= 40) tscore = -1.8;
-  else tscore = -0.8;
+  let tscore = -1.5;
+  if (qualityRisk >= 70) tscore = -2.8;
+  else if (qualityRisk >= 50) tscore = -2.2;
+  else if (qualityRisk >= 35) tscore = -1.8;
+  else tscore = -1.2;
 
   // Dynamic Insights
   const insights = [];
@@ -295,6 +294,16 @@ export function PatientDataProvider({ children }) {
   const [isNewCaseModalOpen, setIsNewCaseModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [isDoctorProfileOpen, setIsDoctorProfileOpen] = useState(false);
+  const [currentDoctorProfile, setCurrentDoctorProfile] = useState(() => readStoredDoctorProfile());
+
+  const refreshDoctorProfile = useCallback((newProfile = null) => {
+    if (newProfile) {
+      setCurrentDoctorProfile(newProfile);
+    } else {
+      setCurrentDoctorProfile(readStoredDoctorProfile());
+    }
+  }, []);
 
   // Custom biomarker states indexed by patient ID
   const [allBiomarkers, setAllBiomarkers] = useState(() => JSON.parse(JSON.stringify(biomarkersDB)));
@@ -396,6 +405,19 @@ export function PatientDataProvider({ children }) {
 
     const patientId = backendPatient?.case_id || backendPatient?.id || generatedId;
 
+    const fullPatient = {
+      id: patientId,
+      name: patientName,
+      age: Number(newCase.age) || 58,
+      gender: gender,
+      condition: 'Pre-Surgical Bone Mineral Density Evaluation',
+      procedure: procedure,
+      status: 'active',
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    setPatientList((prev) => [fullPatient, ...prev.filter((p) => p.id !== patientId)]);
+
     const initialBiomarkers = {
       pth: {
         value: pthVal,
@@ -440,25 +462,6 @@ export function PatientDataProvider({ children }) {
         trend: 'up',
       },
     };
-
-    const initialAssessment = computeDynamicAssessment(patientId, initialBiomarkers);
-    const calculatedRisk = initialAssessment.overallQualityRisk >= 65 ? 'high' : initialAssessment.overallQualityRisk >= 40 ? 'moderate' : 'low';
-
-    const fullPatient = {
-      id: patientId,
-      name: patientName,
-      age: Number(newCase.age) || 58,
-      gender: gender,
-      condition: 'Pre-Surgical Bone Mineral Density Evaluation',
-      procedure: procedure,
-      status: 'active',
-      riskLevel: calculatedRisk,
-      risk_level: calculatedRisk,
-      scheduledDate: newCase.scheduledDate || null,
-      lastUpdated: new Date().toISOString().split('T')[0],
-    };
-
-    setPatientList((prev) => [fullPatient, ...prev.filter((p) => p.id !== patientId)]);
 
     setAllBiomarkers((prev) => ({
       ...prev,
@@ -725,6 +728,10 @@ export function PatientDataProvider({ children }) {
     setIsSettingsModalOpen,
     isSupportModalOpen,
     setIsSupportModalOpen,
+    isDoctorProfileOpen,
+    setIsDoctorProfileOpen,
+    currentDoctorProfile,
+    refreshDoctorProfile,
     biomarkers: activeBiomarkers,
     allBiomarkers,
     updateBiomarker,
@@ -759,4 +766,5 @@ export function usePatientContext() {
   }
   return ctx;
 }
+
 

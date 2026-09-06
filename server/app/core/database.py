@@ -65,7 +65,7 @@ class DatabaseManager:
             "_id": "doc_demo_001",
             "firstName": "Demo",
             "lastName": "Doctor",
-            "email": "doctor@endobone.ai",
+            "email": "doctor.demo@gmail.com",
             "password_hash": _hash_pw("Doctor@2026!"),
             "role": "doctor",
             "licenseNumber": "DOC-DEMO-001",
@@ -81,7 +81,7 @@ class DatabaseManager:
             existing_doc = await self.db.doctors.find_one({"_id": "doc_demo_001"})
             if not existing_doc:
                 await self.db.doctors.insert_one(demo_doctor)
-                print("[DATABASE] ✓ Seeded demo doctor account: doctor@endobone.ai")
+                print("[DATABASE] ✓ Seeded demo doctor account: doctor.demo@gmail.com")
         else:
             local = self.get_local_data()
             doctors = local.get("doctors", [])
@@ -92,7 +92,7 @@ class DatabaseManager:
             has_demo_doc = any(d.get("_id") == "doc_demo_001" for d in doctors)
             if not has_demo_doc:
                 doctors.append(demo_doctor)
-                print("[DATABASE] ✓ Seeded demo doctor account: doctor@endobone.ai")
+                print("[DATABASE] ✓ Seeded demo doctor account: doctor.demo@gmail.com")
             local["doctors"] = doctors
             self.save_local_data(local)
 

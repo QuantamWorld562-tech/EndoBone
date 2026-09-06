@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { MainLayout } from './components/layout';
-import { PatientDataProvider } from './context/PatientDataContext';
+import { PatientDataProvider, usePatientContext } from './context/PatientDataContext';
 import { hydrateAuthHeader } from './services';
-import { Suspense, lazy } from 'react';
-import { AppLoadingSkeleton } from './components/common';
+import { Suspense, lazy, useEffect } from 'react';
 
 const LandingView = lazy(() => import('./components/views/Landing/LandingView'));
 const LoginView = lazy(() => import('./components/views/Login/LoginView'));
@@ -41,66 +41,80 @@ function AdminRoute({ children }) {
   return <Navigate to="/dashboard" replace />;
 }
 
+function ProfileRedirect() {
+  const { setIsDoctorProfileOpen } = usePatientContext();
+  useEffect(() => {
+    setIsDoctorProfileOpen(true);
+  }, [setIsDoctorProfileOpen]);
+  return <Navigate to="/dashboard" replace />;
+}
+
 export default function App() {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <PatientDataProvider>
-        <Suspense fallback={<AppLoadingSkeleton />}>
-          <Routes>
-          {/* Public Landing Page */}
-          <Route path="/" element={<LandingView />} />
-          <Route
-            path="/login"
-            element={(
-              <PublicOnlyRoute>
-                <LoginView />
-              </PublicOnlyRoute>
-            )}
-          />
-          <Route
-            path="/register"
-            element={(
-              <PublicOnlyRoute>
-                <RegisterView />
-              </PublicOnlyRoute>
-            )}
-          />
+    <GoogleOAuthProvider clientId={clientId}>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <PatientDataProvider>
+          <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-slate-500 font-medium">Loading Application...</div>}>
+            <Routes>
+              {/* Public Landing Page */}
+              <Route path="/" element={<LandingView />} />
+              <Route
+                path="/login"
+                element={(
+                  <PublicOnlyRoute>
+                    <LoginView />
+                  </PublicOnlyRoute>
+                )}
+              />
+              <Route
+                path="/register"
+                element={(
+                  <PublicOnlyRoute>
+                    <RegisterView />
+                  </PublicOnlyRoute>
+                )}
+              />
 
-          {/* Clinical Workspace Multipage App Layout */}
-          <Route
-            element={(
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            )}
-          >
-            <Route path="/dashboard" element={<DashboardView />} />
-            <Route path="/patients/:patientId/dashboard" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/patients/:patientId/metabolic" element={<MetabolicContextView />} />
-            <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
-            <Route path="/patients/:patientId/planning" element={<Planning3DView />} />
-            <Route path="/patients/:patientId/summary" element={<PreSurgicalSummaryView />} />
-            <Route path="/metabolic" element={<MetabolicContextView />} />
-            <Route path="/assessment" element={<AIAssessmentView />} />
-            <Route path="/planning" element={<Planning3DView />} />
-            <Route path="/summary" element={<PreSurgicalSummaryView />} />
-            <Route
-              path="/admin"
-              element={(
-                <AdminRoute>
-                  <AdminDashboardView />
-                </AdminRoute>
-              )}
-            />
-            <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
-            <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
-          </Route>
+              {/* Clinical Workspace Multipage App Layout */}
+              <Route
+                element={(
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                )}
+              >
+                <Route path="/dashboard" element={<DashboardView />} />
+                <Route path="/patients/:patientId/dashboard" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/patients/:patientId/metabolic" element={<MetabolicContextView />} />
+                <Route path="/patients/:patientId/assessment" element={<AIAssessmentView />} />
+                <Route path="/patients/:patientId/planning" element={<Planning3DView />} />
+                <Route path="/patients/:patientId/summary" element={<PreSurgicalSummaryView />} />
+                <Route path="/metabolic" element={<MetabolicContextView />} />
+                <Route path="/assessment" element={<AIAssessmentView />} />
+                <Route path="/planning" element={<Planning3DView />} />
+                <Route path="/summary" element={<PreSurgicalSummaryView />} />
+                <Route
+                  path="/admin"
+                  element={(
+                    <AdminRoute>
+                      <AdminDashboardView />
+                    </AdminRoute>
+                  )}
+                />
+                <Route path="/patients/:patientId" element={<Navigate to="metabolic" replace />} />
+                <Route path="/workspace" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/profile" element={<ProfileRedirect />} />
+              </Route>
 
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </PatientDataProvider>
-    </BrowserRouter>
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </PatientDataProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
+

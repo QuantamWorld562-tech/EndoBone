@@ -42,7 +42,6 @@ import {
   readStoredDoctorProfile,
   readApiError
 } from '../../../services';
-import { AdminDashboardSkeleton } from '../../common';
 
 export default function AdminDashboardView() {
   const navigate = useNavigate();
@@ -220,20 +219,15 @@ export default function AdminDashboardView() {
     }
   };
 
-  if (isLoading && users.length === 0 && patients.length === 0) {
-    return <AdminDashboardSkeleton />;
-  }
-
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* Toast Notification */}
       {toast.show && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-semibold transition-all duration-300 animate-in slide-in-from-bottom-5 ${
-            toast.type === 'error'
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-semibold transition-all duration-300 animate-in slide-in-from-bottom-5 ${toast.type === 'error'
               ? 'bg-red-500 text-white border-red-600 shadow-red-500/25'
               : 'bg-slate-900 text-white border-slate-800 shadow-slate-950/40'
-          }`}
+            }`}
         >
           {toast.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} className="text-emerald-400" />}
           <span>{toast.message}</span>
@@ -287,7 +281,7 @@ export default function AdminDashboardView() {
             </span>
           </div>
           <p className="text-slate-600 mt-1 leading-relaxed">
-            All user passwords are cryptographically salted and hashed using <strong>PBKDF2-SHA256 (100,000 iterations)</strong>. 
+            All user passwords are cryptographically salted and hashed using <strong>PBKDF2-SHA256 (100,000 iterations)</strong>.
             The system never stores, decrypts, or transmits plain-text passwords. Even system administrators cannot view or extract user credentials. Users retain exclusive authority to reset or modify their credentials.
           </p>
         </div>
@@ -334,8 +328,8 @@ export default function AdminDashboardView() {
             <span className="text-xs font-semibold text-slate-400">Registered</span>
           </div>
           <div className="mt-2 text-xs text-slate-500 flex gap-2">
-            <span className="text-amber-700 font-semibold">{stats.admin_count} Admins</span> • 
-            <span className="text-blue-700 font-semibold">{stats.doctor_count} Doctors</span> • 
+            <span className="text-amber-700 font-semibold">{stats.admin_count} Admins</span> •
+            <span className="text-blue-700 font-semibold">{stats.doctor_count} Doctors</span> •
             <span className="text-purple-700 font-semibold">{stats.professor_count} Professors</span>
           </div>
         </div>
@@ -387,21 +381,19 @@ export default function AdminDashboardView() {
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
           onClick={() => { setActiveTab('users'); setSearchQuery(''); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition cursor-pointer ${
-            activeTab === 'users'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition cursor-pointer ${activeTab === 'users'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
               : 'bg-white text-slate-600 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <Users size={16} /> User Accounts ({users.length})
         </button>
         <button
           onClick={() => { setActiveTab('patients'); setSearchQuery(''); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition cursor-pointer ${
-            activeTab === 'patients'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition cursor-pointer ${activeTab === 'patients'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
               : 'bg-white text-slate-600 hover:bg-slate-100'
-          }`}
+            }`}
         >
           <ClipboardList size={16} /> Global Patient Repository ({patients.length})
         </button>
@@ -519,11 +511,10 @@ export default function AdminDashboardView() {
                             <button
                               onClick={() => setDeletingUser(user)}
                               disabled={isSelf}
-                              className={`p-2 rounded-xl transition ${
-                                isSelf
+                              className={`p-2 rounded-xl transition ${isSelf
                                   ? 'text-slate-300 cursor-not-allowed'
                                   : 'text-slate-500 hover:text-red-600 hover:bg-red-50 cursor-pointer'
-                              }`}
+                                }`}
                               title={isSelf ? 'Cannot delete your own account' : 'Delete user'}
                             >
                               <Trash2 size={16} />
@@ -584,11 +575,10 @@ export default function AdminDashboardView() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            patient.status === 'active'
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${patient.status === 'active'
                               ? 'bg-emerald-100 text-emerald-800'
                               : 'bg-amber-100 text-amber-800'
-                          }`}
+                            }`}
                         >
                           {patient.status}
                         </span>
