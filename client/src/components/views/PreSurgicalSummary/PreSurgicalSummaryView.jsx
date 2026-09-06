@@ -31,6 +31,7 @@ import { useSurgicalPlan, usePatientData } from '../../../hooks';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { assessmentService } from '../../../services/assessmentService';
 import { PreSurgicalSummarySkeleton } from '../../common';
+import { REVISION_CHECKLISTS } from '../../../constants/checklists';
 
 export default function PreSurgicalSummaryView({ patientId }) {
   const params = useParams();
@@ -54,7 +55,18 @@ export default function PreSurgicalSummaryView({ patientId }) {
   }
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
-  const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
+  const [selectedProcedure, setSelectedProcedure] = useState(() => {
+    const raw = patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)';
+    if (raw.toLowerCase().includes('revision')) return 'Revision Arthroplasty';
+    return raw;
+  });
+  const [revisionSubType, setRevisionSubType] = useState(() => {
+    const raw = patient?.procedure || assessment?.procedure || '';
+    if (raw.toLowerCase().includes('knee') || raw.toLowerCase().includes('tka')) {
+      return 'Revision Total Knee Arthroplasty';
+    }
+    return 'Revision Total Hip Arthroplasty';
+  });
 
   // ── Surgeon notes: loaded from assessment.planning_notes, saved to backend ──
   const [surgeonNotes, setSurgeonNotes] = useState('');
@@ -77,8 +89,18 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   // Sync selected procedure when patient or assessment data loads
   useEffect(() => {
-    if (patient?.procedure || assessment?.procedure) {
-      setSelectedProcedure(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
+    const raw = patient?.procedure || assessment?.procedure;
+    if (raw) {
+      if (raw.toLowerCase().includes('revision')) {
+        setSelectedProcedure('Revision Arthroplasty');
+        if (raw.toLowerCase().includes('knee') || raw.toLowerCase().includes('tka')) {
+          setRevisionSubType('Revision Total Knee Arthroplasty');
+        } else {
+          setRevisionSubType('Revision Total Hip Arthroplasty');
+        }
+      } else {
+        setSelectedProcedure(raw);
+      }
     }
   }, [patient?.procedure, assessment?.procedure]);
 
@@ -215,8 +237,44 @@ export default function PreSurgicalSummaryView({ patientId }) {
     const isHighRisk = risk >= 65;
     const isModerateRisk = risk >= 40;
 
+    const isRevision = proc === 'Revision Arthroplasty' || proc.toLowerCase().includes('revision');
+    const isRevisionKnee = isRevision && (revisionSubType === 'Revision Total Knee Arthroplasty' || proc.toLowerCase().includes('knee') || proc.toLowerCase().includes('tka'));
+    const isRevisionHip = isRevision && !isRevisionKnee;
+
     let hardwareGroups = [];
-    if (proc === 'Distal Femur Fracture Fixation') {
+    if (isRevisionHip) {
+      hardwareGroups = [
+        {
+          title: REVISION_CHECKLISTS.r_tha.title,
+          type: 'checkbox',
+          items: REVISION_CHECKLISTS.r_tha.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            selected: item.riskTrigger === 'high'
+              ? isHighRisk
+              : item.riskTrigger === 'moderate'
+                ? (isModerateRisk || isHighRisk)
+                : item.defaultSelected,
+          })),
+        }
+      ];
+    } else if (isRevisionKnee) {
+      hardwareGroups = [
+        {
+          title: REVISION_CHECKLISTS.r_tka.title,
+          type: 'checkbox',
+          items: REVISION_CHECKLISTS.r_tka.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            selected: item.riskTrigger === 'high'
+              ? isHighRisk
+              : item.riskTrigger === 'moderate'
+                ? (isModerateRisk || isHighRisk)
+                : item.defaultSelected,
+          })),
+        }
+      ];
+    } else if (proc === 'Distal Femur Fracture Fixation') {
       hardwareGroups = [
         {
           title: 'Primary Fixation',
@@ -323,14 +381,56 @@ export default function PreSurgicalSummaryView({ patientId }) {
       ];
     }
 
+    const procedureDisplayName = isRevision
+      ? (isRevisionKnee ? 'Revision Total Knee Arthroplasty' : 'Revision Total Hip Arthroplasty')
+      : proc;
+
     return {
-      procedure: proc,
+      procedure: procedureDisplayName,
       scheduledDate: patient?.scheduledDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       overview: {
-        tag: proc.includes('Hip') || proc === 'Proximal Femur Fracture Fixation' ? 'Proximal Femur / Hip' : proc.includes('Knee') || proc === 'Distal Femur Fracture Fixation' ? 'Distal Femur / Knee' : 'Femoral Shaft / Segment',
-        approach: proc.includes('Hip') ? 'Direct Anterior / Posterolateral' : proc.includes('Knee') ? 'Medial Parapatellar' : 'Anterolateral / Closed Reduction',
-        levels: proc.includes('Hip') || proc === 'Proximal Femur Fracture Fixation' ? 'Femoral Neck & Acetabulum' : proc.includes('Knee') || proc === 'Distal Femur Fracture Fixation' ? 'Distal Femur & Proximal Tibia' : 'Subtrochanteric / Diaphyseal',
-        considerations: isHighRisk ? [
+        tag: isRevision
+          ? (isRevisionKnee ? 'Distal Femur / Knee (Revision)' : 'Proximal Femur / Hip (Revision)')
+          : (proc.includes('Hip') || proc === 'Proximal Femur Fracture Fixation' ? 'Proximal Femur / Hip' : proc.includes('Knee') || proc === 'Distal Femur Fracture Fixation' ? 'Distal Femur / Knee' : 'Femoral Shaft / Segment'),
+        approach: isRevision
+          ? (isRevisionKnee ? 'Medial Parapatellar / Extensor Snip (if needed)' : 'Posterolateral / Extended Trochanteric Osteotomy (ETO)')
+          : (proc.includes('Hip') ? 'Direct Anterior / Posterolateral' : proc.includes('Knee') ? 'Medial Parapatellar' : 'Anterolateral / Closed Reduction'),
+        levels: isRevision
+          ? (isRevisionKnee ? 'Distal Femur & Proximal Tibia Joint Line' : 'Acetabular Bone Stock & Femoral Canal')
+          : (proc.includes('Hip') || proc === 'Proximal Femur Fracture Fixation' ? 'Femoral Neck & Acetabulum' : proc.includes('Knee') || proc === 'Distal Femur Fracture Fixation' ? 'Distal Femur & Proximal Tibia' : 'Subtrochanteric / Diaphyseal'),
+        considerations: isRevision ? (
+          isRevisionKnee ? (
+            isHighRisk ? [
+              'Severe metaphyseal bone loss (AORI Type II/III): Modular stem extensions and stepped augments required.',
+              'Assess collateral ligament integrity: Prepare constrained condylar (CCK) / hinged prosthesis.',
+              'Elevated bone metabolic turnover: Optimize bone void filler/graft and cement technique.',
+              'Plan joint line reconstruction and patellar tracking restoration.',
+            ] : isModerateRisk ? [
+              'Moderate metaphyseal bone defect: Wedge augments and offset stem extensions available.',
+              'Assess flexion/extension gap symmetry and constraint requirement.',
+              'Standard revision instrumentation and extraction tools prepared.',
+            ] : [
+              'Standard revision knee components with stem extension stability.',
+              'Verify mechanical axis alignment and ligamentous balance.',
+              'Standard post-operative recovery and rehabilitation protocol.',
+            ]
+          ) : (
+            isHighRisk ? [
+              'Severe acetabular/femoral bone loss: Porous metal augments and modular revision stem required.',
+              'Elevated bone turnover: Pre-op metabolic bone optimization and secure diaphyseal fixation indicated.',
+              'Evaluate for pelvic discontinuity and acetabular column integrity.',
+              'Plan extensive hardware removal and structural bone void filler/graft.',
+            ] : isModerateRisk ? [
+              'Moderate bone loss: Verify stable diaphyseal or metaphyseal scratch fit.',
+              'Prepare modular stems, offset options, and acetabular augment backups.',
+              'Routine intra-operative stability and leg-length assessment.',
+            ] : [
+              'Routine revision implant fixation; verify stable press-fit and liner engagement.',
+              'Standard modular instrumentation and revision extraction kit ready.',
+              'Post-operative progressive mobilization protocol.',
+            ]
+          )
+        ) : isHighRisk ? [
           'Elevated bone turnover: Consider augmented fixation purchase.',
           'Pre-operative Vitamin D3 and Calcium optimization recommended.',
           'High structural vulnerability: Minimize excessive reaming.',
@@ -347,7 +447,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
       },
       hardwareGroups,
     };
-  }, [plan, patient, assessment, selectedProcedure]);
+  }, [plan, patient, assessment, selectedProcedure, revisionSubType]);
 
   const {
     procedure = 'Procedure',
@@ -949,7 +1049,51 @@ export default function PreSurgicalSummaryView({ patientId }) {
                     <option value="Distal Femur Fracture Fixation">Distal Femur Fracture Fixation</option>
                     <option value="Proximal Femur Fracture Fixation">Proximal Femur Fracture Fixation</option>
                     <option value="Femoral Fracture Fixation">Femoral Fracture Fixation</option>
+                    <option value="Revision Arthroplasty">Revision Arthroplasty</option>
                   </select>
+
+                  {/* Revision Arthroplasty Subtype Selection */}
+                  {(selectedProcedure === 'Revision Arthroplasty' || selectedProcedure.toLowerCase().includes('revision')) && (
+                    <div className="mt-3.5 p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl">
+                      <label className="block text-[11px] font-black text-blue-900 uppercase tracking-wider mb-2">
+                        Revision Procedure Selection:
+                      </label>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold cursor-pointer transition ${
+                          revisionSubType === 'Revision Total Hip Arthroplasty'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        } ${isFinalized ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="radio"
+                            name="revisionSubType"
+                            value="Revision Total Hip Arthroplasty"
+                            checked={revisionSubType === 'Revision Total Hip Arthroplasty'}
+                            onChange={(e) => setRevisionSubType(e.target.value)}
+                            disabled={isFinalized}
+                            className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                          />
+                          Revision Total Hip Arthroplasty
+                        </label>
+                        <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold cursor-pointer transition ${
+                          revisionSubType === 'Revision Total Knee Arthroplasty'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        } ${isFinalized ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="radio"
+                            name="revisionSubType"
+                            value="Revision Total Knee Arthroplasty"
+                            checked={revisionSubType === 'Revision Total Knee Arthroplasty'}
+                            onChange={(e) => setRevisionSubType(e.target.value)}
+                            disabled={isFinalized}
+                            className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500"
+                          />
+                          Revision Total Knee Arthroplasty
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-6">
