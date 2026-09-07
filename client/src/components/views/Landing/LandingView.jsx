@@ -29,19 +29,19 @@ export default function LandingView({ onStart }) {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/login')}
-              className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition items-center gap-1.5 cursor-pointer"
+              
+              className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 rounded-xl transition items-center gap-1.5 "
             >
               Clinical Portal
-              <ArrowUpRight size={14} />
+           
             </button>
-            <button
+            {/* <button
               onClick={handleStart}
               className="group px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-600/20 flex items-center gap-2 border-2 border-dotted border-blue-200"
             >
               Start Assessment
               <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+            </button> */}
           </div>
         </div>
       </header>
@@ -75,21 +75,21 @@ export default function LandingView({ onStart }) {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-              <button
-                onClick={handleStart}
-                className="group px-5 sm:px-7 py-3 sm:py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2.5 border-2 border-dashed border-blue-300/70 text-sm sm:text-base cursor-pointer"
-              >
-                <Box size={18} />
-                <span>Start Patient Assessment</span>
-                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button
+       <button
+            onClick={handleStart}
+            className="group inline-flex items-center gap-2.5 px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:bg-blue-200 transition shadow-2xl text-base"
+          >
+            <Activity size={20} className="text-blue-600" />
+            Start Patient Assessment
+            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform text-blue-600" />
+          </button>
+              {/* <button
                 onClick={handleStart}
                 className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer"
               >
                 <Play size={16} className="text-blue-600 fill-blue-600" />
                 <span>View Demo</span>
-              </button>
+              </button> */}
             </div>
 
             <div className="grid grid-cols-3 gap-3 sm:gap-8 pt-3 sm:pt-4 border-t border-slate-100">
@@ -255,14 +255,14 @@ export default function LandingView({ onStart }) {
             Launch the interactive demo with anonymized sample patient PEB-8842-A. No setup, no login — all screens and
             flows fully accessible.
           </p>
-          <button
+          {/* <button
             onClick={handleStart}
             className="group inline-flex items-center gap-2.5 px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:bg-blue-50 transition shadow-2xl text-base"
           >
             <Activity size={20} className="text-blue-600" />
             Launch Interactive Workflow
             <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform text-blue-600" />
-          </button>
+          </button> */}
           <p className="text-xs text-slate-400 mt-6">
             {/* © 2026 EndoBone AI. For clinical research use only. Not a replacement for professional medical judgment. */}
             © 2026 EndoBone AI

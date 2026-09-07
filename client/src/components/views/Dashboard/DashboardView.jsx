@@ -64,8 +64,8 @@ export default function DashboardView({ onSelectPatient }) {
     setIsDeletingMultiple(true);
     try {
       await deleteMultipleCases(casesToDeleteMultiple);
-      setSelectedCaseIds(new Set());
     } finally {
+      setSelectedCaseIds(new Set());
       setIsDeletingMultiple(false);
       setCasesToDeleteMultiple(null);
     }
