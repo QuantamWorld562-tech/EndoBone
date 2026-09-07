@@ -23,7 +23,6 @@ import {
   LayoutDashboard,
   Undo2,
   Sparkles,
-  Box,
   FolderOpen,
   X,
 } from 'lucide-react';
@@ -31,6 +30,7 @@ import { useSurgicalPlan, usePatientData } from '../../../hooks';
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { assessmentService } from '../../../services/assessmentService';
 import { PreSurgicalSummarySkeleton } from '../../common';
+import { REVISION_CHECKLISTS } from '../../../constants/checklists';
 
 export default function PreSurgicalSummaryView({ patientId }) {
   const params = useParams();
@@ -45,13 +45,15 @@ export default function PreSurgicalSummaryView({ patientId }) {
     activePatientId,
     setActivePatientId,
     isCaseLoading,
+    patients = [],
   } = usePatientContext();
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
-  const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
+  const currentPatient = patient || (patients && patients.find((p) => p.id === effectivePatientId)) || null;
+  const [selectedProcedure, setSelectedProcedure] = useState(currentPatient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
 
   // ── Surgeon notes: loaded from assessment.planning_notes, saved to backend ──
   const [surgeonNotes, setSurgeonNotes] = useState('');
@@ -76,10 +78,10 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   // Sync selected procedure when patient or assessment data loads
   useEffect(() => {
-    if (patient?.procedure || assessment?.procedure) {
-      setSelectedProcedure(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
+    if (currentPatient?.procedure || assessment?.procedure) {
+      setSelectedProcedure(currentPatient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
     }
-  }, [patient?.procedure, assessment?.procedure]);
+  }, [currentPatient?.procedure, assessment?.procedure]);
 
   // Load planning_notes from persisted assessment on mount / when assessment changes
   useEffect(() => {
@@ -172,8 +174,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
     setIsNotesDirty(false);
     if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
     resetWorkspace();
-    navigate('/dashboard');
-    showToast('Workspace reset successfully. Redirected to Dashboard.', 'warning');
+    showToast('Workspace reset successfully. Select or restore a case below.', 'warning');
   };
 
   const handleRestoreCase = () => {
@@ -285,6 +286,32 @@ export default function PreSurgicalSummaryView({ patientId }) {
           ]
         }
       ];
+    } else if (proc === 'Revision Total Hip Arthroplasty' || (proc.includes('Revision') && proc.includes('Hip'))) {
+      const revData = REVISION_CHECKLISTS.r_tha;
+      hardwareGroups = [
+        {
+          title: revData.title,
+          type: 'checkbox',
+          items: revData.items.map((it) => ({
+            id: it.id,
+            name: it.name,
+            selected: it.defaultSelected || (it.riskTrigger === 'high' ? isHighRisk : it.riskTrigger === 'moderate' ? (isHighRisk || isModerateRisk) : false)
+          }))
+        }
+      ];
+    } else if (proc === 'Revision Total Knee Arthroplasty' || (proc.includes('Revision') && proc.includes('Knee'))) {
+      const revData = REVISION_CHECKLISTS.r_tka;
+      hardwareGroups = [
+        {
+          title: revData.title,
+          type: 'checkbox',
+          items: revData.items.map((it) => ({
+            id: it.id,
+            name: it.name,
+            selected: it.defaultSelected || (it.riskTrigger === 'high' ? isHighRisk : it.riskTrigger === 'moderate' ? (isHighRisk || isModerateRisk) : false)
+          }))
+        }
+      ];
     } else if (proc === 'Total Hip Arthroplasty (THA)' || proc.includes('Hip')) {
       hardwareGroups = [
         {
@@ -331,7 +358,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
     return {
       procedure: proc,
-      scheduledDate: patient?.scheduledDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      scheduledDate: currentPatient?.scheduledDate || patient?.scheduledDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       overview: {
         tag: proc.includes('Hip') || proc === 'Proximal Femur Fracture Fixation' ? 'Proximal Femur / Hip' : proc.includes('Knee') || proc === 'Distal Femur Fracture Fixation' ? 'Distal Femur / Knee' : 'Femoral Shaft / Segment',
         approach: proc.includes('Hip') ? 'Direct Anterior / Posterolateral' : proc.includes('Knee') ? 'Medial Parapatellar' : 'Anterolateral / Closed Reduction',
@@ -706,10 +733,10 @@ export default function PreSurgicalSummaryView({ patientId }) {
                   <span className="text-slate-500 font-semibold">Patient ID:</span>
                   <span className="font-black text-slate-900">{effectivePatientId}</span>
                 </div>
-                {patient && (
+                {currentPatient && (
                   <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-200">
                     <span className="text-slate-500 font-semibold">Age/Gender:</span>
-                    <span className="font-bold text-slate-800">{patient.age} yrs • {patient.gender}</span>
+                    <span className="font-bold text-slate-800">{currentPatient.age} yrs • {currentPatient.gender}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 rounded-xl border border-slate-200">
@@ -961,7 +988,9 @@ export default function PreSurgicalSummaryView({ patientId }) {
                       className="w-full sm:w-auto px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                       <option value="Total Hip Arthroplasty (THA)">Total Hip Arthroplasty (THA)</option>
+                      <option value="Revision Total Hip Arthroplasty">Revision Total Hip Arthroplasty</option>
                       <option value="Total Knee Arthroplasty (TKA)">Total Knee Arthroplasty (TKA)</option>
+                      <option value="Revision Total Knee Arthroplasty">Revision Total Knee Arthroplasty</option>
                       <option value="Distal Femur Fracture Fixation">Distal Femur Fracture Fixation</option>
                       <option value="Proximal Femur Fracture Fixation">Proximal Femur Fracture Fixation</option>
                       <option value="Femoral Fracture Fixation">Femoral Fracture Fixation</option>

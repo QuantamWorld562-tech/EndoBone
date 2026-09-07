@@ -316,7 +316,11 @@ export default function DoctorProfileModal() {
               </div>
               <div>
                 <div className="text-base sm:text-lg font-black text-white leading-none">
-                  {totalAssessments}
+                  {loadingOverview ? (
+                    <span className="inline-block w-8 h-4 bg-white/20 animate-pulse rounded" />
+                  ) : (
+                    totalAssessments
+                  )}
                 </div>
                 <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
                   Assessments
@@ -330,7 +334,11 @@ export default function DoctorProfileModal() {
               </div>
               <div>
                 <div className="text-base sm:text-lg font-black text-white leading-none">
-                  {totalPatients}
+                  {loadingOverview ? (
+                    <span className="inline-block w-8 h-4 bg-white/20 animate-pulse rounded" />
+                  ) : (
+                    totalPatients
+                  )}
                 </div>
                 <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
                   My Patients
@@ -344,7 +352,11 @@ export default function DoctorProfileModal() {
               </div>
               <div>
                 <div className="text-base sm:text-lg font-black text-white leading-none">
-                  {highRiskCount}
+                  {loadingOverview ? (
+                    <span className="inline-block w-8 h-4 bg-white/20 animate-pulse rounded" />
+                  ) : (
+                    highRiskCount
+                  )}
                 </div>
                 <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
                   High Risk

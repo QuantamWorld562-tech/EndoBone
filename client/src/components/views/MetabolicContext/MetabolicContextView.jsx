@@ -399,31 +399,27 @@ export default function MetabolicContextView({ patientId, onRunAssessment }) {
           */}
 
           {/* Action Verification Card */}
-          {isAnalyzing ? (
-            <MetabolicAnalyzeSkeleton />
-          ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
-              <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                {!isInputValid ? (
-                  <span className="text-amber-600 font-semibold flex items-center gap-1">
-                    <AlertTriangle size={12} className="shrink-0" />
-                    Some values are empty — defaults will be applied if analyzed now.
-                  </span>
-                ) : (
-                  'Ensure all out-of-range values are verified before proceeding to analysis.'
-                )}
-              </p>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-sm">
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              {!isInputValid ? (
+                <span className="text-amber-600 font-semibold flex items-center gap-1">
+                  <AlertTriangle size={12} className="shrink-0" />
+                  Some values are empty — defaults will be applied if analyzed now.
+                </span>
+              ) : (
+                'Ensure all out-of-range values are verified before proceeding to analysis.'
+              )}
+            </p>
 
-              <button
-                onClick={handleRunAssessment}
-                disabled={isAnalyzing}
-                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer disabled:opacity-50"
-              >
-                <BarChart2 size={18} />
-                Analyze Patient Data
-              </button>
-            </div>
-          )}
+            <button
+              onClick={handleRunAssessment}
+              disabled={isAnalyzing}
+              className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-lg bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white shadow-blue-900/20 cursor-pointer disabled:opacity-50"
+            >
+              <BarChart2 size={18} />
+              Analyze Patient Data
+            </button>
+          </div>
 
         </div>
       </div>

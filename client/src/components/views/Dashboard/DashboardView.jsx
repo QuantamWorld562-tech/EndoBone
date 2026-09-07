@@ -14,14 +14,13 @@ import {
   X,
   Search,
   Plus,
-  Sparkles,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
-import { CaseLoadingOverlay } from '../../common';
+import { CaseLoadingOverlay, DashboardSkeleton } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen } = usePatientContext();
+  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen, isLoadingPatients, allBiomarkers } = usePatientContext();
   const [loadingPatient, setLoadingPatient] = useState(null);
 
   const handleSelectPatient = (id) => {
@@ -43,6 +42,30 @@ export default function DashboardView({ onSelectPatient }) {
   const [caseToDelete, setCaseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Evaluate risk level reliably without assuming active status implies high risk
+  const evaluatePatientRisk = (patient) => {
+    if (!patient) return 'low';
+    const explicit = (patient.riskLevel || patient.risk_level || '').toLowerCase().trim();
+    if (['high', 'critical', 'severe'].includes(explicit)) return 'high';
+    if (['low', 'minimal', 'cleared', 'normal'].includes(explicit)) return 'low';
+    if (['medium', 'moderate', 'intermediate'].includes(explicit)) return 'moderate';
+
+    if (patient.status === 'completed') return 'low';
+    if (patient.status === 'pending-review') return 'moderate';
+
+    // Check biomarkers if present
+    const bm = allBiomarkers?.[patient.id] || patient.initial_biomarkers || patient.biomarkers || patient;
+    const pth = Number(bm?.pth?.value ?? bm?.pth ?? 0);
+    const vitD = Number(bm?.vitaminD?.value ?? bm?.vitamin_d ?? 0);
+    const ctx = Number(bm?.ctx?.value ?? bm?.ctx ?? 0);
+
+    if (pth > 80 || (vitD > 0 && vitD < 20) || ctx > 400) return 'high';
+    if (pth > 65 || (vitD > 0 && vitD < 30) || ctx > 300) return 'moderate';
+    if ((pth > 0 && pth <= 65) || vitD >= 30) return 'low';
+
+    return 'moderate';
+  };
+
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
       const matchSearch =
@@ -58,10 +81,7 @@ export default function DashboardView({ onSelectPatient }) {
 
   const activeCases = filteredPatients.filter((p) => p.status === 'active').length;
   const pendingReviews = filteredPatients.filter((p) => p.status === 'pending-review').length;
-  const highRiskCases = filteredPatients.filter((p) => {
-    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
-    return r === 'high' || p.status === 'active';
-  }).length;
+  const highRiskCases = filteredPatients.filter((p) => evaluatePatientRisk(p) === 'high').length;
 
   const stats = [
     {
@@ -94,25 +114,19 @@ export default function DashboardView({ onSelectPatient }) {
   ];
 
   const getRiskBadge = (patient) => {
-    const risk = (patient?.riskLevel || patient?.risk_level || '').toLowerCase();
-    if (risk === 'high' || (!risk && patient?.status === 'active')) {
+    const risk = evaluatePatientRisk(patient);
+    if (risk === 'high') {
       return { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' };
     }
-    if (risk === 'moderate' || risk === 'medium' || (!risk && patient?.status === 'pending-review')) {
+    if (risk === 'moderate') {
       return { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' };
     }
     return { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' };
   };
 
   const totalCount = patients.length || 1;
-  const highDistCount = patients.filter((p) => {
-    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
-    return r === 'high' || (!r && p.status === 'active');
-  }).length;
-  const modDistCount = patients.filter((p) => {
-    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
-    return r === 'moderate' || r === 'medium' || (!r && p.status === 'pending-review');
-  }).length;
+  const highDistCount = patients.filter((p) => evaluatePatientRisk(p) === 'high').length;
+  const modDistCount = patients.filter((p) => evaluatePatientRisk(p) === 'moderate').length;
   const lowDistCount = Math.max(0, patients.length - highDistCount - modDistCount);
 
   const riskDistribution = [
@@ -152,6 +166,10 @@ export default function DashboardView({ onSelectPatient }) {
       setCaseToDelete(null);
     }
   };
+
+  if (isLoadingPatients && patients.length === 0) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 min-w-0 max-w-full">

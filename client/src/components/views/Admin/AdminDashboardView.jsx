@@ -1,35 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield,
   Users,
-  UserCheck,
   GraduationCap,
   Activity,
-  FileText,
   Search,
   Filter,
   Edit2,
   Trash2,
   Lock,
-  Eye,
-  EyeOff,
   AlertTriangle,
   CheckCircle2,
   KeyRound,
-  Database,
   Building2,
   Stethoscope,
   RefreshCw,
-  Plus,
   X,
   ExternalLink,
-  ChevronRight,
   ShieldCheck,
-  ShieldAlert,
   Server,
   Sparkles,
-  ArrowUpDown,
   ClipboardList
 } from 'lucide-react';
 import {
@@ -42,6 +33,7 @@ import {
   readStoredDoctorProfile,
   readApiError
 } from '../../../services';
+import { AdminDashboardSkeleton } from '../../common';
 
 export default function AdminDashboardView() {
   const navigate = useNavigate();
@@ -95,6 +87,13 @@ export default function AdminDashboardView() {
       }
       if (patientsRes.status === 'fulfilled') {
         setPatients(patientsRes.value?.cases || []);
+      }
+
+      const errors = [statsRes, usersRes, patientsRes]
+        .filter((r) => r.status === 'rejected')
+        .map((r) => readApiError(r.reason));
+      if (errors.length > 0) {
+        showToast(`Administrative data sync: ${errors[0]}`, 'error');
       }
     } catch (err) {
       showToast('Error loading administrative data: ' + readApiError(err), 'error');
@@ -218,6 +217,10 @@ export default function AdminDashboardView() {
         );
     }
   };
+
+  if (isLoading && !stats.total_users && users.length === 0) {
+    return <AdminDashboardSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">

@@ -29,6 +29,7 @@ export function toUiPatient(patient) {
     condition: patient.condition || patient.clinical_indication || 'Pre-Surgical Bone Mineral Density Evaluation',
     status: patient.status || 'active',
     scheduledDate: patient.scheduled_date || patient.scheduledDate || patient.surgery_date || patient.date,
+    riskLevel: patient.riskLevel || patient.risk_level || patient.assessment?.ai_results?.risk_level || undefined,
   };
 }
 

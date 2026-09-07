@@ -11,10 +11,6 @@ import {
   AlertTriangle,
   RotateCcw,
   Volume2,
-  Box,
-  Stethoscope,
-  Building,
-  GraduationCap
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
 import { readStoredDoctorProfile, changePassword, readApiError } from '../../services';
@@ -343,6 +339,21 @@ export default function SettingsModal() {
                     <div className="text-xs">
                       <span className="font-bold text-slate-800 block">Smooth 3D Turntable Auto-Rotation</span>
                       <span className="text-slate-500">Automatically rotate bone geometry slowly when idle</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/80 cursor-pointer hover:bg-slate-100/70 transition">
+                    <input
+                      type="checkbox"
+                      checked={soundEffects}
+                      onChange={(e) => setSoundEffects(e.target.checked)}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                        <Volume2 size={13} className="text-slate-500" /> Interface Audio &amp; Feedback Chimes
+                      </span>
+                      <span className="text-slate-500">Play subtle auditory cues on critical threshold alerts</span>
                     </div>
                   </label>
                 </div>

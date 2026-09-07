@@ -414,7 +414,11 @@ export function PatientDataProvider({ children }) {
       condition: 'Pre-Surgical Bone Mineral Density Evaluation',
       procedure: procedure,
       status: 'active',
-      riskLevel: (pthVal > 65 || vitDVal < 20 || ctxVal > 300) ? 'high' : 'moderate',
+      riskLevel: (pthVal > 65 || vitDVal < 20 || ctxVal > 300)
+        ? 'high'
+        : (pthVal > 50 || vitDVal < 30 || ctxVal > 250)
+          ? 'moderate'
+          : 'low',
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
