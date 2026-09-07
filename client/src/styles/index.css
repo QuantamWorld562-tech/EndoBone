@@ -16,6 +16,53 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.2s linear infinite;
+}
+
+@keyframes scanline {
+  0% {
+    top: 5%;
+    opacity: 0.2;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    top: 90%;
+    opacity: 0.2;
+  }
+}
+
+.animate-scanline {
+  animation: scanline 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radarSweep 9s linear infinite;
+}
+
 @layer components {
   .btn-primary {
     @apply px-4 py-2 rounded-lg font-medium bg-clinical-blue text-white hover:bg-clinical-blue-dark transition-colors;

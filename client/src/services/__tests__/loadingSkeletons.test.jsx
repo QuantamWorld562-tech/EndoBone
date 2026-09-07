@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import React from 'react';
 import {
   SkeletonBlock,
+  DarkSkeletonBlock,
   CaseLoadingOverlay,
   DashboardSkeleton,
   MetabolicAnalyzeSkeleton,
@@ -16,6 +17,7 @@ import {
 describe('Loading Skeletons Suite', () => {
   it('exports all necessary skeleton components', () => {
     expect(typeof SkeletonBlock).toBe('function');
+    expect(typeof DarkSkeletonBlock).toBe('function');
     expect(typeof CaseLoadingOverlay).toBe('function');
     expect(typeof DashboardSkeleton).toBe('function');
     expect(typeof MetabolicAnalyzeSkeleton).toBe('function');

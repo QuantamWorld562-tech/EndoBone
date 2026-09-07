@@ -6,6 +6,7 @@ export { default as SupportModal } from './SupportModal';
 export { default as DoctorProfileModal } from './DoctorProfileModal';
 export {
   SkeletonBlock,
+  DarkSkeletonBlock,
   AssessmentSkeleton,
   MetabolicAnalyzeSkeleton,
   Planning3DSkeleton,
