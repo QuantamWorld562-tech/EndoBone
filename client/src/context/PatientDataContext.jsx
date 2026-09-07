@@ -525,6 +525,37 @@ export function PatientDataProvider({ children }) {
     });
   }, [activePatientId]);
 
+  // Delete multiple patient cases
+  const deleteMultipleCases = useCallback(async (caseIds) => {
+    try {
+      await patientService.deleteMultiplePatients(caseIds);
+    } catch (e) {
+      console.warn('Delete multiple cases backend error:', e);
+    }
+
+    setPatientList((prev) => {
+      const remaining = prev.filter(
+        (p) => !caseIds.some((id) => p.id === id || p.case_id === id || p._id === id)
+      );
+      if (activePatientId && caseIds.some((id) => id === activePatientId) && remaining.length > 0) {
+        setActivePatientId(remaining[0].id);
+      }
+      return remaining;
+    });
+
+    setAllBiomarkers((prev) => {
+      const next = { ...prev };
+      caseIds.forEach((id) => delete next[id]);
+      return next;
+    });
+
+    setRoiNotes((prev) => {
+      const next = { ...prev };
+      caseIds.forEach((id) => delete next[id]);
+      return next;
+    });
+  }, [activePatientId]);
+
   // Retrieve active patient biomarkers
   const activeBiomarkers = useMemo(() => {
     if (!activePatientId) return null;
@@ -737,6 +768,7 @@ export function PatientDataProvider({ children }) {
     isLoadingPatients,
     addNewCase,
     deleteCase,
+    deleteMultipleCases,
     isNewCaseModalOpen,
     setIsNewCaseModalOpen,
     isSettingsModalOpen,

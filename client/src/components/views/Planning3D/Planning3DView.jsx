@@ -119,7 +119,7 @@ export default function Planning3DView({ patientId }) {
   const [viewAngle, setViewAngle] = useState('overview');
   const [autoRotate, setAutoRotate] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showAnnotations, setShowAnnotations] = useState(true);
+  const [showAnnotations, setShowAnnotations] = useState(false);
   const [sidebarTab, setSidebarTab] = useState('curves');
   const [hoveredZone, setHoveredZone] = useState(null);
 
@@ -136,18 +136,56 @@ export default function Planning3DView({ patientId }) {
       biomarkers,
       roiNotes,
     });
-    const aiById = new Map((aiZoneRisks || []).map((zone) => [zone.id, zone]));
+
+    const normalizeKey = (key = '') => {
+      const s = String(key).toLowerCase().trim().replace(/_/g, '-');
+      if (s === 'proximal-femur') return 'femoral-neck';
+      if (s === 'femoral-shaft') return 'shaft';
+      if (s === 'trochanter') return 'greater-trochanter';
+      return s;
+    };
+
+    const aiById = new Map();
+    (aiZoneRisks || []).forEach((zone) => {
+      aiById.set(zone.id, zone);
+      aiById.set(normalizeKey(zone.id), zone);
+    });
 
     return {
       ...generated,
       zones: generated.zones.map((zone) => {
-        const aiZone = aiById.get(zone.id);
-        return aiZone
-          ? { ...zone, riskLevel: aiZone.riskLevel || zone.riskLevel, note: aiZone.note || zone.note }
-          : zone;
+        const canKey = normalizeKey(zone.id);
+        const aiZone = aiById.get(zone.id) || aiById.get(canKey);
+
+        let finalRisk = zone.riskLevel;
+        let finalNote = zone.note;
+
+        if (aiZone) {
+          finalRisk = aiZone.riskLevel || finalRisk;
+          finalNote = aiZone.note || finalNote;
+        } else if (backendRiskLevel === 'low') {
+          // If backend AI evaluated case as low risk, downgrade default high/moderate to low/normal
+          finalRisk = 'low';
+        } else if (backendRiskLevel === 'moderate' && finalRisk === 'high') {
+          finalRisk = 'moderate';
+        }
+
+        return {
+          ...zone,
+          riskLevel: finalRisk,
+          note: finalNote,
+        };
       }),
     };
-  }, [currentPatient, biomarkers, roiNotes, aiZoneRisks]);
+  }, [currentPatient, biomarkers, roiNotes, aiZoneRisks, backendRiskLevel]);
+
+  const riskCounts = useMemo(() => {
+    const zones = dynamicAnnotations?.zones || [];
+    const critical = zones.filter(z => z.riskLevel === 'high').length;
+    const moderate = zones.filter(z => z.riskLevel === 'moderate').length;
+    const low = zones.filter(z => z.riskLevel === 'low').length;
+    return { critical, moderate, low };
+  }, [dynamicAnnotations]);
 
   // Active zone = hovered or selected
   const activeZone = useMemo(() => {
@@ -284,14 +322,24 @@ export default function Planning3DView({ patientId }) {
             </h2>
             <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-black ${rs.badge}`}>
               <span className={`w-2 h-2 rounded-full ${rs.dot} animate-pulse`} />
-              {effectiveRiskLevel === 'high' ? 'High Risk Active' : 'Normal Profile'}
+              {effectiveRiskLevel === 'high' ? 'High Risk Active' : effectiveRiskLevel === 'moderate' ? 'Moderate Risk Active' : 'Normal / Low Risk'}
             </div>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
               THA Workflow
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            <span className="text-red-600 font-bold">1 critical zone</span> · <span className="text-orange-600 font-bold">1 elevated</span> · Interactive longitudinal curves synchronized with 3D bone risk shading
+            {riskCounts.critical > 0 ? (
+              <>
+                <span className="text-red-600 font-bold">{riskCounts.critical} critical zone{riskCounts.critical === 1 ? '' : 's'}</span>
+                {riskCounts.moderate > 0 && <> · <span className="text-orange-600 font-bold">{riskCounts.moderate} elevated</span></>}
+              </>
+            ) : riskCounts.moderate > 0 ? (
+              <span className="text-orange-600 font-bold">{riskCounts.moderate} elevated zone{riskCounts.moderate === 1 ? '' : 's'}</span>
+            ) : (
+              <span className="text-teal-600 font-bold">All anatomical zones normal</span>
+            )}
+            {' · '}Dynamic risk shading calibrated by backend AI processing
           </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
@@ -382,10 +430,24 @@ export default function Planning3DView({ patientId }) {
                 </button>
 
                 <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-slate-900 rounded-lg border border-slate-800 text-[10px] sm:text-[11px] font-bold text-slate-300">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  <span>1 critical</span>
-                  <span className="w-2 h-2 rounded-full bg-orange-500" />
-                  <span>1 elevated</span>
+                  {riskCounts.critical > 0 && (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span>{riskCounts.critical} critical</span>
+                    </>
+                  )}
+                  {riskCounts.moderate > 0 && (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-orange-500" />
+                      <span>{riskCounts.moderate} elevated</span>
+                    </>
+                  )}
+                  {riskCounts.critical === 0 && riskCounts.moderate === 0 && (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-teal-500" />
+                      <span>Normal</span>
+                    </>
+                  )}
                 </div>
 
                 {/* Play / Pause 3D Auto-Rotation */}
@@ -446,17 +508,22 @@ export default function Planning3DView({ patientId }) {
               />
             </div>
 
-            {/* Bottom Scan Analysis Footer Bar — matching reference monitor */}
+            {/* Bottom Scan Analysis Footer Bar — dynamically synchronized */}
             <div className="px-4 py-2.5 bg-slate-900/95 border-t border-slate-800 text-xs font-semibold text-slate-300 flex flex-wrap items-center justify-between gap-2 z-10">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase text-cyan-400 tracking-wider">Scan Analysis</span>
                 <span className="text-slate-600">|</span>
-                <span className="font-bold text-slate-100">Osteopenia (T-Score: -2.3)</span>
+                <span className="font-bold text-slate-100">
+                  {activeZone?.tScore ? `T-Score: ${activeZone.tScore} (${activeZone.label})` : 'DEXA Calibrated'}
+                </span>
                 <span className="text-slate-600">|</span>
-                <span className="text-amber-400 font-bold">Hip Fracture Risk: Moderate (9.4%)</span>
+                <span className={effectiveRiskLevel === 'high' ? 'text-red-400 font-bold' : effectiveRiskLevel === 'moderate' ? 'text-amber-400 font-bold' : 'text-teal-400 font-bold'}>
+                  Risk: {effectiveRiskLevel === 'high' ? 'High (Micro-fracture vulnerability)' : effectiveRiskLevel === 'moderate' ? 'Moderate (Elevated resorption)' : 'Normal profile'}
+                </span>
               </div>
               <div className="flex items-center gap-3 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> T-Score &gt; 1.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> T-Score &gt; -1.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> -2.5 &lt; T &lt; -1.0</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> T-Score &lt; -2.5</span>
               </div>
             </div>

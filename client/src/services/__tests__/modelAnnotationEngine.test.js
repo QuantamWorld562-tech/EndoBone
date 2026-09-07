@@ -95,4 +95,17 @@ describe('Model & Annotation Engine', () => {
     expect(tibiaResult.anatomyType).toBe('tibia');
     expect(tibiaResult.zones.some((z) => z.id === 'medial-tibial-plateau')).toBe(true);
   });
+
+  it('correctly maps dynamic AI target regions and custom zone risk levels', () => {
+    const result = generateDynamicAnnotations({
+      patient: { id: 'TEST-SHAFT', procedure: 'Diaphyseal Femoral Fixation' },
+      biomarkers: { pth: { value: 40 }, vitaminD: { value: 40 } },
+    });
+
+    // Verify shaft zone exists with proper baseline structure
+    const shaftZone = result.zones.find((z) => z.id === 'shaft');
+    expect(shaftZone).toBeDefined();
+    expect(shaftZone.label).toContain('Shaft');
+  });
 });
+

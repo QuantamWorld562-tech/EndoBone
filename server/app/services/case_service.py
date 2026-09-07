@@ -261,6 +261,56 @@ class CaseService:
         return deleted
 
     @staticmethod
+    async def delete_multiple_cases(case_ids: List[str]) -> Dict[str, Any]:
+        """Delete multiple cases by their IDs and cascade delete related records"""
+        deleted_ids = []
+        
+        if db_manager.is_connected and db_manager.db is not None:
+            for case_id in case_ids:
+                target = case_id.strip().lower()
+                res = await db_manager.db.cases.delete_many(
+                    {"$or": [{"_id": case_id}, {"case_id": case_id}, {"case_id": target}]}
+                )
+                if res.deleted_count > 0:
+                    deleted_ids.append(case_id)
+                    # Cascade — clean up related records for this case
+                    for collection in ["biomarkers", "roi", "annotations", "simulations"]:
+                        await db_manager.db[collection].delete_many(
+                            {"$or": [{"case_id": case_id}, {"case_id": target}]}
+                        )
+        else:
+            local_data = db_manager.get_local_data()
+            cases = local_data.get("cases", [])
+            initial_len = len(cases)
+            
+            for case_id in case_ids:
+                target = case_id.strip().lower()
+                before_len = len(local_data.get("cases", []))
+                local_data["cases"] = [
+                    c for c in local_data.get("cases", [])
+                    if str(c.get("case_id", "")).lower() != target
+                    and str(c.get("_id", "")).lower() != target
+                ]
+                if len(local_data["cases"]) < before_len:
+                    deleted_ids.append(case_id)
+
+                # Clean up related data
+                for key in ["biomarkers", "roi", "annotations", "simulations"]:
+                    local_data[key] = [
+                        x for x in local_data.get(key, [])
+                        if str(x.get("case_id", "")).lower() != target
+                    ]
+            
+            # Only persist if something actually changed
+            if len(deleted_ids) > 0:
+                db_manager.save_local_data(local_data)
+
+        return {
+            "deleted_count": len(deleted_ids),
+            "deleted_ids": deleted_ids
+        }
+
+    @staticmethod
     async def get_full_case_view(case_id: str) -> Optional[Dict[str, Any]]:
         patient_case = await CaseService.get_case_by_id(case_id)
         if not patient_case:

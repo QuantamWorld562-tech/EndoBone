@@ -47,6 +47,18 @@ export const patientService = {
     }
   },
 
+  deleteMultiplePatients: async (patientIds) => {
+    try {
+      const response = await apiClient.post('/cases/delete-multiple', {
+        case_ids: patientIds,
+      });
+      return response.data;
+    } catch (e) {
+      console.warn(`Backend bulk delete failed:`, e);
+      throw e;
+    }
+  },
+
   filterPatients: (patientList, { searchTerm = '', statusFilter = 'all' } = {}) => {
     let result = [...patientList];
 

@@ -35,6 +35,20 @@ async def delete_single_case(case_id: str):
         raise HTTPException(status_code=404, detail=f"Case with ID '{case_id}' not found")
     return {"message": "Case deleted successfully", "case_id": case_id}
 
+@router.post("/delete-multiple", status_code=status.HTTP_200_OK)
+async def delete_multiple_cases(case_ids: Dict[str, List[str]]):
+    """Delete multiple cases by their IDs"""
+    ids_to_delete = case_ids.get("case_ids", [])
+    if not ids_to_delete:
+        raise HTTPException(status_code=400, detail="No case IDs provided")
+    
+    result = await CaseService.delete_multiple_cases(ids_to_delete)
+    return {
+        "message": f"Successfully deleted {result['deleted_count']} cases",
+        "deleted_count": result['deleted_count'],
+        "deleted_ids": result['deleted_ids']
+    }
+
 @router.get("/{case_id}/full", response_model=FullCaseResponse)
 async def get_full_case_view(case_id: str):
     full_case = await CaseService.get_full_case_view(case_id)
