@@ -22,39 +22,45 @@ import { Eye, EyeOff, Tag } from 'lucide-react';
 import * as THREE from 'three';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Clinical Medical Risk Heatmap Spectrum: White (Normal) -> Orange (Moderate) -> Red (Critical)
+// Clinical Medical Risk Heatmap Spectrum: Ivory (Normal) -> Amber -> Orange -> Red -> Deep Crimson
+// Five-stop medical spectrum calibrated to DXA T-score clinical severity bands
 // ─────────────────────────────────────────────────────────────────────────────
 
-const COLOR_WHITE       = new THREE.Color('#ffffff'); // Normal Healthy Bone Cortex
-const COLOR_ORANGE_SOFT = new THREE.Color('#fdba74'); // Soft amber transition
-const COLOR_ORANGE      = new THREE.Color('#fb923c'); // Moderate Risk
-const COLOR_RED         = new THREE.Color('#ef4444'); // High / Critical Risk
-const COLOR_RED_CRIMSON = new THREE.Color('#dc2626'); // Peak Fracture Risk
+const COLOR_IVORY       = new THREE.Color('#fdf8f0'); // Healthy cortical bone baseline
+const COLOR_AMBER_SOFT  = new THREE.Color('#fcd34d'); // Osteopenia onset (T < -1.0)
+const COLOR_ORANGE_SOFT = new THREE.Color('#fb923c'); // Moderate risk (T < -1.5)
+const COLOR_ORANGE      = new THREE.Color('#ea580c'); // High-moderate (T < -2.0)
+const COLOR_RED         = new THREE.Color('#dc2626'); // High risk  (T < -2.5)
+const COLOR_CRIMSON     = new THREE.Color('#7f1d1d'); // Critical fracture risk peak
 
 function sampleHeatmapSpectrum(t, outColor) {
   const v = THREE.MathUtils.clamp(t, 0.0, 1.0);
-  if (v <= 0.06) {
-    // 0.00 - 0.06: Clean Pure White Bone
-    outColor.copy(COLOR_WHITE);
-  } else if (v <= 0.35) {
-    // 0.06 - 0.35: White -> Warm Cream / Soft Amber
-    const s = (v - 0.06) / 0.29;
-    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
-    outColor.copy(COLOR_WHITE).lerp(COLOR_ORANGE_SOFT, ease * 0.75);
-  } else if (v <= 0.65) {
-    // 0.35 - 0.65: Soft Amber -> Vibrant Orange
-    const s = (v - 0.35) / 0.30;
-    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
-    outColor.copy(COLOR_ORANGE_SOFT).lerp(COLOR_ORANGE, ease);
+  // Use cosine easing on every segment for perceptually smooth gradients
+  const ease = (x) => 0.5 - 0.5 * Math.cos(x * Math.PI);
+
+  if (v <= 0.08) {
+    // 0.00–0.08: Pure healthy ivory — no metabolic stress
+    outColor.copy(COLOR_IVORY);
+  } else if (v <= 0.30) {
+    // 0.08–0.30: Ivory → Soft Amber (osteopenia onset)
+    const s = ease((v - 0.08) / 0.22);
+    outColor.copy(COLOR_IVORY).lerp(COLOR_AMBER_SOFT, s);
+  } else if (v <= 0.52) {
+    // 0.30–0.52: Amber → Orange (moderate bone loss)
+    const s = ease((v - 0.30) / 0.22);
+    outColor.copy(COLOR_AMBER_SOFT).lerp(COLOR_ORANGE_SOFT, s);
+  } else if (v <= 0.72) {
+    // 0.52–0.72: Orange → Deep Orange (high-moderate)
+    const s = ease((v - 0.52) / 0.20);
+    outColor.copy(COLOR_ORANGE_SOFT).lerp(COLOR_ORANGE, s);
   } else if (v <= 0.88) {
-    // 0.65 - 0.88: Vibrant Orange -> Coral Red
-    const s = (v - 0.65) / 0.23;
-    const ease = 0.5 - 0.5 * Math.cos(s * Math.PI);
-    outColor.copy(COLOR_ORANGE).lerp(COLOR_RED, ease);
+    // 0.72–0.88: Deep Orange → Vivid Red (high risk)
+    const s = ease((v - 0.72) / 0.16);
+    outColor.copy(COLOR_ORANGE).lerp(COLOR_RED, s);
   } else {
-    // 0.88 - 1.00: Coral Red -> Intense Crimson Peak
-    const s = (v - 0.88) / 0.12;
-    outColor.copy(COLOR_RED).lerp(COLOR_RED_CRIMSON, s * 0.60);
+    // 0.88–1.00: Red → Deep Crimson (critical fracture zone)
+    const s = ease((v - 0.88) / 0.12);
+    outColor.copy(COLOR_RED).lerp(COLOR_CRIMSON, s);
   }
   return outColor;
 }
@@ -204,6 +210,27 @@ function findZoneByMeshName(meshName, zones) {
 // Dynamic Multi-Stop Risk Heatmap Shading: Crimson (Critical) -> Orange -> Amber -> Emerald -> Ivory
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Risk score mapping: converts riskLevel + optional vulnerability into a calibrated [0,1] heat value
+// Tuned to DXA T-score clinical bands: low ≈ 0–0.25, moderate ≈ 0.30–0.58, high ≈ 0.68–0.96
+function zoneRiskToHeat(z) {
+  if (Number.isFinite(z.riskScore)) {
+    return THREE.MathUtils.clamp(z.riskScore > 1 ? z.riskScore / 100 : z.riskScore, 0.0, 1.0);
+  }
+  // Granular levels derived from vulnerability + riskLevel when no numeric score is available
+  const vuln = z.vulnerability || z.canonicalId || '';
+  if (z.riskLevel === 'high') {
+    if (vuln === 'critical') return 0.96; // deepest crimson — femoral neck, pedicle, acetabular dome
+    return 0.82;                          // strong red
+  }
+  if (z.riskLevel === 'moderate') {
+    if (vuln === 'critical' || vuln === 'high') return 0.58;
+    return 0.44;                          // warm orange
+  }
+  // low risk — slight warm tint on vulnerable spots, pure ivory elsewhere
+  if (vuln === 'critical' || vuln === 'high') return 0.18;
+  return 0.06;                            // essentially healthy white
+}
+
 function applyRiskShading(mesh, zones, rootGroup) {
   const geo = mesh.geometry;
   const pos = geo?.getAttribute('position');
@@ -212,6 +239,16 @@ function applyRiskShading(mesh, zones, rootGroup) {
   rootGroup.updateMatrixWorld(true);
   mesh.updateMatrixWorld(true);
 
+  // Compute model bounding box for anatomical height normalisation
+  const bbox  = new THREE.Box3().setFromObject(mesh);
+  const bboxLocal = bbox.clone();
+  // Convert bbox to root-group local space
+  const bMin = rootGroup.worldToLocal(bbox.min.clone());
+  const bMax = rootGroup.worldToLocal(bbox.max.clone());
+  const modelYMin = Math.min(bMin.y, bMax.y);
+  const modelYMax = Math.max(bMin.y, bMax.y);
+  const modelYRange = modelYMax - modelYMin || 1;
+
   const colors = new Float32Array(pos.count * 3);
 
   const vert      = new THREE.Vector3();
@@ -219,52 +256,47 @@ function applyRiskShading(mesh, zones, rootGroup) {
   const localPos  = new THREE.Vector3();
   const tempCol   = new THREE.Color();
 
-  // Pre-calculate zone weights and calibrated risk levels
-  const zoneWeights = zones.map(z => {
-    let targetRisk = Number.isFinite(z.riskScore)
-      ? THREE.MathUtils.clamp(z.riskScore > 1 ? z.riskScore / 100 : z.riskScore, 0.0, 1.0)
-      : 0.12;
-    if (!Number.isFinite(z.riskScore) && z.riskLevel === 'high') {
-      targetRisk = 0.94;
-    } else if (!Number.isFinite(z.riskScore) && z.riskLevel === 'moderate') {
-      targetRisk = 0.62;
-    } else if (!Number.isFinite(z.riskScore)) {
-      targetRisk = 0.14;
-    }
+  // Pre-compute per-zone heat values and wider influence radii
+  const zoneWeights = zones.map(z => ({
+    anchor: new THREE.Vector3(...(z.anchor || [0, 0, 0])),
+    // Spread each zone's heat over 1.6× its annotated radius for smooth transitions
+    sigma:  (z.radius || 0.48) * 1.6,
+    heat:   zoneRiskToHeat(z),
+  }));
 
-    return {
-      anchor: new THREE.Vector3(...z.anchor),
-      radius: z.radius || 0.45,
-      risk: targetRisk,
-      id: z.id,
-    };
-  });
+  // Track the overall max heat for any zone so we can normalise anatomical bias
+  const maxZoneHeat = zoneWeights.reduce((m, zw) => Math.max(m, zw.heat), 0);
 
-  // Continuous Per-Vertex Gaussian Thermal Density Field
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
     worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
     localPos.copy(worldVert);
     rootGroup.worldToLocal(localPos);
 
-    let totalRisk = 0.0; // baseline 0.0 = clean pure white bone
+    // ── Weighted-sum Gaussian field (all zones contribute, not just the nearest) ──
+    let weightedSum  = 0.0;
+    let totalWeight  = 0.0;
 
-    // 1. Multi-Zone Anchor Gaussian Influence
     for (let zi = 0; zi < zoneWeights.length; zi++) {
-      const zw = zoneWeights[zi];
+      const zw   = zoneWeights[zi];
       const dist = localPos.distanceTo(zw.anchor);
-      const normDist = dist / (zw.radius * 0.92);
-      if (normDist < 1.8) {
-        const gaussian = Math.exp(-Math.pow(normDist * 1.35, 2.0));
-        const inf = gaussian * zw.risk;
-        if (inf > totalRisk) {
-          totalRisk = Math.max(totalRisk, inf);
-        }
-      }
+      // Gaussian kernel: σ = zone sigma; influence drops to ~1% at 3σ
+      const g = Math.exp(-(dist * dist) / (2.0 * zw.sigma * zw.sigma));
+      weightedSum += g * zw.heat;
+      totalWeight += g;
     }
 
-    // Sample only the ROI-provided risk levels; do not infer risk from anatomy height or T-score.
-    sampleHeatmapSpectrum(totalRisk, tempCol);
+    let vertexHeat = totalWeight > 1e-6 ? weightedSum / totalWeight : 0.0;
+
+    // ── Anatomical proximal-to-distal density gradient ──
+    // Proximal bone (femoral neck/head) is naturally more vulnerable than distal diaphysis.
+    // We apply a subtle bias proportional to normalised height (y) so that even unassigned
+    // proximal vertices inherit a faint warm tint — matching clinical DEXA gradients.
+    const normY    = (localPos.y - modelYMin) / modelYRange; // 0 = distal, 1 = proximal
+    const proxBias = normY * maxZoneHeat * 0.12;             // max 12% boost at apex
+    vertexHeat     = Math.min(1.0, vertexHeat + proxBias);
+
+    sampleHeatmapSpectrum(vertexHeat, tempCol);
 
     colors[i * 3]     = tempCol.r;
     colors[i * 3 + 1] = tempCol.g;

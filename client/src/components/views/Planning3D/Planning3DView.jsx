@@ -192,6 +192,12 @@ export default function Planning3DView({ patientId }) {
     };
   }, [currentPatient, biomarkers, roiNotes, aiZoneRisks, roiZoneRisks, backendRiskLevel]);
 
+  useEffect(() => {
+    if (dynamicAnnotations?.overallRiskLevel === 'high' || backendRiskLevel === 'high') {
+      setShowAnnotations(true);
+    }
+  }, [dynamicAnnotations?.overallRiskLevel, backendRiskLevel]);
+
   const riskCounts = useMemo(() => {
     const zones = dynamicAnnotations?.zones || [];
     const critical = zones.filter(z => z.riskLevel === 'high').length;
@@ -211,7 +217,8 @@ export default function Planning3DView({ patientId }) {
 
   const effectiveRiskLevel = backendRiskLevel ?? regionalData?.riskLevel ?? 'high';
   const rs = RISK_CFG[effectiveRiskLevel] ?? RISK_CFG.high;
-  const currentRoiNote = roiNotes?.[selectedRegion] ?? '';
+  const normalizedSelectedRegion = selectedRegion === 'proximal-femur' ? 'femoral-neck' : selectedRegion;
+  const currentRoiNote = roiNotes?.[selectedRegion] ?? roiNotes?.[normalizedSelectedRegion] ?? '';
 
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
@@ -609,8 +616,8 @@ export default function Planning3DView({ patientId }) {
                 <textarea
                   rows={3}
                   value={currentRoiNote}
-                  onChange={(e) => updateRoiNote(effectivePatientId, selectedRegion, e.target.value)}
-                  onBlur={() => persistRoiNote(effectivePatientId, selectedRegion, currentRoiNote)}
+                  onChange={(e) => updateRoiNote(effectivePatientId, normalizedSelectedRegion, e.target.value)}
+                  onBlur={() => persistRoiNote(effectivePatientId, normalizedSelectedRegion, currentRoiNote)}
                   placeholder="Add region-specific notes or surgical precautions..."
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed"
                 />

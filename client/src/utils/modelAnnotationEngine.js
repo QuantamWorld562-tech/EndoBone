@@ -618,9 +618,27 @@ export function generateDynamicAnnotations({
       dynamicNote = `Optimal cortical & trabecular density under physiologic homeostasis (PTH: ${pth} pg/mL, Vit D: ${vitD} ng/mL). Structurally robust zone for primary hardware purchase.`;
     }
 
+    // Compute a calibrated numeric riskScore [0-1] for per-vertex heatmap accuracy.
+    // The score is derived from the overall metabolic penalty scaled by zone vulnerability.
+    const penaltyNorm = qualityPenalty / 95; // 0=ideal, 1=worst case
+    let riskScore = 0.06; // healthy ivory baseline
+    if (zoneRisk === 'high') {
+      riskScore = tmpl.vulnerability === 'critical'
+        ? 0.70 + penaltyNorm * 0.26
+        : 0.58 + penaltyNorm * 0.24;
+    } else if (zoneRisk === 'moderate') {
+      const vulnBoost = (tmpl.vulnerability === 'critical' || tmpl.vulnerability === 'high') ? 0.20 : 0.10;
+      riskScore = 0.30 + penaltyNorm * 0.28 + vulnBoost;
+    } else {
+      const vulnPenalty = (tmpl.vulnerability === 'critical' || tmpl.vulnerability === 'high') ? 0.12 : 0.0;
+      riskScore = 0.04 + penaltyNorm * 0.12 + vulnPenalty;
+    }
+    riskScore = Math.min(1.0, Math.max(0.0, riskScore));
+
     return {
       ...tmpl,
       riskLevel: zoneRisk,
+      riskScore,
       tScore: tScoreNum > 0 ? `+${tScoreNum}` : `${tScoreNum}`,
       vBMD: `${vBmdNum}`,
       note: dynamicNote,
