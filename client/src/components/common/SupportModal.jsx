@@ -26,6 +26,7 @@ export default function SupportModal() {
   const [ticketMessage, setTicketMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  const [lastTicketId, setLastTicketId] = useState('');
 
   if (!isSupportModalOpen) return null;
 
@@ -34,18 +35,41 @@ export default function SupportModal() {
     if (!ticketMessage.trim()) return;
 
     setIsSubmitting(true);
+    const ticketId = `EB-TIC-${Math.floor(10000 + Math.random() * 90000)}`;
+    setLastTicketId(ticketId);
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('endobone_support_tickets') || '[]');
+      existing.unshift({
+        id: ticketId,
+        subject: ticketSubject || 'General Clinical Inquiry',
+        priority: ticketPriority,
+        message: ticketMessage,
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem('endobone_support_tickets', JSON.stringify(existing.slice(0, 20)));
+    } catch (err) {
+      console.warn('Unable to persist ticket to localStorage:', err);
+    }
+
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmittedSuccess(true);
       setTicketSubject('');
       setTicketMessage('');
-      setTimeout(() => setSubmittedSuccess(false), 4000);
-    }, 600);
+      setTimeout(() => setSubmittedSuccess(false), 5000);
+    }, 500);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={() => setIsSupportModalOpen(false)}
+    >
+      <div
+        className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
@@ -167,7 +191,7 @@ export default function SupportModal() {
                   </div>
                   <h4 className="font-black text-slate-900 text-sm">Request Submitted Successfully</h4>
                   <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                    Ticket #EB-{Math.floor(100000 + Math.random() * 900000)} has been logged with the EndoBone Clinical Informatics Team.
+                    Ticket <span className="font-mono font-bold text-slate-800">{lastTicketId || 'EB-TIC-88219'}</span> has been logged with the EndoBone Clinical Informatics Team.
                   </p>
                 </div>
               ) : (

@@ -40,11 +40,31 @@ function AdminRoute({ children }) {
   return <Navigate to="/dashboard" replace />;
 }
 
+function AppLoadingScreen() {
+  return (
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-900 text-white">
+      <div className="relative flex items-center justify-center mb-6">
+        <div className="w-16 h-16 rounded-2xl bg-slate-800/90 border border-slate-700 flex items-center justify-center p-3 shadow-2xl shadow-blue-500/20">
+          <img src="/logo2.png" alt="EndoBone AI" className="w-full h-full object-contain" />
+        </div>
+        <div className="absolute -inset-2 rounded-3xl border border-blue-500/30 animate-pulse pointer-events-none" />
+      </div>
+      <div className="text-center space-y-1.5">
+        <h2 className="text-base font-black text-white tracking-tight">EndoBone AI</h2>
+        <div className="flex items-center gap-2 justify-center text-xs text-blue-400 font-medium">
+          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+          <span>Initializing Clinical Workspace...</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <PatientDataProvider>
-        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-slate-500 font-medium">Loading Application...</div>}>
+        <Suspense fallback={<AppLoadingScreen />}>
           <Routes>
             {/* Public Landing Page */}
             <Route path="/" element={<LandingView />} />

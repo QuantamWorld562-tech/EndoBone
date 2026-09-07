@@ -58,7 +58,10 @@ export default function DashboardView({ onSelectPatient }) {
 
   const activeCases = filteredPatients.filter((p) => p.status === 'active').length;
   const pendingReviews = filteredPatients.filter((p) => p.status === 'pending-review').length;
-  const highRiskCases = filteredPatients.length;
+  const highRiskCases = filteredPatients.filter((p) => {
+    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
+    return r === 'high' || p.status === 'active';
+  }).length;
 
   const stats = [
     {
@@ -68,7 +71,7 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'blue',
       grad: 'from-blue-500 to-blue-700',
       bg: 'bg-blue-50',
-      val: activeCases || patients.length,
+      val: activeCases,
     },
     {
       label: 'Pending Reviews',
@@ -77,7 +80,7 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'amber',
       grad: 'from-amber-500 to-orange-600',
       bg: 'bg-amber-50',
-      val: pendingReviews || 1,
+      val: pendingReviews,
     },
     {
       label: 'High Risk Profile',
@@ -86,18 +89,58 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'red',
       grad: 'from-red-500 to-red-700',
       bg: 'bg-red-50',
-      val: highRiskCases || 4,
+      val: highRiskCases,
     },
   ];
 
-  const getRiskBadge = (status) => {
-    const map = {
-      active: { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' },
-      'pending-review': { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' },
-      completed: { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' },
-    };
-    return map[status] || map.active;
+  const getRiskBadge = (patient) => {
+    const risk = (patient?.riskLevel || patient?.risk_level || '').toLowerCase();
+    if (risk === 'high' || (!risk && patient?.status === 'active')) {
+      return { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' };
+    }
+    if (risk === 'moderate' || risk === 'medium' || (!risk && patient?.status === 'pending-review')) {
+      return { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' };
+    }
+    return { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' };
   };
+
+  const totalCount = patients.length || 1;
+  const highDistCount = patients.filter((p) => {
+    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
+    return r === 'high' || (!r && p.status === 'active');
+  }).length;
+  const modDistCount = patients.filter((p) => {
+    const r = (p.riskLevel || p.risk_level || '').toLowerCase();
+    return r === 'moderate' || r === 'medium' || (!r && p.status === 'pending-review');
+  }).length;
+  const lowDistCount = Math.max(0, patients.length - highDistCount - modDistCount);
+
+  const riskDistribution = [
+    {
+      label: 'High Risk',
+      count: highDistCount,
+      pct: Math.round((highDistCount / totalCount) * 100),
+      color: 'bg-red-500',
+      text: 'text-red-600',
+      bg: 'bg-red-50',
+    },
+    {
+      label: 'Moderate',
+      count: modDistCount,
+      pct: Math.round((modDistCount / totalCount) * 100),
+      color: 'bg-amber-500',
+      text: 'text-amber-600',
+      bg: 'bg-amber-50',
+    },
+    {
+      label: 'Low / Normal',
+      count: lowDistCount,
+      pct: Math.round((lowDistCount / totalCount) * 100),
+      color: 'bg-teal-500',
+      text: 'text-teal-600',
+      bg: 'bg-teal-50',
+    },
+  ];
 
   const handleConfirmDelete = async () => {
     if (!caseToDelete) return;
@@ -207,7 +250,7 @@ export default function DashboardView({ onSelectPatient }) {
               <div className="p-8 sm:p-10 text-center text-slate-500 text-xs sm:text-sm">No matching patients found.</div>
             ) : (
               filteredPatients.map((p) => {
-                const badge = getRiskBadge(p.status);
+                const badge = getRiskBadge(p);
                 return (
                   <div
                     key={p.id}
@@ -280,11 +323,7 @@ export default function DashboardView({ onSelectPatient }) {
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
             <h3 className="text-lg font-extrabold text-slate-900 mb-4">Risk Distribution</h3>
             <div className="space-y-4">
-              {[
-                { label: 'High Risk', count: 5, pct: 42, color: 'bg-red-500', text: 'text-red-600', bg: 'bg-red-50' },
-                { label: 'Moderate', count: 4, pct: 33, color: 'bg-amber-500', text: 'text-amber-600', bg: 'bg-amber-50' },
-                { label: 'Low / Normal', count: 3, pct: 25, color: 'bg-teal-500', text: 'text-teal-600', bg: 'bg-teal-50' },
-              ].map((r, i) => (
+              {riskDistribution.map((r, i) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">

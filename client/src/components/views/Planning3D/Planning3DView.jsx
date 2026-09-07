@@ -9,6 +9,7 @@ import {
 import { usePatientContext } from '../../../context/PatientDataContext';
 import { EndocrineTrendChart, Planning3DSkeleton } from '../../common';
 import BoneModelViewer from './BoneModelViewer';
+import { generateDynamicAnnotations } from '../../../utils/modelAnnotationEngine';
 
 const BIOMARKER_INPUTS = [
   { key: 'pth', fullLabel: 'Parathyroid Hormone', unit: 'pg/mL', ref: '15–65', step: 1 },
@@ -104,7 +105,7 @@ export default function Planning3DView({ patientId }) {
     biomarkers,
     selectedRegion, setSelectedRegion,
     roiNotes, updateRoiNote, persistRoiNote,
-    regionalData, backendRiskLevel,
+    regionalData, backendRiskLevel, aiClinicalNote, aiZoneRisks,
     patients,
     activePatientId,
     isCaseLoading,
@@ -126,11 +127,35 @@ export default function Planning3DView({ patientId }) {
     return patients?.find(p => p.id === effectivePatientId) || null;
   }, [patients, effectivePatientId]);
 
+  const dynamicAnnotations = useMemo(() => {
+    if (!currentPatient) return null;
+
+    const generated = generateDynamicAnnotations({
+      patient: currentPatient,
+      biomarkers,
+      roiNotes,
+    });
+    const aiById = new Map((aiZoneRisks || []).map((zone) => [zone.id, zone]));
+
+    return {
+      ...generated,
+      zones: generated.zones.map((zone) => {
+        const aiZone = aiById.get(zone.id);
+        return aiZone
+          ? { ...zone, riskLevel: aiZone.riskLevel || zone.riskLevel, note: aiZone.note || zone.note }
+          : zone;
+      }),
+    };
+  }, [currentPatient, biomarkers, roiNotes, aiZoneRisks]);
+
   // Active zone = hovered or selected
   const activeZone = useMemo(() => {
     const id = hoveredZone?.id || selectedRegion;
-    return STATIC_ZONES.find(z => z.id === id) || STATIC_ZONES[0];
-  }, [hoveredZone, selectedRegion]);
+    return dynamicAnnotations?.zones.find(z => z.id === id)
+      || dynamicAnnotations?.zones[0]
+      || STATIC_ZONES.find(z => z.id === id)
+      || STATIC_ZONES[0];
+  }, [dynamicAnnotations, hoveredZone, selectedRegion]);
 
   const effectiveRiskLevel = backendRiskLevel ?? regionalData?.riskLevel ?? 'high';
   const rs = RISK_CFG[effectiveRiskLevel] ?? RISK_CFG.high;
@@ -393,6 +418,12 @@ export default function Planning3DView({ patientId }) {
             {/* 3D Canvas */}
             <div className="flex-1 relative w-full h-full min-w-0 max-w-full overflow-hidden">
               <BoneModelViewer
+                modelPath={dynamicAnnotations?.anatomyType === 'femur'
+                  ? '/storage/bones/femur.glb'
+                  : dynamicAnnotations?.modelPath}
+                zoneRisks={dynamicAnnotations?.zones}
+                riskLevel={effectiveRiskLevel}
+                clinicalNote={aiClinicalNote || ''}
                 viewAngle={viewAngle}
                 heatmap={renderMode === 'heatmap'}
                 wireframe={renderMode === 'wireframe'}
@@ -497,8 +528,8 @@ export default function Planning3DView({ patientId }) {
                 <textarea
                   rows={3}
                   value={currentRoiNote}
-                  onChange={(e) => updateRoiNote(selectedRegion, e.target.value)}
-                  onBlur={() => persistRoiNote(selectedRegion)}
+                  onChange={(e) => updateRoiNote(effectivePatientId, selectedRegion, e.target.value)}
+                  onBlur={() => persistRoiNote(effectivePatientId, selectedRegion, currentRoiNote)}
                   placeholder="Add region-specific notes or surgical precautions..."
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium leading-relaxed"
                 />

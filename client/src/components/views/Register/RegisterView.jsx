@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Sparkles, X, FileText, ShieldCheck } from 'lucide-react';
 import { persistAuthSession, readApiError, registerDoctor, loginDoctor } from '../../../services';
 
 export default function RegisterView() {
@@ -10,6 +10,7 @@ export default function RegisterView() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [legalModal, setLegalModal] = useState(null); // 'terms' | 'privacy' | null
 
   const [form, setForm] = useState({
     firstName: '',
@@ -26,7 +27,10 @@ export default function RegisterView() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!agreed) return;
+    if (!agreed) {
+      setErrorMessage('You must review and accept the Terms of Service and Privacy Policy to register.');
+      return;
+    }
     setErrorMessage('');
     setLoading(true);
 
@@ -85,7 +89,7 @@ export default function RegisterView() {
 
         {/* Footer note */}
         <p className="text-xs text-slate-400 text-center">
-          © 2024 EndoBone AI. For clinical research use only.
+          © 2026 EndoBone AI. For clinical research use only.
         </p>
       </aside>
 
@@ -252,14 +256,16 @@ export default function RegisterView() {
                   I agree to the{' '}
                   <button
                     type="button"
-                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
+                    onClick={() => setLegalModal('terms')}
+                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark underline underline-offset-2 transition-colors cursor-pointer"
                   >
                     Terms of Service
                   </button>{' '}
                   and{' '}
                   <button
                     type="button"
-                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
+                    onClick={() => setLegalModal('privacy')}
+                    className="font-semibold text-clinical-blue hover:text-clinical-blue-dark underline underline-offset-2 transition-colors cursor-pointer"
                   >
                     Privacy Policy
                   </button>
@@ -277,8 +283,8 @@ export default function RegisterView() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={!agreed || loading}
-              className="w-full flex items-center justify-center gap-2 py-3.5 bg-clinical-blue hover:bg-clinical-blue-dark disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors shadow-md shadow-blue-600/20 cursor-pointer"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-clinical-blue hover:bg-clinical-blue-dark disabled:opacity-60 text-white font-bold rounded-xl transition-colors shadow-md shadow-blue-600/20 cursor-pointer"
             >
               {loading ? (
                 <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -335,13 +341,101 @@ export default function RegisterView() {
             Already have an account?{' '}
             <button
               onClick={() => navigate('/login')}
-              className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors"
+              className="font-semibold text-clinical-blue hover:text-clinical-blue-dark transition-colors cursor-pointer"
             >
               Login
             </button>
           </p>
         </div>
       </main>
+
+      {/* Legal terms / privacy modal */}
+      {legalModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in"
+          onClick={() => setLegalModal(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-clinical-blue">
+                  {legalModal === 'terms' ? <FileText size={20} /> : <ShieldCheck size={20} />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 text-base">
+                    {legalModal === 'terms' ? 'Terms of Service' : 'Privacy & HIPAA Compliance Policy'}
+                  </h3>
+                  <p className="text-xs text-slate-500">EndoBone AI Precision Clinical Diagnostics</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLegalModal(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-3 text-xs text-slate-600 overflow-y-auto leading-relaxed flex-1">
+              {legalModal === 'terms' ? (
+                <>
+                  <p className="font-semibold text-slate-800">1. Clinician Authorization & Scope</p>
+                  <p>
+                    EndoBone AI is an AI-assisted clinical decision support tool designed for licensed orthopedic surgeons, radiologists, and endocrinologists. It is intended to assist, not replace, professional clinical judgment and diagnostic expertise.
+                  </p>
+                  <p className="font-semibold text-slate-800">2. Security & Credentials</p>
+                  <p>
+                    Users must maintain the confidentiality of institutional credentials and refrain from sharing individual access keys. All system actions are timestamped and audited under HIPAA Title II.
+                  </p>
+                  <p className="font-semibold text-slate-800">3. Diagnostic Verification</p>
+                  <p>
+                    Measurements, 3D bone volume reconstructions, T-scores, and BMD volumetric estimates must be verified against primary DICOM scans and institutional PACS records before surgical intervention.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-slate-800">1. Protected Health Information (PHI)</p>
+                  <p>
+                    All patient DICOM data, demographics, and bone scan records are handled under strict HIPAA and HITECH security standards. DICOM headers are de-identified or encrypted with AES-256 in transit and at rest.
+                  </p>
+                  <p className="font-semibold text-slate-800">2. Audit Logging</p>
+                  <p>
+                    Access logs record clinician identity, patient MRN viewed, risk assessments computed, and surgical notes created. Logs are preserved for regulatory compliance and hospital accreditation.
+                  </p>
+                  <p className="font-semibold text-slate-800">3. Data Retention</p>
+                  <p>
+                    Clinical trial and evaluation cases are sandboxed. Institutional PACS integrations adhere to Business Associate Agreements (BAA) with healthcare provider networks.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setAgreed(true);
+                  setLegalModal(null);
+                }}
+                className="py-2 px-4 bg-clinical-blue text-white rounded-xl text-xs font-bold hover:bg-clinical-blue-dark transition-colors"
+              >
+                Accept & Agree
+              </button>
+              <button
+                type="button"
+                onClick={() => setLegalModal(null)}
+                className="py-2 px-4 border border-slate-300 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-100 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

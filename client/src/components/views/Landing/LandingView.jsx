@@ -28,7 +28,10 @@ export default function LandingView({ onStart }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition items-center gap-1.5">
+            <button
+              onClick={() => navigate('/login')}
+              className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition items-center gap-1.5 cursor-pointer"
+            >
               Clinical Portal
               <ArrowUpRight size={14} />
             </button>
@@ -80,7 +83,10 @@ export default function LandingView({ onStart }) {
                 <span>Start Patient Assessment</span>
                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer">
+              <button
+                onClick={handleStart}
+                className="group px-5 sm:px-7 py-3 sm:py-3.5 border-2 border-slate-200 bg-white text-slate-800 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 shadow-sm text-sm sm:text-base cursor-pointer"
+              >
                 <Play size={16} className="text-blue-600 fill-blue-600" />
                 <span>View Demo</span>
               </button>

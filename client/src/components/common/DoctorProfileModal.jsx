@@ -139,7 +139,7 @@ export default function DoctorProfileModal() {
       procedure: p.procedure,
       status: p.status || 'active',
       scheduled_date: p.scheduledDate || 'Scheduled',
-      risk_level: p.riskLevel || p.risk_level || (p.id?.endsWith('A') ? 'high' : p.id?.endsWith('C') ? 'low' : 'moderate'),
+      risk_level: p.riskLevel || p.risk_level || (p.status === 'active' ? 'high' : p.status === 'pending-review' ? 'moderate' : 'low'),
     }));
   }, [overviewData, contextPatients]);
 
@@ -245,8 +245,14 @@ export default function DoctorProfileModal() {
   const doctorFullName = `Dr. ${profileForm.firstName || doctorProfile.firstName || ''} ${profileForm.lastName || doctorProfile.lastName || ''}`.trim() || 'Dr. Clinician';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in">
-      <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200/90 flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fade-in"
+      onClick={() => setIsDoctorProfileOpen(false)}
+    >
+      <div
+        className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200/90 flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Top Header with Doctor Bio & Quick Stats */}
         <div className="relative px-6 py-5 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shrink-0 border-b border-slate-800">
           <div className="flex items-start justify-between gap-4">

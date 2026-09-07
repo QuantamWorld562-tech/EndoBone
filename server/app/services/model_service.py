@@ -343,7 +343,7 @@ class ModelService:
                 "raw_landmarks": raw_item["landmarks"],
                 "morphometric_edges": [e.model_dump() for e in model_edges],
                 "presurgical_notes": meta.get("presurgical_notes", "Standard preoperative planning."),
-                "glb_download_url": f"/api/download-model/{m_id}"
+                "glb_download_url": f"/api/models/{m_id}/download"
             }
             results.append(model_obj)
 

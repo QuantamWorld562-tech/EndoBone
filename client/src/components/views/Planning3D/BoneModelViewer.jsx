@@ -229,10 +229,10 @@ function applyRiskShading(mesh, zones, rootGroup) {
       if (inf > maxModInf) maxModInf = inf;
     }
 
-    // Anatomical height zones — Femoral Head & Neck (top) → Red
-    if (normY > 0.64) {
-      const neckInf = THREE.MathUtils.clamp((normY - 0.64) / 0.26, 0.0, 1.0);
-      maxHighInf = Math.max(maxHighInf, neckInf);
+    // Keep the proximal heat localized so the cortex remains visible.
+    if (normY > 0.76) {
+      const neckInf = THREE.MathUtils.clamp((normY - 0.76) / 0.18, 0.0, 1.0);
+      maxHighInf = Math.max(maxHighInf, neckInf * 0.72);
     }
 
     // Greater Trochanter band → Orange
@@ -244,9 +244,9 @@ function applyRiskShading(mesh, zones, rootGroup) {
     // Color blend: White → Orange → Red (gamma-correct powers)
     if (maxHighInf > 0.04) {
       const w = Math.min(1.0, Math.pow(maxHighInf, 0.95));
-      tempCol.lerp(COLOR_ORANGE, w * 0.30).lerp(COLOR_RED, w * 0.98);
+      tempCol.lerp(COLOR_ORANGE, w * 0.22).lerp(COLOR_RED, w * 0.78);
     } else if (maxModInf > 0.04) {
-      const w = Math.min(1.0, maxModInf * 0.95);
+      const w = Math.min(1.0, maxModInf * 0.78);
       tempCol.lerp(COLOR_ORANGE, w);
     }
 
@@ -354,8 +354,8 @@ function createBoneMaterial(mode) {
 
   // ── Risk Heatmap: vertex-colored + Voronoi trabecular texture + Fresnel ──────
   const mat = new THREE.MeshPhysicalMaterial({
-    color: '#ffffff',
-    roughness: 0.28,
+    color: '#f6f0e2',
+    roughness: 0.34,
     metalness: 0.0,
     clearcoat: 0.35,
     clearcoatRoughness: 0.20,
@@ -885,6 +885,9 @@ function ViewportOverlay({
   onXray,
   showAnnotations,
   onToggleAnnotations,
+  isFullscreen,
+  onToggleFullscreen,
+  zones,
 }) {
   const [open, setOpen] = useState(false);
 
@@ -1091,8 +1094,8 @@ export default function BoneModelViewer({
         {/* Key light — primary anatomical definition */}
         <directionalLight
           position={[4, 7, 5]}
-          intensity={1.55}
-          color="#ffffff"
+          intensity={1.35}
+          color="#fff8e8"
           castShadow
           shadow-mapSize={[4096, 4096]}
           shadow-camera-near={0.1}
@@ -1114,7 +1117,7 @@ export default function BoneModelViewer({
         {/* Cool accent — fine detail highlight on neck/head */}
         <pointLight position={[-1.5, 3, 1.5]} intensity={0.30} color="#b8d4ff" distance={6} decay={2} />
         {/* Ambient base — prevent pitch-black in deep concavities */}
-        <ambientLight intensity={0.50} color="#f0f4ff" />
+        <ambientLight intensity={0.42} color="#f6f1e8" />
 
         {/* HDR studio environment — best for PBR clearcoat + sheen */}
         <Environment preset="studio" background={false} />
@@ -1126,8 +1129,8 @@ export default function BoneModelViewer({
           ref={controlsRef}
           enableDamping
           dampingFactor={0.06}
-          minDistance={0.04}
-          maxDistance={8}
+          minDistance={1.2}
+          maxDistance={12}
           makeDefault
           rotateSpeed={0.8}
           zoomSpeed={1.2}

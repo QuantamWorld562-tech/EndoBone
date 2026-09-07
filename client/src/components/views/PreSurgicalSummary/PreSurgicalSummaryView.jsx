@@ -49,9 +49,6 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
-  if (isCaseLoading) {
-    return <PreSurgicalSummarySkeleton />;
-  }
   const { plan, hardwareSelection, updateHardwareSelection } = useSurgicalPlan(effectivePatientId);
   const { patient } = usePatientData(effectivePatientId);
   const [selectedProcedure, setSelectedProcedure] = useState(patient?.procedure || assessment?.procedure || 'Total Hip Arthroplasty (THA)');
@@ -65,6 +62,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
   const [toastMessage, setToastMessage] = useState({ text: '', type: 'success' });
   const [isResetView, setIsResetView] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [lastPatientId, setLastPatientId] = useState(effectivePatientId);
   const notesDebounceRef = useRef(null);
 
   // When effectivePatientId changes (e.g. from selecting a recent case on dashboard), exit reset mode
@@ -72,6 +70,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
     if (effectivePatientId) {
       setIsResetView(false);
       setIsFinalized(false);
+      setLastPatientId(effectivePatientId);
     }
   }, [effectivePatientId]);
 
@@ -165,6 +164,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   // ── Reset workspace handlers ──
   const handleConfirmReset = () => {
+    if (effectivePatientId) setLastPatientId(effectivePatientId);
     setIsResetView(true);
     setShowResetModal(false);
     setSurgeonNotes('');
@@ -178,8 +178,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
   const handleRestoreCase = () => {
     setIsResetView(false);
-    navigate('/dashboard');
-    showToast('Navigate to Dashboard to select or create a case.', 'success');
+    if (lastPatientId) {
+      setActivePatientId(lastPatientId);
+      navigate(`/patients/${lastPatientId}/summary`);
+      showToast(`Restored active case: ${lastPatientId}`, 'success');
+    } else {
+      navigate('/dashboard');
+      showToast('Navigate to Dashboard to select or create a case.', 'success');
+    }
   };
 
   const handleAddNewCase = () => {
@@ -482,6 +488,10 @@ export default function PreSurgicalSummaryView({ patientId }) {
     error: 'bg-red-700 text-white border-red-600',
   };
 
+  if (isCaseLoading) {
+    return <PreSurgicalSummarySkeleton />;
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8 relative min-w-0 max-w-full">
 
@@ -540,8 +550,14 @@ export default function PreSurgicalSummaryView({ patientId }) {
 
       {/* Confirmation Reset Modal */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-7 space-y-5">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-7 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600">
                 <RotateCcw size={22} />
@@ -667,7 +683,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
               className="text-xs font-bold text-slate-600 hover:text-blue-600 flex items-center gap-1.5 transition py-1 px-3 rounded-lg hover:bg-slate-100"
             >
               <Undo2 size={13} />
-              <span>Restore Previous Case ({effectivePatientId})</span>
+              <span>Restore Previous Case ({lastPatientId || 'PEB-8842-A'})</span>
             </button>
           </div>
         </div>

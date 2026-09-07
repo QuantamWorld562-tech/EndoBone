@@ -54,10 +54,10 @@ export const patientService = {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (p) =>
-          p.name.toLowerCase().includes(term) ||
-          p.mrn.toLowerCase().includes(term) ||
-          p.id.toLowerCase().includes(term) ||
-          p.procedure.toLowerCase().includes(term)
+          p.name?.toLowerCase().includes(term) ||
+          p.mrn?.toLowerCase().includes(term) ||
+          p.id?.toLowerCase().includes(term) ||
+          p.procedure?.toLowerCase().includes(term)
       );
     }
 

@@ -410,9 +410,11 @@ export function PatientDataProvider({ children }) {
       name: patientName,
       age: Number(newCase.age) || 58,
       gender: gender,
+      mrn: newCase.mrn || `MRN-${Math.floor(100000 + Math.random() * 900000)}`,
       condition: 'Pre-Surgical Bone Mineral Density Evaluation',
       procedure: procedure,
       status: 'active',
+      riskLevel: (pthVal > 65 || vitDVal < 20 || ctxVal > 300) ? 'high' : 'moderate',
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 

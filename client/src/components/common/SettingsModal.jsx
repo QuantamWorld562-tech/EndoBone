@@ -32,12 +32,23 @@ export default function SettingsModal() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordStatus, setPasswordStatus] = useState({ message: '', type: '' });
 
-  // Clinical preferences state
-  const [renderModePref, setRenderModePref] = useState('heatmap');
-  const [calciumUnit, setCalciumUnit] = useState('mg_dl');
-  const [riskSensitivity, setRiskSensitivity] = useState('standard');
-  const [autoRotate3D, setAutoRotate3D] = useState(true);
-  const [soundEffects, setSoundEffects] = useState(false);
+  // Clinical preferences state (persisted in localStorage)
+  const [renderModePref, setRenderModePref] = useState(() => {
+    return localStorage.getItem('endobone_pref_renderMode') || 'heatmap';
+  });
+  const [calciumUnit, setCalciumUnit] = useState(() => {
+    return localStorage.getItem('endobone_pref_calciumUnit') || 'mg_dl';
+  });
+  const [riskSensitivity, setRiskSensitivity] = useState(() => {
+    return localStorage.getItem('endobone_pref_riskSensitivity') || 'standard';
+  });
+  const [autoRotate3D, setAutoRotate3D] = useState(() => {
+    const v = localStorage.getItem('endobone_pref_autoRotate3D');
+    return v !== null ? v === 'true' : true;
+  });
+  const [soundEffects, setSoundEffects] = useState(() => {
+    return localStorage.getItem('endobone_pref_soundEffects') === 'true';
+  });
 
   // Settings saved feedback
   const [savedFeedback, setSavedFeedback] = useState(false);
@@ -75,6 +86,15 @@ export default function SettingsModal() {
   };
 
   const handleSavePreferences = () => {
+    try {
+      localStorage.setItem('endobone_pref_renderMode', renderModePref);
+      localStorage.setItem('endobone_pref_calciumUnit', calciumUnit);
+      localStorage.setItem('endobone_pref_riskSensitivity', riskSensitivity);
+      localStorage.setItem('endobone_pref_autoRotate3D', String(autoRotate3D));
+      localStorage.setItem('endobone_pref_soundEffects', String(soundEffects));
+    } catch (e) {
+      console.warn('Unable to persist preferences to localStorage:', e);
+    }
     setSavedFeedback(true);
     setTimeout(() => setSavedFeedback(false), 2500);
   };
@@ -85,8 +105,14 @@ export default function SettingsModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={() => setIsSettingsModalOpen(false)}
+    >
+      <div
+        className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Modal Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">

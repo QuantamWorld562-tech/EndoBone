@@ -24,7 +24,8 @@ export const patients = [
     scheduledDate: '2024-10-24',
     referralDate: '2024-08-10',
     clinician: 'Dr. James Morrison, MD',
-    status: 'active'
+    status: 'active',
+    riskLevel: 'high'
   },
   {
     id: 'PEB-8841-B',
@@ -36,7 +37,8 @@ export const patients = [
     scheduledDate: '2024-09-15',
     referralDate: '2024-08-01',
     clinician: 'Dr. Sarah Chen, MD',
-    status: 'pending-review'
+    status: 'pending-review',
+    riskLevel: 'moderate'
   },
   {
     id: 'PEB-8840-C',
@@ -48,7 +50,8 @@ export const patients = [
     scheduledDate: '2024-11-01',
     referralDate: '2024-07-25',
     clinician: 'Dr. Michael Zhang, MD',
-    status: 'completed'
+    status: 'completed',
+    riskLevel: 'low'
   },
   {
     id: 'PEB-8839-D',
@@ -60,23 +63,24 @@ export const patients = [
     scheduledDate: '2024-10-10',
     referralDate: '2024-08-05',
     clinician: 'Dr. Patricia Kumar, MD',
-    status: 'active'
+    status: 'active',
+    riskLevel: 'high'
   }
 ];
 
 export const biomarkersDB = {
   'PEB-8842-A': {
     date: '2024-08-14',
-    pth: { value: '', unit: 'pg/mL', ref: '15.0-65.0', status: 'normal', trend: 'stable' },
-    vitaminD: { value: '', unit: 'ng/mL', ref: '30.0-100.0', status: 'normal', trend: 'stable' },
-    calcium: { value: '', unit: 'mg/dL', ref: '8.6-10.3', status: 'normal', trend: 'stable' },
-    phosphate: { value: '', unit: 'mg/dL', ref: '2.5-4.5', status: 'normal', trend: 'stable' },
-    alp: { value: '', unit: 'U/L', ref: '44-147', status: 'normal', trend: 'stable' },
-    tsh: { value: '', unit: 'mIU/L', ref: '0.4-4.0', status: 'normal', trend: 'stable' },
-    free_t4: { value: '', unit: 'ng/dL', ref: '0.8-1.8', status: 'normal', trend: 'stable' },
-    ctx: { value: '', unit: 'pg/mL', ref: '< 300', status: 'normal', trend: 'stable' },
-    p1np: { value: '', unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
-    magnesium: { value: '', unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
+    pth: { value: 85.2, unit: 'pg/mL', ref: '15.0-65.0', status: 'elevated', trend: 'up' },
+    vitaminD: { value: 18.5, unit: 'ng/mL', ref: '30.0-100.0', status: 'deficient', trend: 'down' },
+    calcium: { value: 8.2, unit: 'mg/dL', ref: '8.6-10.3', status: 'low', trend: 'down' },
+    phosphate: { value: 2.8, unit: 'mg/dL', ref: '2.5-4.5', status: 'normal', trend: 'stable' },
+    alp: { value: 110, unit: 'U/L', ref: '44-147', status: 'normal', trend: 'stable' },
+    tsh: { value: 1.8, unit: 'mIU/L', ref: '0.4-4.0', status: 'normal', trend: 'stable' },
+    free_t4: { value: 1.1, unit: 'ng/dL', ref: '0.8-1.8', status: 'normal', trend: 'stable' },
+    ctx: { value: 450, unit: 'pg/mL', ref: '< 300', status: 'elevated', trend: 'up' },
+    p1np: { value: 62, unit: 'mcg/L', ref: '15-80', status: 'normal', trend: 'stable' },
+    magnesium: { value: 1.9, unit: 'mg/dL', ref: '1.8-2.2', status: 'normal', trend: 'stable' }
   },
   'PEB-8841-B': {
     date: '2024-08-12',
