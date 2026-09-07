@@ -67,6 +67,41 @@
       "clinician": "Dr. Patricia Kumar, MD",
       "created_at": "2024-08-05T14:20:00Z",
       "updated_at": "2024-08-05T14:20:00Z"
+    },
+    {
+      "case_id": "PEB-5411-F",
+      "model_id": "01",
+      "patient_name": "Patient PEB-5411-F",
+      "patient_age": 58,
+      "patient_gender": "Female",
+      "clinical_indication": "Total Hip Arthroplasty (THA)",
+      "procedure": "Total Hip Arthroplasty (THA)",
+      "condition": "Pre-Surgical Bone Mineral Density Evaluation",
+      "name": "Patient PEB-5411-F",
+      "age": 58,
+      "gender": "Female",
+      "status": "active",
+      "initial_biomarkers": {
+        "pth": 42,
+        "vitamin_d": 45,
+        "calcium": 9.6,
+        "phosphate": 3.5,
+        "alp": 78,
+        "ctx": 210
+      },
+      "pth": 42.0,
+      "vitaminD": 45.0,
+      "vitamin_d": 45.0,
+      "calcium": 9.6,
+      "phosphate": 3.5,
+      "alp": 78.0,
+      "tsh": null,
+      "free_t4": null,
+      "ctx": 210.0,
+      "id": "PEB-5411-F",
+      "_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.487476Z",
+      "updated_at": "2026-09-06T10:16:27.487476Z"
     }
   ],
   "biomarkers": [
@@ -121,6 +156,59 @@
       "free_t4": 1.0,
       "ctx": 310.0,
       "updated_at": "2024-08-05T14:20:00Z"
+    },
+    {
+      "vitamin_d": 45.0,
+      "pth": 42.0,
+      "calcium": 9.6,
+      "phosphate": 3.5,
+      "alp": 78.0,
+      "case_id": "PEB-5411-F",
+      "_id": "bm_1788689787489",
+      "updated_at": "2026-09-06T10:16:27.489296Z",
+      "assessment": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 45.0,
+            "unit": "ng/mL",
+            "status": "within_reference_context",
+            "observation": "Optimal systemic substrate level for active 1,25(OH)2D synthesis."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 42.0,
+            "unit": "pg/mL",
+            "status": "within_reference_context",
+            "observation": "Parathyroid gland secretion is balanced within physiological homeostatic limits."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.6,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.5,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 78.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [],
+        "explainability": [],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
     }
   ],
   "doctors": [
@@ -145,6 +233,289 @@
       "licenseNumber": "DOC-DEMO-001",
       "institution": "EndoBone AI Demo Hospital",
       "created_at": "2026-01-01T00:00:00Z"
+    },
+    {
+      "_id": "doc_demo_002",
+      "firstName": "Demo",
+      "lastName": "Doctor",
+      "email": "doctor@endobone.ai",
+      "password_hash": "5bef2b81f3e89498428a0a38b2c7907c$a20de91f5932520a95474768a77b580733aac1b9f8da48fa9a16c687a49ef511",
+      "role": "doctor",
+      "licenseNumber": "DOC-DEMO-002",
+      "institution": "EndoBone AI Demo Hospital",
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "roi": [
+    {
+      "region_name": "femoral-neck",
+      "cortical_thickness_mm": 2.1,
+      "trabecular_v_bmd": 118.5,
+      "risk_level": "moderate",
+      "observation": "Cortical thinning observed at superior aspect of femoral neck.",
+      "recommendation": "Consider augmented screw purchase or bone cement augmentation.",
+      "coordinates": {
+        "x": 24.5,
+        "y": 88.2,
+        "z": -12.4
+      },
+      "_id": "roi_1788689787490_302",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.490076Z",
+      "updated_at": "2026-09-06T10:16:27.490076Z"
+    },
+    {
+      "region_name": "greater-trochanter",
+      "cortical_thickness_mm": 3.4,
+      "trabecular_v_bmd": 156.0,
+      "risk_level": "moderate",
+      "observation": "Moderate trabecular rarefaction with preserved cortical rim.",
+      "recommendation": "Standard fixation anchor seating appropriate.",
+      "coordinates": {
+        "x": 42.1,
+        "y": 72.0,
+        "z": -8.1
+      },
+      "_id": "roi_1788689787490_111",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.490809Z",
+      "updated_at": "2026-09-06T10:16:27.490809Z"
+    },
+    {
+      "region_name": "shaft",
+      "cortical_thickness_mm": 5.8,
+      "trabecular_v_bmd": 240.2,
+      "risk_level": "low",
+      "observation": "Robust cortical diaphyseal cylinder.",
+      "recommendation": "Optimal bicortical screw purchase zone.",
+      "coordinates": {
+        "x": 12.0,
+        "y": 15.0,
+        "z": -4.0
+      },
+      "_id": "roi_1788689787491_111",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.491450Z",
+      "updated_at": "2026-09-06T10:16:27.491450Z"
+    }
+  ],
+  "annotations": [
+    {
+      "text": "Pre-op 3D AI planning for Total Hip Arthroplasty (THA). Bone quality evaluation generated.",
+      "author": "AI Surgical Planner",
+      "region_id": "femoral-neck",
+      "note_type": "clinical",
+      "_id": "anno_1788689787492_917",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.492103Z",
+      "updated_at": "2026-09-06T10:16:27.492103Z"
+    },
+    {
+      "text": "Metabolic risk flagged: PTH 42 pg/mL. Verify implant primary stability.",
+      "author": "EndoBone AI Engine",
+      "region_id": "proximal-femur",
+      "note_type": "metabolic",
+      "_id": "anno_1788689787492_538",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.492799Z",
+      "updated_at": "2026-09-06T10:16:27.492799Z"
+    }
+  ],
+  "simulations": [
+    {
+      "load_vector_n": 4200.0,
+      "target_region": "femoral_neck",
+      "yield_strength_n": 3920.0,
+      "failure_probability_pct": 18.2,
+      "risk_score": 45.0,
+      "implant_stability": "stable",
+      "recommendation": "Augmented dual-geometry screw anchorage recommended under 4.2 kN peak load.",
+      "_id": "sim_1788689787493_771",
+      "case_id": "PEB-5411-F",
+      "created_at": "2026-09-06T10:16:27.493417Z",
+      "updated_at": "2026-09-06T10:16:27.493417Z"
+    }
+  ],
+  "assessments": [
+    {
+      "_id": "assess_1788689790770",
+      "patientId": "PEB-5411-F",
+      "overallQualityRisk": 30,
+      "riskLevel": "low",
+      "aiResults": {
+        "risk_level": "low",
+        "target_region": "shaft",
+        "anatomical_observations": "Risk score 30/100. All biomarkers within normal range.",
+        "metabolic_observations": "",
+        "contributing_factors": []
+      },
+      "selected_roi": null,
+      "planning_notes": null,
+      "createdAt": "2026-09-06T10:16:30Z",
+      "updatedAt": "2026-09-06T10:16:30Z",
+      "engine_result": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 45.0,
+            "unit": "ng/mL",
+            "status": "within_reference_context",
+            "observation": "Optimal systemic substrate level for active 1,25(OH)2D synthesis."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 42.0,
+            "unit": "pg/mL",
+            "status": "within_reference_context",
+            "observation": "Parathyroid gland secretion is balanced within physiological homeostatic limits."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.6,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.5,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 78.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [],
+        "explainability": [],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "_id": "assess_1788690406275",
+      "patientId": "PEB-8842-A",
+      "overallQualityRisk": 30,
+      "riskLevel": "low",
+      "aiResults": {
+        "risk_level": "low",
+        "target_region": "shaft",
+        "anatomical_observations": "Risk score 30/100. All biomarkers within normal range.",
+        "metabolic_observations": "",
+        "contributing_factors": []
+      },
+      "selected_roi": null,
+      "planning_notes": null,
+      "createdAt": "2026-09-06T10:26:46Z",
+      "updatedAt": "2026-09-06T10:26:46Z",
+      "engine_result": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 30.0,
+            "unit": "ng/mL",
+            "status": "within_reference_context",
+            "observation": "Optimal systemic substrate level for active 1,25(OH)2D synthesis."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 65.0,
+            "unit": "pg/mL",
+            "status": "within_reference_context",
+            "observation": "Parathyroid gland secretion is balanced within physiological homeostatic limits."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.0,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.5,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 80.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [],
+        "explainability": [],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
+    },
+    {
+      "_id": "assess_1788690411107",
+      "patientId": "PEB-5411-F",
+      "overallQualityRisk": 30,
+      "riskLevel": "low",
+      "aiResults": {
+        "risk_level": "low",
+        "target_region": "shaft",
+        "anatomical_observations": "Risk score 30/100. All biomarkers within normal range.",
+        "metabolic_observations": "",
+        "contributing_factors": []
+      },
+      "selected_roi": null,
+      "planning_notes": null,
+      "createdAt": "2026-09-06T10:26:51Z",
+      "updatedAt": "2026-09-06T10:26:51Z",
+      "engine_result": {
+        "model_version": "Models 4, 5 & 6 (Multi-Biomarker Endocrine Engine)",
+        "individual_assessments": [
+          {
+            "biomarker": "25-Hydroxyvitamin D",
+            "value": 45.0,
+            "unit": "ng/mL",
+            "status": "within_reference_context",
+            "observation": "Optimal systemic substrate level for active 1,25(OH)2D synthesis."
+          },
+          {
+            "biomarker": "Parathyroid Hormone (PTH)",
+            "value": 42.0,
+            "unit": "pg/mL",
+            "status": "within_reference_context",
+            "observation": "Parathyroid gland secretion is balanced within physiological homeostatic limits."
+          },
+          {
+            "biomarker": "Serum Calcium",
+            "value": 9.6,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Circulating calcium level supports normal neuromuscular signaling and bone matrix stability."
+          },
+          {
+            "biomarker": "Serum Phosphate",
+            "value": 3.5,
+            "unit": "mg/dL",
+            "status": "within_reference_context",
+            "observation": "Phosphate level is within normal homeostatic range for hydroxyapatite formation."
+          },
+          {
+            "biomarker": "Alkaline Phosphatase (ALP)",
+            "value": 78.0,
+            "unit": "U/L",
+            "status": "within_reference_context",
+            "observation": "Alkaline phosphatase activity within standard physiological remodeling range."
+          }
+        ],
+        "detected_relationships": [],
+        "explainability": [],
+        "disclaimer": "Educational and analytical assessment engine only. Does not replace professional clinical diagnosis or orthopedic consultation."
+      }
     }
   ]
 }

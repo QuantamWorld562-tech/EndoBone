@@ -21,14 +21,7 @@ import { CaseLoadingOverlay } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const {
-    patients,
-    deleteCase,
-    setActivePatientId,
-    setIsNewCaseModalOpen,
-    allBiomarkers,
-    regionalAnalysisDB,
-  } = usePatientContext();
+  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen } = usePatientContext();
   const [loadingPatient, setLoadingPatient] = useState(null);
 
   const handleSelectPatient = (id) => {
@@ -50,61 +43,6 @@ export default function DashboardView({ onSelectPatient }) {
   const [caseToDelete, setCaseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const getCaseRiskLevel = (patient) => {
-    if (!patient) return 'moderate';
-
-    // 1. Explicit risk level property on patient object
-    const explicit = patient.risk_level || patient.riskLevel;
-    if (explicit) {
-      const s = String(explicit).toLowerCase();
-      if (['high', 'critical', 'severe'].includes(s)) return 'high';
-      if (['low', 'minimal', 'cleared'].includes(s)) return 'low';
-      if (['medium', 'moderate', 'intermediate'].includes(s)) return 'moderate';
-    }
-
-    // 2. Regional analysis database mapping
-    const reg = regionalAnalysisDB?.[patient.id];
-    if (reg) {
-      const zones = Object.values(reg);
-      if (zones.some((z) => String(z.riskLevel).toLowerCase() === 'high')) return 'high';
-      if (zones.some((z) => String(z.riskLevel).toLowerCase() === 'moderate')) return 'moderate';
-      if (zones.some((z) => String(z.riskLevel).toLowerCase() === 'low')) return 'low';
-    }
-
-    // 3. Biomarkers evaluation if available
-    const bm = allBiomarkers?.[patient.id] || patient.initial_biomarkers || patient;
-    const pth = Number(bm?.pth?.value ?? bm?.pth ?? 0);
-    const vitD = Number(bm?.vitaminD?.value ?? bm?.vitamin_d?.value ?? bm?.vitaminD ?? bm?.vitamin_d ?? 0);
-    const calc = Number(bm?.calcium?.value ?? bm?.calcium ?? 0);
-
-    if (pth > 0 || vitD > 0 || calc > 0) {
-      let riskScore = 30;
-      if (pth > 80) riskScore += 25;
-      else if (pth > 65) riskScore += 12;
-
-      if (vitD > 0 && vitD < 20) riskScore += 25;
-      else if (vitD > 0 && vitD < 30) riskScore += 10;
-
-      if (calc > 0 && (calc < 8.5 || calc > 10.5)) riskScore += 15;
-
-      if (riskScore >= 55) return 'high';
-      if (riskScore >= 35) return 'moderate';
-      return 'low';
-    }
-
-    // 4. Clinical status mapping
-    if (patient.status === 'completed') return 'low';
-    if (patient.status === 'pending-review') return 'moderate';
-
-    // 5. Stable distribution mapping rather than defaulting everything to high
-    const idNum = String(patient.id || '').replace(/\D/g, '');
-    const code = idNum ? parseInt(idNum, 10) : String(patient.id || '').charCodeAt(0);
-    const rem = code % 3;
-    if (rem === 0) return 'low';
-    if (rem === 1) return 'moderate';
-    return 'high';
-  };
-
   const filteredPatients = useMemo(() => {
     return patients.filter((p) => {
       const matchSearch =
@@ -120,7 +58,7 @@ export default function DashboardView({ onSelectPatient }) {
 
   const activeCases = filteredPatients.filter((p) => p.status === 'active').length;
   const pendingReviews = filteredPatients.filter((p) => p.status === 'pending-review').length;
-  const highRiskCases = filteredPatients.filter((p) => getCaseRiskLevel(p) === 'high').length;
+  const highRiskCases = filteredPatients.length;
 
   const stats = [
     {
@@ -148,19 +86,17 @@ export default function DashboardView({ onSelectPatient }) {
       color: 'red',
       grad: 'from-red-500 to-red-700',
       bg: 'bg-red-50',
-      val: highRiskCases || 1,
+      val: highRiskCases || 4,
     },
   ];
 
-  const getRiskBadge = (patient) => {
-    const risk = getCaseRiskLevel(patient);
-    if (risk === 'high') {
-      return { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' };
-    }
-    if (risk === 'low') {
-      return { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' };
-    }
-    return { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' };
+  const getRiskBadge = (status) => {
+    const map = {
+      active: { text: 'HIGH', cls: 'bg-red-100 text-red-700 ring-red-200' },
+      'pending-review': { text: 'MODERATE', cls: 'bg-amber-100 text-amber-700 ring-amber-200' },
+      completed: { text: 'LOW', cls: 'bg-teal-100 text-teal-700 ring-teal-200' },
+    };
+    return map[status] || map.active;
   };
 
   const handleConfirmDelete = async () => {
@@ -271,7 +207,7 @@ export default function DashboardView({ onSelectPatient }) {
               <div className="p-8 sm:p-10 text-center text-slate-500 text-xs sm:text-sm">No matching patients found.</div>
             ) : (
               filteredPatients.map((p) => {
-                const badge = getRiskBadge(p);
+                const badge = getRiskBadge(p.status);
                 return (
                   <div
                     key={p.id}

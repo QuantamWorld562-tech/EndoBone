@@ -73,15 +73,30 @@ class DatabaseManager:
             "created_at": "2026-01-01T00:00:00Z",
         }
 
+        demo_doctor_alt = {
+            "_id": "doc_demo_002",
+            "firstName": "Demo",
+            "lastName": "Doctor",
+            "email": "doctor@endobone.ai",
+            "password_hash": _hash_pw("Doctor@2026!"),
+            "role": "doctor",
+            "licenseNumber": "DOC-DEMO-002",
+            "institution": "EndoBone AI Demo Hospital",
+            "created_at": "2026-01-01T00:00:00Z",
+        }
+
         if self.is_connected and self.db is not None:
             existing_admin = await self.db.doctors.find_one({"role": "admin"})
             if not existing_admin:
                 await self.db.doctors.insert_one(demo_admin)
                 print("[DATABASE] ✓ Seeded demo admin account: admin@endobone.ai")
-            existing_doc = await self.db.doctors.find_one({"_id": "doc_demo_001"})
+            existing_doc = await self.db.doctors.find_one({"email": "doctor.demo@gmail.com"})
             if not existing_doc:
                 await self.db.doctors.insert_one(demo_doctor)
                 print("[DATABASE] ✓ Seeded demo doctor account: doctor.demo@gmail.com")
+            existing_doc_alt = await self.db.doctors.find_one({"email": "doctor@endobone.ai"})
+            if not existing_doc_alt:
+                await self.db.doctors.insert_one(demo_doctor_alt)
         else:
             local = self.get_local_data()
             doctors = local.get("doctors", [])
@@ -89,10 +104,13 @@ class DatabaseManager:
             if not has_admin:
                 doctors.append(demo_admin)
                 print("[DATABASE] ✓ Seeded demo admin account: admin@endobone.ai")
-            has_demo_doc = any(d.get("_id") == "doc_demo_001" for d in doctors)
+            has_demo_doc = any(d.get("email") == "doctor.demo@gmail.com" for d in doctors)
             if not has_demo_doc:
                 doctors.append(demo_doctor)
                 print("[DATABASE] ✓ Seeded demo doctor account: doctor.demo@gmail.com")
+            has_demo_doc_alt = any(d.get("email") == "doctor@endobone.ai" for d in doctors)
+            if not has_demo_doc_alt:
+                doctors.append(demo_doctor_alt)
             local["doctors"] = doctors
             self.save_local_data(local)
 

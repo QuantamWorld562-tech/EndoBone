@@ -13,32 +13,6 @@ export async function registerDoctor(payload) {
   return response.data;
 }
 
-export async function googleSignInDoctor(payload) {
-  const response = await apiClient.post('/auth/google', payload);
-  return response.data;
-}
-
-export async function updateDoctorProfile(payload) {
-  const response = await apiClient.put('/auth/profile', payload);
-  if (response.data) {
-    persistDoctorProfile(response.data);
-  }
-  return response.data;
-}
-
-export async function getDoctorOverview() {
-  const response = await apiClient.get('/auth/overview');
-  return response.data;
-}
-
-export function persistDoctorProfile(doctor) {
-  if (!doctor) return;
-  const current = readStoredDoctorProfile() || {};
-  const updated = { ...current, ...doctor };
-  localStorage.setItem(STORAGE_DOCTOR_KEY, JSON.stringify(updated));
-  return updated;
-}
-
 export function persistAuthSession(session) {
   if (!session?.token || !session?.doctor) return;
   localStorage.setItem(STORAGE_TOKEN_KEY, session.token);
@@ -52,14 +26,14 @@ export function clearAuthSession() {
   delete apiClient.defaults.headers.common.Authorization;
 }
 
+export function readAuthToken() {
+  return localStorage.getItem(STORAGE_TOKEN_KEY);
+}
+
 export function hydrateAuthHeader() {
   const token = localStorage.getItem(STORAGE_TOKEN_KEY);
   if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
   return token;
-}
-
-export function readAuthToken() {
-  return localStorage.getItem(STORAGE_TOKEN_KEY);
 }
 
 export function readStoredDoctorProfile() {
@@ -71,6 +45,26 @@ export function readStoredDoctorProfile() {
   } catch {
     return null;
   }
+}
+
+export function persistDoctorProfile(profileUpdates) {
+  const existing = readStoredDoctorProfile() || {};
+  const merged = { ...existing, ...profileUpdates };
+  localStorage.setItem(STORAGE_DOCTOR_KEY, JSON.stringify(merged));
+  return merged;
+}
+
+export async function updateDoctorProfile(payload) {
+  const response = await apiClient.put('/auth/profile', payload);
+  if (response.data) {
+    persistDoctorProfile(response.data);
+  }
+  return response.data;
+}
+
+export async function getDoctorOverview() {
+  const response = await apiClient.get('/auth/overview');
+  return response.data;
 }
 
 export async function changePassword(payload) {

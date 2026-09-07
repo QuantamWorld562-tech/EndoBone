@@ -10,10 +10,14 @@ import {
   BrainCircuit,
   X,
   Shield,
+  ShieldCheck,
+  UserRound,
   Sparkles,
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { usePatientContext } from '../../context/PatientDataContext';
-import { readStoredDoctorProfile } from '../../services';
+import { readStoredDoctorProfile, clearAuthSession } from '../../services';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: () => '/dashboard', badge: null },
@@ -32,11 +36,9 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
     setIsNewCaseModalOpen,
     setIsSettingsModalOpen,
     setIsSupportModalOpen,
-    setIsDoctorProfileOpen,
-    currentDoctorProfile,
   } = usePatientContext();
   const patientId = params.patientId || activePatientId || null;
-  const currentDoctor = currentDoctorProfile || readStoredDoctorProfile();
+  const currentDoctor = readStoredDoctorProfile();
   const isAdmin = currentDoctor?.role === 'admin';
 
   const getActiveTab = () => {
@@ -66,6 +68,16 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
     onCloseMobile?.();
   };
 
+  const handleLogout = () => {
+    clearAuthSession();
+    navigate('/login', { replace: true });
+    onCloseMobile?.();
+  };
+
+  const doctorName = currentDoctor
+    ? `${currentDoctor.firstName || ''} ${currentDoctor.lastName || ''}`.trim()
+    : 'Clinical User';
+
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -78,9 +90,8 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
 
       {/* Sidebar Container: Fixed slide-over on mobile, full-height sticky flexbox on desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 lg:w-64 bg-white border-r border-slate-200 shadow-2xl lg:shadow-none flex flex-col h-screen max-h-screen transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 lg:w-64 bg-white border-r border-slate-200 shadow-2xl lg:shadow-none flex flex-col h-screen max-h-screen transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Brand Header — Aligned with TopBar height */}
         <div className="h-16 px-4 sm:px-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white">
@@ -123,29 +134,26 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
               <button
                 key={item.id}
                 onClick={() => handleNavigate(item)}
-                className={`w-full text-left px-3 py-2.5 rounded-xl transition flex items-center justify-between group cursor-pointer ${
-                  isActive
+                className={`w-full text-left px-3 py-2.5 rounded-xl transition flex items-center justify-between group cursor-pointer ${isActive
                     ? 'bg-blue-50/90 text-blue-700 font-bold shadow-sm ring-1 ring-blue-600/10'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <item.icon
                     size={17}
-                    className={`shrink-0 transition-colors ${
-                      isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
-                    }`}
+                    className={`shrink-0 transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'
+                      }`}
                   />
                   <span className="text-xs truncate">{item.label}</span>
                 </div>
 
                 {item.badge && (
                   <span
-                    className={`px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wide shrink-0 ${
-                      isActive
+                    className={`px-1.5 py-0.2 rounded-md text-[9px] font-black uppercase tracking-wide shrink-0 ${isActive
                         ? 'bg-blue-600 text-white'
                         : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {item.badge}
                   </span>
@@ -163,18 +171,16 @@ export default function Sidebar({ onNewCase, isMobileOpen, onCloseMobile }) {
               </div>
               <button
                 onClick={() => { navigate('/admin'); onCloseMobile?.(); }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl transition flex items-center justify-between group cursor-pointer ${
-                  activeTab === 'admin'
+                className={`w-full text-left px-3 py-2.5 rounded-xl transition flex items-center justify-between group cursor-pointer ${activeTab === 'admin'
                     ? 'bg-amber-50 text-amber-950 font-bold shadow-sm ring-1 ring-amber-500/20'
                     : 'text-slate-700 hover:bg-amber-50/60 font-semibold'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Shield
                     size={17}
-                    className={`shrink-0 ${
-                      activeTab === 'admin' ? 'text-amber-600' : 'text-amber-500 group-hover:text-amber-700'
-                    }`}
+                    className={`shrink-0 ${activeTab === 'admin' ? 'text-amber-600' : 'text-amber-500 group-hover:text-amber-700'
+                      }`}
                   />
                   <span className="text-xs truncate">Admin Control Panel</span>
                 </div>
