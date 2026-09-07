@@ -243,6 +243,7 @@ export function PatientDataProvider({ children }) {
   const [patientList, setPatientList] = useState([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [persistedAssessment, setPersistedAssessment] = useState(null);
+  const [backendRois, setBackendRois] = useState({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [apiError, setApiError] = useState(null);
 
@@ -337,6 +338,22 @@ export function PatientDataProvider({ children }) {
     loadBiomarkers();
     return () => { isMounted = false; };
   }, [activePatientId]); // intentionally omit allBiomarkers — would create an infinite loop
+
+  // Load backend ROI risk levels when the active case changes.
+  useEffect(() => {
+    let isMounted = true;
+    if (!activePatientId) return undefined;
+
+    async function loadRois() {
+      const rois = await patientService.getROIs(activePatientId);
+      if (isMounted) {
+        setBackendRois((prev) => ({ ...prev, [activePatientId]: rois }));
+      }
+    }
+
+    loadRois();
+    return () => { isMounted = false; };
+  }, [activePatientId]);
 
   // Selected Region of Interest (shared across 3D and other views)
   const [selectedRegion, setSelectedRegion] = useState('proximal-femur');
@@ -747,6 +764,18 @@ export function PatientDataProvider({ children }) {
     });
   }, [persistedAssessment, activePatientId]);
 
+  const roiZoneRisks = useMemo(() => {
+    const rois = activePatientId ? backendRois[activePatientId] || [] : [];
+    return rois.map((roi) => ({
+      id: roi.region_name || roi.region_id,
+      label: roi.region_name || roi.region_id,
+      riskLevel: roi.risk_level,
+      riskScore: roi.risk_score ?? roi.riskScore ?? roi.score,
+      note: roi.observation || roi.recommendation || '',
+      coordinates: roi.coordinates,
+    }));
+  }, [activePatientId, backendRois]);
+
   // Reset entire active workspace (clears patient, assessment, models)
   const resetWorkspace = useCallback(() => {
     setActivePatientId(null);
@@ -801,6 +830,7 @@ export function PatientDataProvider({ children }) {
     backendRiskLevel,
     aiClinicalNote,
     aiZoneRisks,
+    roiZoneRisks,
   };
 
   return <PatientDataContext.Provider value={value}>{children}</PatientDataContext.Provider>;

@@ -27,6 +27,16 @@ export const patientService = {
     }
   },
 
+  getROIs: async (patientId) => {
+    try {
+      const response = await apiClient.get(`/cases/${patientId}/roi`);
+      return response.data?.roi || [];
+    } catch (e) {
+      console.warn(`Backend ROIs for case ${patientId} could not be loaded.`);
+      return [];
+    }
+  },
+
   createPatient: async (patient) => {
     try {
       const response = await apiClient.post('/cases', patient);

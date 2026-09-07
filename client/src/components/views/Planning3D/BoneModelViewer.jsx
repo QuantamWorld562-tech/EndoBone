@@ -105,13 +105,13 @@ const ANCHORS = {
 };
 
 const ANATOMICAL_OFFSETS = {
-  'femoral-head':       { side: 'right', offset: [10, -10], subLabel: 'Caput Femoris' },
-  'femoral-neck':       { side: 'right', offset: [10, -2],  subLabel: 'Collum Femoris' },
-  'greater-trochanter': { side: 'left',  offset: [-10, -8], subLabel: 'Trochanter Major' },
-  'intertrochanteric':  { side: 'left',  offset: [-10, 4],  subLabel: 'Crista Intertroch.' },
-  'lesser-trochanter':  { side: 'right', offset: [10, 8],   subLabel: 'Trochanter Minor' },
-  shaft:                { side: 'right', offset: [10, 16],  subLabel: 'Diaphysis / Corpus' },
-  'distal-condyles':    { side: 'left',  offset: [-10, 4],  subLabel: 'Condyli' },
+  'femoral-head':       { side: 'right', offset: [14, 10],  subLabel: 'Caput Femoris' },
+  'femoral-neck':       { side: 'right', offset: [14, 8],   subLabel: 'Collum Femoris' },
+  'greater-trochanter': { side: 'left',  offset: [-14, 8],  subLabel: 'Trochanter Major' },
+  'intertrochanteric':  { side: 'left',  offset: [-14, 6],  subLabel: 'Crista Intertroch.' },
+  'lesser-trochanter':  { side: 'right', offset: [14, 8],   subLabel: 'Trochanter Minor' },
+  shaft:                { side: 'right', offset: [14, 6],   subLabel: 'Diaphysis / Corpus' },
+  'distal-condyles':    { side: 'left',  offset: [-14, -8], subLabel: 'Condyli' },
 };
 
 const RADII = {
@@ -132,6 +132,12 @@ function canonical(v) { return REGION_ALIASES[slug(v)] || slug(v); }
 function humanize(v) { return String(v || 'Zone').replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 
 function normalizeRisk(v) {
+  if (typeof v === 'number' && Number.isFinite(v)) {
+    const score = v > 1 ? v / 100 : v;
+    if (score >= 0.65) return 'high';
+    if (score >= 0.40) return 'moderate';
+    return 'low';
+  }
   const s = String(v || '').toLowerCase();
   if (['critical', 'high', 'severe'].includes(s)) return 'high';
   if (['medium', 'moderate', 'intermediate'].includes(s)) return 'moderate';
@@ -169,7 +175,8 @@ function normalizeZones(raw, fallback) {
       id: rawId, canonicalId: canId,
       label: z.label || z.location || z.name || humanize(rawId),
       subLabel: z.subLabel || layout.subLabel || humanize(canId),
-      riskLevel: normalizeRisk(z.riskLevel ?? z.risk_level ?? fallback.riskLevel),
+      riskLevel: normalizeRisk(z.riskLevel ?? z.risk_level ?? z.risk ?? fallback.riskLevel),
+      riskScore: Number(z.riskScore ?? z.risk_score ?? z.score),
       note: z.note || z.clinicalNote || z.observation || fallback.clinicalNote || 'Clinical evaluation zone.',
       tScore: z.tScore || z.t_score || (canId === 'femoral-neck' ? '-2.3' : canId === 'greater-trochanter' ? '-1.9' : '-0.5'),
       vBMD: z.vBMD || (canId === 'femoral-neck' ? '112.4' : canId === 'greater-trochanter' ? '198.6' : '845.1'),
@@ -214,21 +221,15 @@ function applyRiskShading(mesh, zones, rootGroup) {
 
   // Pre-calculate zone weights and calibrated risk levels
   const zoneWeights = zones.map(z => {
-    let targetRisk = 0.12;
-    if (z.riskLevel === 'high') {
+    let targetRisk = Number.isFinite(z.riskScore)
+      ? THREE.MathUtils.clamp(z.riskScore > 1 ? z.riskScore / 100 : z.riskScore, 0.0, 1.0)
+      : 0.12;
+    if (!Number.isFinite(z.riskScore) && z.riskLevel === 'high') {
       targetRisk = 0.94;
-    } else if (z.riskLevel === 'moderate') {
+    } else if (!Number.isFinite(z.riskScore) && z.riskLevel === 'moderate') {
       targetRisk = 0.62;
-    } else {
+    } else if (!Number.isFinite(z.riskScore)) {
       targetRisk = 0.14;
-    }
-
-    if (z.tScore) {
-      const t = parseFloat(z.tScore);
-      if (!isNaN(t)) {
-        // Continuous clinical calibration: T >= -1.0 -> 0.10, T = -2.0 -> 0.58, T <= -3.0 -> 0.98
-        targetRisk = THREE.MathUtils.clamp((-t - 0.4) / 2.6, 0.08, 0.98);
-      }
     }
 
     return {
@@ -239,26 +240,12 @@ function applyRiskShading(mesh, zones, rootGroup) {
     };
   });
 
-  // Pass 1: Find min/max Y in rootGroup space
-  let minY = 9999, maxY = -9999;
+  // Continuous Per-Vertex Gaussian Thermal Density Field
   for (let i = 0; i < pos.count; i++) {
     vert.fromBufferAttribute(pos, i);
     worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
     localPos.copy(worldVert);
     rootGroup.worldToLocal(localPos);
-    if (localPos.y < minY) minY = localPos.y;
-    if (localPos.y > maxY) maxY = localPos.y;
-  }
-  const heightRange = Math.max(0.001, maxY - minY);
-
-  // Pass 2: Continuous Per-Vertex Gaussian Thermal Density Field
-  for (let i = 0; i < pos.count; i++) {
-    vert.fromBufferAttribute(pos, i);
-    worldVert.copy(vert).applyMatrix4(mesh.matrixWorld);
-    localPos.copy(worldVert);
-    rootGroup.worldToLocal(localPos);
-
-    const normY = THREE.MathUtils.clamp((localPos.y - minY) / heightRange, 0.0, 1.0);
 
     let totalRisk = 0.0; // baseline 0.0 = clean pure white bone
 
@@ -276,22 +263,7 @@ function applyRiskShading(mesh, zones, rootGroup) {
       }
     }
 
-    // 2. Anatomical Continuous Height Gradient Distribution (matching reference scan)
-    // Proximal Head & Neck & Trochanter (normY > 0.58) -> Red / Coral Peak
-    if (normY > 0.58) {
-      const proximalInf = THREE.MathUtils.smoothstep(normY, 0.58, 0.82);
-      totalRisk = Math.max(totalRisk, 0.70 + proximalInf * 0.30);
-    }
-    // Subtrochanteric / Mid-shaft band (normY between 0.36 and 0.58) -> Warm Golden Orange
-    else if (normY >= 0.36 && normY <= 0.58) {
-      const midInf = 1.0 - Math.abs(normY - 0.47) / 0.11;
-      if (midInf > 0.0) {
-        const orangeInf = THREE.MathUtils.smoothstep(midInf, 0.0, 1.0) * 0.58;
-        totalRisk = Math.max(totalRisk, orangeInf);
-      }
-    }
-
-    // Sample the continuous White -> Orange -> Red medical gradient
+    // Sample only the ROI-provided risk levels; do not infer risk from anatomy height or T-score.
     sampleHeatmapSpectrum(totalRisk, tempCol);
 
     colors[i * 3]     = tempCol.r;
@@ -511,9 +483,10 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
 
   const [layout, setLayout] = useState({
     side: z.side || 'left',
-    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -10 : 10),
-    targetY: z.offset ? z.offset[1] : 0,
-    midX: z.side === 'left' ? -4 : 4,
+    alignY: 'top',
+    targetX: z.offset ? z.offset[0] : (z.side === 'left' ? -14 : 14),
+    targetY: z.offset ? z.offset[1] : 8,
+    midX: z.side === 'left' ? -5 : 5,
   });
 
   const isHigh = z.riskLevel === 'high';
@@ -525,17 +498,32 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
     const vec = new THREE.Vector3(...z.anchor);
     vec.project(camera);
     const screenX = (vec.x * size.width) / 2;
-    const screenY = (-vec.y * size.height) / 2;
     const halfW = size.width / 2;
-    const halfH = size.height / 2;
-    const badgeW = isElevated ? 95 : 60;
-    const edgeMargin = 12;
+    const badgeW = isElevated ? 120 : 60;
+    const edgeMargin = 16;
 
+    // 1. Horizontal base side
     const baseSide = z.side || (vec.x < 0 ? 'left' : 'right');
-    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -10 : 10);
-    const rawTargetY = z.offset ? z.offset[1] : 0;
+    const rawTargetX = z.offset ? z.offset[0] : (baseSide === 'left' ? -14 : 14);
+    let rawTargetY = z.offset ? z.offset[1] : 8;
 
-    // 2. Boundary Collision Detection:
+    // 2. Vertical Alignment based on on-screen position:
+    // Upper quadrant (vec.y > 0.05): anchor is high up -> badge aligns near its top and flows DOWNWARDS into open space.
+    // Lower quadrant (vec.y < -0.35): anchor is near bottom -> badge aligns near its bottom and flows UPWARDS.
+    // Middle: centered.
+    let effectiveAlignY = 'center';
+    if (vec.y > 0.35) {
+      effectiveAlignY = 'top';
+      rawTargetY = Math.max(rawTargetY, 12);
+    } else if (vec.y > 0.05) {
+      effectiveAlignY = 'top';
+      rawTargetY = Math.max(rawTargetY, 8);
+    } else if (vec.y < -0.35) {
+      effectiveAlignY = 'bottom';
+      rawTargetY = Math.min(rawTargetY, -8);
+    }
+
+    // 3. Horizontal boundary flip & edge clamping
     const wouldExceedLeft = (screenX + rawTargetX - badgeW) < (-halfW + edgeMargin);
     const wouldExceedRight = (screenX + rawTargetX + badgeW) > (halfW - edgeMargin);
 
@@ -551,37 +539,17 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
       targetX = -Math.abs(rawTargetX);
     }
 
-    // 3. Fine-grained Edge Clamping to prevent clipping:
-    if (effectiveSide === 'left') {
-      const currentLeft = screenX + targetX - badgeW;
-      if (currentLeft < -halfW + edgeMargin) {
-        targetX += (-halfW + edgeMargin) - currentLeft;
-      }
-    } else {
-      const currentRight = screenX + targetX + badgeW;
-      if (currentRight > halfW - edgeMargin) {
-        targetX -= (currentRight - (halfW - edgeMargin));
-      }
-    }
-
-    // Y Axis Boundary Clamping:
-    const currentTop = screenY + targetY - (isElevated ? 32 : 12);
-    const currentBottom = screenY + targetY + (isElevated ? 32 : 12);
-    if (currentTop < -halfH + edgeMargin) {
-      targetY += (-halfH + edgeMargin) - currentTop;
-    } else if (currentBottom > halfH - edgeMargin) {
-      targetY -= (currentBottom - (halfH - edgeMargin));
-    }
-
-    const midX = targetX * 0.35;
+    const midX = targetX * 0.4;
 
     if (
       effectiveSide !== layout.side ||
+      effectiveAlignY !== layout.alignY ||
       Math.abs(targetX - layout.targetX) > 0.5 ||
       Math.abs(targetY - layout.targetY) > 0.5
     ) {
       setLayout({
         side: effectiveSide,
+        alignY: effectiveAlignY,
         targetX,
         targetY,
         midX,
@@ -590,7 +558,18 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
   });
 
   const isLeft = layout.side === 'left';
-  const { targetX, targetY, midX } = layout;
+  const { targetX, targetY, midX, alignY = 'top' } = layout;
+
+  const verticalOffset =
+    alignY === 'top'
+      ? '-12px'
+      : alignY === 'bottom'
+      ? 'calc(-100% + 14px)'
+      : '-50%';
+
+  const badgeTransform = isLeft
+    ? `translate(-100%, ${verticalOffset})`
+    : `translate(4px, ${verticalOffset})`;
 
   return (
     <group position={z.anchor}>
@@ -662,7 +641,7 @@ function AnnotationPinItem({ z, isSelected, isHovered, onSelectZone, onHoverZone
             style={{
               left: `${targetX}px`,
               top: `${targetY}px`,
-              transform: isLeft ? 'translate(-100%, -50%)' : 'translate(2px, -50%)',
+              transform: badgeTransform,
               zIndex: isElevated ? 99999 : 10,
             }}
             onClick={(e) => {

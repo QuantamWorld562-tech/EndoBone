@@ -105,7 +105,7 @@ export default function Planning3DView({ patientId }) {
     biomarkers,
     selectedRegion, setSelectedRegion,
     roiNotes, updateRoiNote, persistRoiNote,
-    regionalData, backendRiskLevel, aiClinicalNote, aiZoneRisks,
+    regionalData, backendRiskLevel, aiClinicalNote, aiZoneRisks, roiZoneRisks,
     patients,
     activePatientId,
     isCaseLoading,
@@ -151,16 +151,28 @@ export default function Planning3DView({ patientId }) {
       aiById.set(normalizeKey(zone.id), zone);
     });
 
+    const roiById = new Map();
+    (roiZoneRisks || []).forEach((zone) => {
+      roiById.set(zone.id, zone);
+      roiById.set(normalizeKey(zone.id), zone);
+    });
+
     return {
       ...generated,
       zones: generated.zones.map((zone) => {
         const canKey = normalizeKey(zone.id);
         const aiZone = aiById.get(zone.id) || aiById.get(canKey);
+        const backendRoi = roiById.get(zone.id) || roiById.get(canKey);
 
-        let finalRisk = zone.riskLevel;
-        let finalNote = zone.note;
+        let finalRisk = backendRoi?.riskLevel || zone.riskLevel;
+        let finalRiskScore = backendRoi?.riskScore ?? zone.riskScore;
+        let finalNote = backendRoi?.note || zone.note;
 
-        if (aiZone) {
+        if (backendRoi) {
+          finalRisk = backendRoi.riskLevel || finalRisk;
+          finalRiskScore = backendRoi.riskScore ?? finalRiskScore;
+          finalNote = backendRoi.note || finalNote;
+        } else if (aiZone) {
           finalRisk = aiZone.riskLevel || finalRisk;
           finalNote = aiZone.note || finalNote;
         } else if (backendRiskLevel === 'low') {
@@ -173,11 +185,12 @@ export default function Planning3DView({ patientId }) {
         return {
           ...zone,
           riskLevel: finalRisk,
+          riskScore: finalRiskScore,
           note: finalNote,
         };
       }),
     };
-  }, [currentPatient, biomarkers, roiNotes, aiZoneRisks, backendRiskLevel]);
+  }, [currentPatient, biomarkers, roiNotes, aiZoneRisks, roiZoneRisks, backendRiskLevel]);
 
   const riskCounts = useMemo(() => {
     const zones = dynamicAnnotations?.zones || [];
