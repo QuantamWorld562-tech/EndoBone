@@ -38,11 +38,11 @@ export default function AIAssessmentView({ patientId }) {
 
   const effectivePatientId = patientId || params.patientId || activePatientId || null;
 
-  if (isCaseLoading || isAnalyzing) {
+  if (isCaseLoading || isAnalyzing || (effectivePatientId && !assessment)) {
     return <AssessmentSkeleton />;
   }
 
-  if (!effectivePatientId || !assessment) {
+  if (!effectivePatientId) {
     return (
       <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8 animate-fade-in">
         <div className="max-w-2xl mx-auto text-center space-y-4">

@@ -45,6 +45,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
     activePatientId,
     setActivePatientId,
     isCaseLoading,
+    isLoadingPatients,
     patients = [],
   } = usePatientContext();
 
@@ -515,7 +516,7 @@ export default function PreSurgicalSummaryView({ patientId }) {
     error: 'bg-red-700 text-white border-red-600',
   };
 
-  if (isCaseLoading) {
+  if (isCaseLoading || (effectivePatientId && (!currentPatient || isLoadingPatients))) {
     return <PreSurgicalSummarySkeleton />;
   }
 

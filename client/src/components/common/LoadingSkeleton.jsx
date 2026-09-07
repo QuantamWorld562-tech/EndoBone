@@ -33,9 +33,11 @@ export function CaseLoadingOverlay({
   useEffect(() => {
     const t1 = setTimeout(() => setStepIndex(1), 180);
     const t2 = setTimeout(() => setStepIndex(2), 360);
+    const t3 = setTimeout(() => setStepIndex(3), 520);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
 
@@ -101,11 +103,11 @@ export function CaseLoadingOverlay({
           <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}
+              style={{ width: `${Math.min(100, Math.round(((stepIndex + (stepIndex >= steps.length ? 1 : 0.6)) / steps.length) * 100))}%` }}
             />
           </div>
-          <p className="text-[11px] text-slate-400 font-semibold tracking-wide">
-            Loading Patient Workspace...
+          <p className={`text-[11px] font-semibold tracking-wide transition-colors duration-300 ${stepIndex >= steps.length ? 'text-teal-600 font-bold' : 'text-slate-400'}`}>
+            {stepIndex >= steps.length ? '✓ Patient Workspace Ready' : 'Loading Patient Workspace...'}
           </p>
         </div>
       </div>

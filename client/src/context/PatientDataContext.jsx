@@ -265,7 +265,7 @@ export function PatientDataProvider({ children }) {
     setActivePatientId(patientId);
     setTimeout(() => {
       setIsCaseLoading(false);
-    }, 450);
+    }, 650);
   }, [patientList]);
 
   // Fetch live patient list from backend on mount
@@ -483,7 +483,16 @@ export function PatientDataProvider({ children }) {
       }));
     }
 
+    setCaseLoadingInfo({
+      id: patientId,
+      name: newCase.name || `Patient ${patientId}`,
+      procedure: newCase.procedure || 'Orthopedic Pre-Surgical Case',
+    });
+    setIsCaseLoading(true);
     setActivePatientId(patientId);
+    setTimeout(() => {
+      setIsCaseLoading(false);
+    }, 650);
     return patientId;
   }, []);
 

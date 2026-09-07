@@ -109,6 +109,7 @@ export default function Planning3DView({ patientId }) {
     patients,
     activePatientId,
     isCaseLoading,
+    isLoadingPatients,
     setIsNewCaseModalOpen,
   } = usePatientContext();
 
@@ -194,11 +195,11 @@ export default function Planning3DView({ patientId }) {
     };
   }, [isFullscreen]);
 
-  if (isCaseLoading) {
+  if (isCaseLoading || (effectivePatientId && (!currentPatient || isLoadingPatients))) {
     return <Planning3DSkeleton />;
   }
 
-  if (!effectivePatientId || !currentPatient) {
+  if (!effectivePatientId) {
     return (
       <div className="bg-gradient-to-br from-white via-slate-50 to-blue-50/40 rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-10 space-y-8 animate-fade-in">
         <div className="max-w-2xl mx-auto text-center space-y-4">

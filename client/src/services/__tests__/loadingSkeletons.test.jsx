@@ -51,4 +51,17 @@ describe('Loading Skeletons Suite', () => {
     expect(el.props.className).toContain('h-10 w-20');
     expect(el.props.className).toContain('animate-shimmer');
   });
+
+  it('renders CaseLoadingOverlay with custom patient details', () => {
+    const el = (
+      <CaseLoadingOverlay
+        patientId="PEB-9999-X"
+        patientName="Test Patient"
+        procedure="Direct Anterior THA"
+      />
+    );
+    expect(React.isValidElement(el)).toBe(true);
+    expect(el.props.patientId).toBe('PEB-9999-X');
+    expect(el.props.patientName).toBe('Test Patient');
+  });
 });

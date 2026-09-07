@@ -16,25 +16,27 @@ import {
   Plus,
 } from 'lucide-react';
 import { usePatientContext } from '../../../context/PatientDataContext';
-import { CaseLoadingOverlay, DashboardSkeleton } from '../../common';
+import { DashboardSkeleton } from '../../common';
 
 export default function DashboardView({ onSelectPatient }) {
   const navigate = useNavigate();
-  const { patients, deleteCase, setActivePatientId, setIsNewCaseModalOpen, isLoadingPatients, allBiomarkers } = usePatientContext();
-  const [loadingPatient, setLoadingPatient] = useState(null);
+  const {
+    patients,
+    deleteCase,
+    selectPatientCase,
+    setIsNewCaseModalOpen,
+    isLoadingPatients,
+    allBiomarkers,
+  } = usePatientContext();
 
   const handleSelectPatient = (id) => {
     const targetPatient = patients.find((p) => p.id === id);
-    setLoadingPatient(targetPatient || { id, name: `Patient ${id}`, procedure: 'Pre-Surgical Case' });
-    setActivePatientId(id);
-
-    setTimeout(() => {
-      if (onSelectPatient) {
-        onSelectPatient(id);
-      } else {
-        navigate(`/patients/${id}/metabolic`);
-      }
-    }, 550);
+    selectPatientCase(id, targetPatient?.procedure);
+    if (onSelectPatient) {
+      onSelectPatient(id);
+    } else {
+      navigate(`/patients/${id}/metabolic`);
+    }
   };
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -430,15 +432,6 @@ export default function DashboardView({ onSelectPatient }) {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Case Selection Loading Overlay */}
-      {loadingPatient && (
-        <CaseLoadingOverlay
-          patientId={loadingPatient.id}
-          patientName={loadingPatient.name}
-          procedure={loadingPatient.procedure}
-        />
       )}
     </div>
   );
