@@ -44,7 +44,7 @@ The platform is designed as a decision-support workflow prototype, with clinical
 - **Unified anatomical + physiological view**
 ### 2. 🖥️ Interactive 3D Anatomical Workspace :-
 - **3D femur visualisation**
-- **Rotate, zoom, pan & reset**
+- **Rotate, pan & reset**
 - **Anatomical region exploration**
 - **ROI selection & planning annotations**
 ### 3. 🤖 AI-Assisted Contextual Assessment
