@@ -148,7 +148,7 @@ export default function LoginView() {
           </div>
 
           {/* Use Demo Account Option Button */}
-          <button
+          {/* <button
             type="button"
             onClick={handleDemoLogin}
             disabled={loading}
@@ -162,7 +162,7 @@ export default function LoginView() {
                 <span>Use Demo Account</span>
               </>
             )}
-          </button>
+          </button> */}
         </form>
 
         {/* Register link */}
